@@ -766,6 +766,7 @@ class Poopy {
 
                     if (origcontent.toLowerCase().startsWith(prefix.toLowerCase()) && ((!msg.author.bot && msg.author.id != bot.user.id) || config.allowbotusage)) {
                         data.guildData[msg.guild.id].lastuse = Date.now()
+                        data.guildData[msg.guild.id].channels[msg.channel.id].lastuse = Date.now()
 
                         var hivemindPass = true
 

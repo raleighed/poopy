@@ -221,6 +221,11 @@ module.exports = {
         lastUrls: {
             type: Array,
             required: false
+        },
+
+        lastuse: {
+            type: Number,
+            required: false
         }
     })),
 
