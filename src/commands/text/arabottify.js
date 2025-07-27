@@ -6,7 +6,8 @@ module.exports = {
         let vars = poopy.vars
         let json = poopy.json
         let config = poopy.config
-        let { fs, Discord, DiscordTypes } = poopy.modules
+        let { fs, Discord } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => { })
         var wordNumber = Math.floor(Math.random() * 40) + 1
@@ -36,7 +37,7 @@ module.exports = {
                 if (randomFactor === 7) {
                     dict = 1
                     conn = 1
-                    arabArray.push(msg.member.nickname || msg.author.username + (((Math.floor(Math.random() * 5) === 4 && !nopunctuation) && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''))
+                    arabArray.push(msg.member.nickname || msg.author.displayName + (((Math.floor(Math.random() * 5) === 4 && !nopunctuation) && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''))
                 } else {
                     function chooseWord() {
                         if (Math.floor(Math.random() * dict) + 1 === (dict === 3 ? 0 : 1)) {
@@ -58,7 +59,7 @@ module.exports = {
             if (!msg.nosend) await msg.reply({
                 content: arabArray.join(' '),
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(async () => {
                 var currentcount = vars.filecount
@@ -82,7 +83,7 @@ module.exports = {
             if (Math.floor(Math.random() * 4) === 3 && !noextrawords) {
                 var randomFactor = Math.floor(Math.random() * 8)
                 if (randomFactor === 7) {
-                    arabArray2.push({ word: msg.member.nickname || msg.author.username + (((Math.floor(Math.random() * 7) === 4 && !nopunctuation) && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''), randomness: Math.random() })
+                    arabArray2.push({ word: msg.member.nickname || msg.author.displayName + (((Math.floor(Math.random() * 7) === 4 && !nopunctuation) && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''), randomness: Math.random() })
                 } else if (randomFactor >= 0 && randomFactor <= 3) {
                     arabArray2.push({ word: json.arabJSON.words[Math.floor(Math.random() * json.arabJSON.words.length)] + (((Math.floor(Math.random() * 7) === 4 && !nopunctuation) && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''), randomness: Math.random() })
                 } else {
@@ -103,7 +104,7 @@ module.exports = {
         if (!msg.nosend) await msg.reply({
             content: arabArray.join(' '),
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             }
         }).catch(async () => {
             var currentcount = vars.filecount

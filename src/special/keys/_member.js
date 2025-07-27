@@ -4,7 +4,7 @@ module.exports = {
     let poopy = this
     let data = poopy.data
 
-    var datamembers = data.guildData[msg.guild.id]['allMembers'];
+    var datamembers = data.guildData[msg.guild.id].allMembers;
     var members = []
     for (var id in datamembers) {
       var datamember = datamembers[id]
@@ -16,7 +16,7 @@ module.exports = {
     let poopy = this
     let data = poopy.data
 
-    var datamembers = data.guildData[msg.guild.id]['allMembers'];
+    var datamembers = data.guildData[msg.guild.id].allMembers;
     var members = []
     for (var id in datamembers) {
       var datamember = datamembers[id]

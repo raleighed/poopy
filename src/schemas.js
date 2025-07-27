@@ -112,6 +112,11 @@ module.exports = {
         tokens: {
             type: Object,
             required: false
+        },
+
+        blocked: {
+            type: Array,
+            required: false
         }
     })),
 
@@ -126,8 +131,12 @@ module.exports = {
             required: true
         },
 
-
         chaincommands: {
+            type: Boolean,
+            required: false
+        },
+
+        webhookAttachments: {
             type: Boolean,
             required: false
         },
@@ -152,6 +161,16 @@ module.exports = {
             required: false
         },
 
+        restricted: {
+            type: Array,
+            required: false
+        },
+
+        read: {
+            type: Array,
+            required: false
+        },
+
         localcmds: {
             type: Array,
             required: false
@@ -159,11 +178,6 @@ module.exports = {
 
         joins: {
             type: Number,
-            required: false
-        },
-
-        read: {
-            type: Boolean,
             required: false
         },
 

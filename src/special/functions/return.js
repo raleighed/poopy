@@ -6,7 +6,7 @@ module.exports = {
         let tempdata = poopy.tempdata
 
         var word = matches[1]
-        tempdata[msg.author.id][msg.id]['return'] = word
+        tempdata[msg.author.id][msg.id].return = word
 
         return ''
     }

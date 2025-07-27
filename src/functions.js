@@ -498,6 +498,17 @@ functions.configFlagsEnabled = function (reqConfigs = []) {
     return exist
 }
 
+functions.fetchPingPerms = function (msg) {
+    let poopy = this
+    let { DiscordTypes } = poopy.modules
+
+    return (
+        msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
+        msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) ||
+        msg.author.id == msg.guild.ownerID
+    ) ? ['users', 'everyone', 'roles'] : ['users']
+}
+
 functions.execPromise = function (code) {
     let poopy = this
     let config = poopy.config
@@ -626,33 +637,38 @@ functions.gatherData = async function (msg) {
     let { dataGather } = poopy.functions
 
     var now = Date.now()
-    var webhook = config.self ? msg.webhookId : await msg.fetchWebhook().catch(() => { })
+    var webhook = msg.webhookId || (msg.author.bot && !msg.author.flags)
 
     if (!webhook) {
         if (!data.userData[msg.author.id]) {
             data.userData[msg.author.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.userData(config.database, msg.author.id).catch((e) => console.log(e)) || {}
         }
+
         if (!data.botData.users.includes(msg.author.id)) {
             data.botData.users.push(msg.author.id)
         }
 
-        data.userData[msg.author.id]['username'] = msg.author.username
+        data.userData[msg.author.id].username = msg.author.displayName
         for (var stat in vars.battleStats) {
             if (data.userData[msg.author.id][stat] === undefined) {
                 data.userData[msg.author.id][stat] = vars.battleStats[stat]
             }
         }
 
-        if (!data.userData[msg.author.id]['tokens']) {
-            data.userData[msg.author.id]['tokens'] = {}
+        if (!data.userData[msg.author.id].tokens) {
+            data.userData[msg.author.id].tokens = {}
         }
-        if (!data.userData[msg.author.id]['battleSprites']) {
-            data.userData[msg.author.id]['battleSprites'] = {}
+        if (!data.userData[msg.author.id].battleSprites) {
+            data.userData[msg.author.id].battleSprites = {}
+        }
+
+        if (!data.userData[msg.author.id].blocked) {
+            data.userData[msg.author.id].blocked = []
         }
 
         data.botData.leaderboard[msg.author.id] = {
             tag: msg.author.tag,
-            bucks: data.userData[msg.author.id]['bucks']
+            bucks: data.userData[msg.author.id].bucks
         }
     }
 
@@ -660,103 +676,101 @@ functions.gatherData = async function (msg) {
         data.guildData[msg.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, msg.guild.id).catch((e) => console.log(e)) || {}
     }
 
-    if (data.guildData[msg.guild.id]['read'] === undefined) {
-        data.guildData[msg.guild.id]['read'] = false
+    if (data.guildData[msg.guild.id].chaincommands == undefined) {
+        data.guildData[msg.guild.id].chaincommands = true
     }
 
-    if (data.guildData[msg.guild.id]['chaincommands'] == undefined) {
-        data.guildData[msg.guild.id]['chaincommands'] = true
+    if (data.guildData[msg.guild.id].keyexec == undefined) {
+        data.guildData[msg.guild.id].keyexec = 1
     }
 
-    if (data.guildData[msg.guild.id]['keyexec'] == undefined) {
-        data.guildData[msg.guild.id]['keyexec'] = 1
+    if (data.guildData[msg.guild.id].webhookAttachments == undefined) {
+        data.guildData[msg.guild.id].webhookAttachments = true
     }
 
-    if (data.guildData[msg.guild.id]['prefix'] === undefined) {
-        data.guildData[msg.guild.id]['prefix'] = config.globalPrefix
+    if (data.guildData[msg.guild.id].prefix === undefined) {
+        data.guildData[msg.guild.id].prefix = config.globalPrefix
     }
 
-    if (!data.guildData[msg.guild.id]['channels']) {
-        data.guildData[msg.guild.id]['channels'] = {}
+    if (!data.guildData[msg.guild.id].channels) {
+        data.guildData[msg.guild.id].channels = {}
     }
 
-    if (!data.guildData[msg.guild.id]['channels'][msg.channel.id]) {
-        data.guildData[msg.guild.id]['channels'][msg.channel.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.channelData(config.database, msg.guild.id, msg.channel.id).catch((e) => console.log(e)) || {}
+    if (!data.guildData[msg.guild.id].channels[msg.channel.id]) {
+        data.guildData[msg.guild.id].channels[msg.channel.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.channelData(config.database, msg.guild.id, msg.channel.id).catch((e) => console.log(e)) || {}
     }
 
-    if (!data.guildData[msg.guild.id]['channels'][msg.channel.id]['lastUrls']) {
-        data.guildData[msg.guild.id]['channels'][msg.channel.id]['lastUrls'] = []
+    if (!data.guildData[msg.guild.id].channels[msg.channel.id].lastUrls) {
+        data.guildData[msg.guild.id].channels[msg.channel.id].lastUrls = []
     }
-
-    if (data.guildData[msg.guild.id]['channels'][msg.channel.id]['read'] === undefined) {
-        data.guildData[msg.guild.id]['channels'][msg.channel.id]['read'] = false
-    }
-
-    if (data.guildData[msg.guild.id]['channels'][msg.channel.id]['nsfw'] === undefined) {
-        data.guildData[msg.guild.id]['channels'][msg.channel.id]['nsfw'] = !!msg.channel.nsfw
-    }
-
-    var channelFetch = config.self ? msg.channel : await msg.channel.fetch(true).catch(() => { })
-    var nsfwChanged = channelFetch && channelFetch.nsfw != msg.channel.onsfw
-    if (msg.channel.onsfw == undefined || nsfwChanged) {
-        msg.channel.onsfw = !!(channelFetch || msg.channel).nsfw
-        if (nsfwChanged) data.guildData[msg.guild.id]['channels'][msg.channel.id]['nsfw'] = !!channelFetch.nsfw
-    }
-
-    msg.channel.nsfw = !!data.guildData[msg.guild.id]['channels'][msg.channel.id]['nsfw']
 
     if (!webhook) {
-        if (!data.guildData[msg.guild.id]['members']) {
-            data.guildData[msg.guild.id]['members'] = {}
+        if (!data.guildData[msg.guild.id].members) {
+            data.guildData[msg.guild.id].members = {}
         }
 
-        if (!data.guildData[msg.guild.id]['members'][msg.author.id]) {
-            data.guildData[msg.guild.id]['members'][msg.author.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch((e) => console.log(e)) || {}
+        if (!data.guildData[msg.guild.id].members[msg.author.id]) {
+            data.guildData[msg.guild.id].members[msg.author.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch((e) => console.log(e)) || {}
         }
 
-        if (!data.guildData[msg.guild.id]['members'][msg.author.id]['messages']) {
-            data.guildData[msg.guild.id]['members'][msg.author.id]['messages'] = 0
+        if (!data.guildData[msg.guild.id].members[msg.author.id].messages) {
+            data.guildData[msg.guild.id].members[msg.author.id].messages = 0
         }
 
-        if (!data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown']) {
-            data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] = false
+        if (!data.guildData[msg.guild.id].members[msg.author.id].coolDown) {
+            data.guildData[msg.guild.id].members[msg.author.id].coolDown = false
         }
 
-        if (!data.guildData[msg.guild.id]['allMembers']) {
-            data.guildData[msg.guild.id]['allMembers'] = {}
+        if (!data.guildData[msg.guild.id].allMembers) {
+            data.guildData[msg.guild.id].allMembers = {}
         }
 
-        if (!data.guildData[msg.guild.id]['allMembers'][msg.author.id]) {
-            data.guildData[msg.guild.id]['allMembers'][msg.author.id] = {}
+        if (!data.guildData[msg.guild.id].allMembers[msg.author.id]) {
+            data.guildData[msg.guild.id].allMembers[msg.author.id] = {}
         }
 
-        if (!data.guildData[msg.guild.id]['allMembers'][msg.author.id]['messages']) {
-            data.guildData[msg.guild.id]['allMembers'][msg.author.id]['messages'] = 0
+        if (!data.guildData[msg.guild.id].allMembers[msg.author.id].messages) {
+            data.guildData[msg.guild.id].allMembers[msg.author.id].messages = 0
         }
 
-        data.guildData[msg.guild.id]['members'][msg.author.id]['messages']++
-        data.guildData[msg.guild.id]['members'][msg.author.id]['username'] = msg.author.username
-        data.guildData[msg.guild.id]['members'][msg.author.id]['lastmessage'] = now
+        var roleOrder = msg.member.roles?.cache ? Math.max(...msg.member.roles.cache.map(r => r.rawPosition)) : 0
 
-        data.guildData[msg.guild.id]['allMembers'][msg.author.id]['messages']++
-        data.guildData[msg.guild.id]['allMembers'][msg.author.id]['username'] = msg.author.username
-        data.guildData[msg.guild.id]['allMembers'][msg.author.id]['lastmessage'] = now
-        data.guildData[msg.guild.id]['allMembers'][msg.author.id]['bot'] = msg.author.bot
+        data.guildData[msg.guild.id].members[msg.author.id].messages++
+        data.guildData[msg.guild.id].members[msg.author.id].username = msg.author.displayName
+        data.guildData[msg.guild.id].members[msg.author.id].lastmessage = now
+        data.guildData[msg.guild.id].members[msg.author.id].highestroleorder = roleOrder
+        data.guildData[msg.guild.id].members[msg.author.id].bot = msg.author.bot
+
+        data.guildData[msg.guild.id].allMembers[msg.author.id].messages++
+        data.guildData[msg.guild.id].allMembers[msg.author.id].username = msg.author.displayName
+        data.guildData[msg.guild.id].allMembers[msg.author.id].lastmessage = now
+        data.guildData[msg.guild.id].allMembers[msg.author.id].highestroleorder = roleOrder
+        data.guildData[msg.guild.id].allMembers[msg.author.id].bot = msg.author.bot
     }
 
-    if (!data.guildData[msg.guild.id]['disabled']) {
-        data.guildData[msg.guild.id]['disabled'] = config.defaultDisabled
+    if (!data.guildData[msg.guild.id].disabled) {
+        data.guildData[msg.guild.id].disabled = config.defaultDisabled
     }
 
-    if (!data.guildData[msg.guild.id]['localcmds']) {
-        data.guildData[msg.guild.id]['localcmds'] = []
+    if (!data.guildData[msg.guild.id].read || typeof data.guildData[msg.guild.id].read != "object") {
+        data.guildData[msg.guild.id].read = []
     }
 
-    if (!data.guildData[msg.guild.id]['messages']) {
-        data.guildData[msg.guild.id]['messages'] = []
+    if (!data.guildData[msg.guild.id].restricted) {
+        data.guildData[msg.guild.id].restricted = []
     }
 
-    data.guildData[msg.guild.id]['messages'] = data.guildData[msg.guild.id]['messages'].filter(m => now - m.timestamp < 1000 * 60 * 60 * 24 * 30)
+    if (!data.guildData[msg.guild.id].localcmds) {
+        data.guildData[msg.guild.id].localcmds = []
+    }
+
+    if (!data.guildData[msg.guild.id].messages) {
+        data.guildData[msg.guild.id].messages = []
+    }
+
+    if (data.guildData[msg.guild.id].messages.some(m => now - m.timestamp < 1000 * 60 * 60 * 24 * 30)) {
+        data.guildData[msg.guild.id].messages = data.guildData[msg.guild.id].messages.filter(m => now - m.timestamp < 1000 * 60 * 60 * 24 * 30)
+    }
 
     if (!tempdata[msg.guild.id]) {
         tempdata[msg.guild.id] = {}
@@ -775,8 +789,8 @@ functions.gatherData = async function (msg) {
             tempdata[msg.guild.id][msg.author.id] = {}
         }
 
-        if (!tempdata[msg.guild.id][msg.author.id]['promises']) {
-            tempdata[msg.guild.id][msg.author.id]['promises'] = []
+        if (!tempdata[msg.guild.id][msg.author.id].promises) {
+            tempdata[msg.guild.id][msg.author.id].promises = []
         }
 
         if (!tempdata[msg.author.id]) {
@@ -787,32 +801,32 @@ functions.gatherData = async function (msg) {
             tempdata[msg.author.id][msg.id] = {}
         }
 
-        if (!tempdata[msg.author.id][msg.id]['execCount']) {
-            tempdata[msg.author.id][msg.id]['execCount'] = 0
+        if (!tempdata[msg.author.id][msg.id].execCount) {
+            tempdata[msg.author.id][msg.id].execCount = 0
         }
 
-        if (!tempdata[msg.author.id]['cooler']) {
-            tempdata[msg.author.id]['cooler'] = msg.id
+        if (!tempdata[msg.author.id].cooler) {
+            tempdata[msg.author.id].cooler = msg.id
         }
 
-        if (!tempdata[msg.author.id]['arrays']) {
-            tempdata[msg.author.id]['arrays'] = {}
+        if (!tempdata[msg.author.id].arrays) {
+            tempdata[msg.author.id].arrays = {}
         }
 
-        if (!tempdata[msg.author.id]['declared']) {
-            tempdata[msg.author.id]['declared'] = {}
+        if (!tempdata[msg.author.id].declared) {
+            tempdata[msg.author.id].declared = {}
         }
 
-        if (!tempdata[msg.author.id]['promises']) {
-            tempdata[msg.author.id]['promises'] = []
+        if (!tempdata[msg.author.id].promises) {
+            tempdata[msg.author.id].promises = []
         }
 
-        if (!tempdata[msg.author.id]['lastmention']) {
-            tempdata[msg.author.id]['lastmention'] = 0
+        if (!tempdata[msg.author.id].lastmention) {
+            tempdata[msg.author.id].lastmention = 0
         }
 
-        if (!tempdata[msg.author.id]['mentions']) {
-            tempdata[msg.author.id]['mentions'] = 0
+        if (!tempdata[msg.author.id].mentions) {
+            tempdata[msg.author.id].mentions = 0
         }
     }
 }
@@ -886,7 +900,7 @@ functions.cleverbot = async function (stim, id) {
             url: 'https://random-stuff-api.p.rapidapi.com/ai',
             params: {
                 msg: stim,
-                bot_name: bot.user.username,
+                bot_name: bot.user.displayName,
                 bot_gender: 'male',
                 bot_master: 'raleigh',
                 bot_age: String(new Date(Date.now() - 1031690078000).getUTCFullYear() - 1970),
@@ -1005,12 +1019,14 @@ functions.infoPost = async function (message) {
     let poopy = this
     let bot = poopy.bot
     let config = poopy.config
+    let vars = poopy.vars
     let { averageColor } = poopy.functions
 
     if (config.stfu || config.noInfoPost) return
 
     var avatar = bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' })
-    var color = os.platform() == 'win32' ? { r: 255, g: 255, b: 255 } : await averageColor(avatar)
+    var color = color ?? os.platform() == 'win32' ? { r: 71, g: 37, b: 4 } : await averageColor(avatar)
+    vars.color = color
 
     var infoChannel = bot.guilds.cache.get('834431435704107018')?.channels.cache.get('967083645619830834')
     if (!infoChannel) return
@@ -1025,7 +1041,7 @@ functions.infoPost = async function (message) {
         embeds: [{
             description: message,
             author: {
-                name: bot.user.username,
+                name: bot.user.displayName,
                 icon_url: avatar,
             },
             color: (color.r << 8 << 8) + (color.g << 8) + (color.b)
@@ -1678,16 +1694,16 @@ functions.navigateEmbed = async function (channel, pageFunc, results, who, extra
     var usingButton = false
 
     if (!nolimit) {
-        var lastCollectors = tempdata[who]['navigateCollectors']
+        var lastCollectors = tempdata[who].navigateCollectors
         if (lastCollectors && lastCollectors.length) lastCollectors.forEach(lastCollector => {
             if (lastCollector.stop) lastCollector.stop()
         })
-        tempdata[who]['navigateCollectors'] = []
+        tempdata[who].navigateCollectors = []
     }
 
     if (config.useReactions) {
         var collector = resultsMsg.createReactionCollector({ time: 300_000 })
-        tempdata[who]['navigateCollectors'].push(collector)
+        tempdata[who].navigateCollectors.push(collector)
 
         collector.on('collect', async (reaction, user) => {
             dmSupport(reaction)
@@ -1730,8 +1746,8 @@ functions.navigateEmbed = async function (channel, pageFunc, results, who, extra
         })
 
         collector.on('end', async (_, reason) => {
-            var index = tempdata[who]['navigateCollectors'].indexOf(collector)
-            tempdata[who]['navigateCollectors'].splice(index, 1)
+            var index = tempdata[who].navigateCollectors.indexOf(collector)
+            tempdata[who].navigateCollectors.splice(index, 1)
 
             var resultEmbed = await pageFunc(page, true).catch(() => { })
             var sendObject = {}
@@ -1753,7 +1769,7 @@ functions.navigateEmbed = async function (channel, pageFunc, results, who, extra
         }
     } else {
         var collector = resultsMsg.createMessageComponentCollector({ time: 300_000 })
-        tempdata[who]['navigateCollectors'].push(collector)
+        tempdata[who].navigateCollectors.push(collector)
 
         collector.on('collect', async (button) => {
             dmSupport(button)
@@ -1811,8 +1827,8 @@ functions.navigateEmbed = async function (channel, pageFunc, results, who, extra
         })
 
         collector.on('end', async (_, reason) => {
-            var index = tempdata[who]['navigateCollectors'].indexOf(collector)
-            tempdata[who]['navigateCollectors'].splice(index, 1)
+            var index = tempdata[who].navigateCollectors.indexOf(collector)
+            tempdata[who].navigateCollectors.splice(index, 1)
 
             var resultEmbed = await pageFunc(page, true).catch(() => { })
             var sendObject = {
@@ -1922,23 +1938,25 @@ functions.rainmaze = async function (channel, who, reply, w = 8, h = 6) {
     var components = []
     var chunkButtonData = chunkArray(buttonsData, 3)
 
-    chunkButtonData.forEach(buttonsData => {
-        var buttonRow = new Discord.ActionRowBuilder()
-        var buttons = []
+    if (!config.useReactions) {
+        chunkButtonData.forEach(buttonsData => {
+            var buttonRow = new Discord.ActionRowBuilder()
+            var buttons = []
 
-        buttonsData.forEach(bdata => {
-            var button = new Discord.ButtonBuilder()
-                .setStyle(bdata.style)
-                .setEmoji(bdata.emoji)
-                .setCustomId(bdata.customid)
+            buttonsData.forEach(bdata => {
+                var button = new Discord.ButtonBuilder()
+                    .setStyle(bdata.style)
+                    .setEmoji(bdata.emoji)
+                    .setCustomId(bdata.customid)
 
-            buttons.push(button)
+                buttons.push(button)
+            })
+
+            buttonRow.addComponents(buttons)
+
+            components.push(buttonRow)
         })
-
-        buttonRow.addComponents(buttons)
-
-        components.push(buttonRow)
-    })
+    }
 
     var rainmaze = new Rainmaze(w, h)
     var raindraw = rainmaze.draw()
@@ -1963,7 +1981,7 @@ functions.rainmaze = async function (channel, who, reply, w = 8, h = 6) {
         who = who.id
     }
 
-    var rainMsg = await (reply ?? channel)[reply ? 'reply' : 'send'](rainObject).catch(() => { })
+    var rainMsg = await (reply ?? channel)[reply ? 'reply' : 'send'](rainObject).catch((e) => console.log(e))
     var ended = false
 
     if (!rainMsg) throw new Error(`Couldn't send Rainmaze to channel`)
@@ -1981,11 +1999,11 @@ functions.rainmaze = async function (channel, who, reply, w = 8, h = 6) {
                     name: "Reward",
                     value: `+${reward} P$`
                 })
-                data.userData[who]['bucks'] += reward
+                data.userData[who].bucks += reward
 
                 data.botData.leaderboard[who] = {
                     tag: tag ?? (await bot.users.fetch(who).catch(() => { }))?.tag,
-                    bucks: data.userData[who]['bucks']
+                    bucks: data.userData[who].bucks
                 }
             }
         }
@@ -2080,6 +2098,11 @@ functions.displayShop = async function (channel, who, reply, type) {
     let { chunkArray, dmSupport, getLevel } = poopy.functions
     let { Discord, DiscordTypes } = poopy.modules
 
+    if (type != "upgrades") {
+        await (reply ?? channel)[reply ? 'reply' : 'send']("Work in progress.").catch(() => { })
+        return
+    }
+
     var buttonsData = [
         /*{
             health: 100,
@@ -2158,31 +2181,33 @@ functions.displayShop = async function (channel, who, reply, type) {
         var components = []
         var chunkButtonData = chunkArray(buttonsData, 5)
 
-        var level = getLevel(data.userData[who]['exp'])
+        var level = getLevel(data.userData[who].exp).level
         var cap = level >= 20 ? 25 :
             level >= 10 ? 10 :
                 5
 
-        chunkButtonData.forEach(buttonsData => {
-            var buttonRow = new Discord.ActionRowBuilder()
-            var buttons = []
+        if (!config.useReactions) {
+            chunkButtonData.forEach(buttonsData => {
+                var buttonRow = new Discord.ActionRowBuilder()
+                var buttons = []
 
-            buttonsData.forEach(bdata => {
-                var button = new Discord.ButtonBuilder()
-                    .setStyle(bdata.style)
-                    .setEmoji(bdata.emoji)
-                    .setLabel(data.userData[who][bdata.customid] >= cap ? `MAX` : `${bdata.price} P$`)
-                    .setCustomId(bdata.customid)
+                buttonsData.forEach(bdata => {
+                    var button = new Discord.ButtonBuilder()
+                        .setStyle(bdata.style)
+                        .setEmoji(bdata.emoji)
+                        .setLabel(data.userData[who][bdata.customid] >= cap ? `MAX` : `${bdata.price} P$`)
+                        .setCustomId(bdata.customid)
 
-                buttons.push(button)
+                    buttons.push(button)
+                })
+
+                buttonRow.addComponents(buttons)
+
+                components.push(buttonRow)
             })
+        }
 
-            buttonRow.addComponents(buttons)
-
-            components.push(buttonRow)
-        })
-
-        upgradeList = buttonsData.map(u => `${u.emoji} **${data.userData[who][u.customid] >= cap ? `MAX` : `${u.price} P$`}** - ${u.desc} **(${data.userData[who][u.customid]}/${cap})**`).join('\n')
+        upgradeList = buttonsData.map(u => `${u.emoji} **${data.userData[who][u.customid] >= cap ? `MAX` : `${u.price} P$`}** - ${u.desc} **(${data.userData[who][u.customid]}/${cap})**`).join('\n') + `\n\n**Pobucks:** ${data.userData[who].bucks} P$`
 
         if (config.textEmbeds) shopObject.content = upgradeList
         else shopObject.embeds = [{
@@ -2193,8 +2218,8 @@ functions.displayShop = async function (channel, who, reply, type) {
                 icon_url: bot.user.displayAvatarURL({
                     dynamic: true, size: 1024, extension: 'png'
                 }),
-                text: bot.user.username
-            },
+                text: bot.user.displayName
+            }
         }]
 
         if (ended) {
@@ -2205,9 +2230,9 @@ functions.displayShop = async function (channel, who, reply, type) {
         if (shopMsg) shopMsg.edit(shopObject).catch(() => { })
     }
 
-    await updateShop().catch(() => { })
+    await updateShop().catch((e) => console.log(e))
 
-    shopMsg = await (reply ?? channel)[reply ? 'reply' : 'send'](shopObject).catch(() => { })
+    shopMsg = await (reply ?? channel)[reply ? 'reply' : 'send'](shopObject).catch((e) => console.log(e))
 
     if (!shopMsg) throw new Error(`Couldn't send shop to channel`)
 
@@ -2224,14 +2249,26 @@ functions.displayShop = async function (channel, who, reply, type) {
             var buttonData = buttonsData.find(bdata => bdata.emoji == reaction.emoji.name)
 
             if (buttonData) {
+                var level = getLevel(data.userData[who].exp).level
+                var cap = level >= 20 ? 25 :
+                    level >= 10 ? 10 :
+                        5
+
                 collector.resetTimer()
 
                 reaction.users.remove(user).catch(() => { })
 
-                if (buttonData.price <= data.userData[who]['bucks']) {
-                    data.userData[who]['bucks'] -= buttonData.price
-                    data.userData[who][button.customId]++
-                    if (button.customId == 'heal') data.userData[who]['maxHealth'] += 10
+                if (data.userData[who][buttonData.customid] >= cap) {
+                    data.userData[who][buttonData.customid] = cap
+                    await channel.send('You can\'t upgrade more than that!').catch(() => { })
+                    await updateShop().catch(() => { })
+                    return
+                }
+
+                if (buttonData.price <= data.userData[who].bucks) {
+                    data.userData[who].bucks -= buttonData.price
+                    data.userData[who][buttonData.customid]++
+                    if (buttonData.customid == 'heal') data.userData[who].maxHealth += 10
                     await updateShop().catch(() => { })
                 } else {
                     await channel.send('Not enough moners.').catch(() => { })
@@ -2262,13 +2299,28 @@ functions.displayShop = async function (channel, who, reply, type) {
             var buttonData = buttonsData.find(bdata => bdata.customid == button.customId)
 
             if (buttonData) {
+                var level = getLevel(data.userData[who].exp).level
+                var cap = level >= 20 ? 25 :
+                    level >= 10 ? 10 :
+                        5
+
                 collector.resetTimer()
 
-                if (buttonData.price <= data.userData[who]['bucks']) {
+                if (data.userData[who][buttonData.customid] >= cap) {
+                    data.userData[who][buttonData.customid] = cap
+                    await button.reply({
+                        content: 'You can\'t upgrade more than that!',
+                        ephemeral: true
+                    }).catch(() => { })
+                    await updateShop().catch(() => { })
+                    return
+                }
+
+                if (buttonData.price <= data.userData[who].bucks) {
                     button.deferUpdate().catch(() => { })
-                    data.userData[who]['bucks'] -= buttonData.price
-                    data.userData[who][button.customId]++
-                    if (button.customId == 'heal') data.userData[who]['maxHealth'] += 10
+                    data.userData[who].bucks -= buttonData.price
+                    data.userData[who][buttonData.customid]++
+                    if (buttonData.customid == 'heal') data.userData[who].maxHealth += 10
                     await updateShop().catch(() => { })
                 } else {
                     await button.reply({
@@ -2305,7 +2357,7 @@ functions.correctUrl = async function (url) {
                 "Accept": "application/json"
             }
         }).catch((e) => console.log(e))
-        
+
         if (response && response.status >= 200 && response.status < 300 && response.data.refreshed_urls.length) {
             infoPost(`Discord URL detected`)
             return response.data.refreshed_urls[0].refreshed
@@ -2786,7 +2838,7 @@ functions.getUrls = async function (msg, options = {}) {
 
     if (!msg) return []
     var string = (options.string ?? msg.content ?? '').replace(/"([\s\S]*?)"/g, '')
-    var prefixFound = options.prefix ?? string.toLowerCase().includes(data.guildData[msg.guild.id]['prefix'].toLowerCase())
+    var prefixFound = options.prefix ?? string.toLowerCase().includes(data.guildData[msg.guild.id].prefix.toLowerCase())
     var max = options.max ?? Infinity
     var urls = []
     var regexes = [
@@ -2887,9 +2939,7 @@ functions.getUrls = async function (msg, options = {}) {
                 return b.length - a.length
             })
             var url = await matched[0].func(match).catch(() => { })
-            if (url) {
-                urls = [url].concat(urls)
-            }
+            if (url) urls.unshift(url)
             if (urls.length >= max) break
         }
     }
@@ -2897,14 +2947,14 @@ functions.getUrls = async function (msg, options = {}) {
     if (msg.embeds.length) {
         var embedsR = []
         msg.embeds.forEach(embed => {
-            if ((options.update && embed.fetched) || embed.type != 'rich' || !embed.image || !embed.image.url) return
-            embedsR.push(embed.image.url)
+            if ((options.update && embed.fetched) || embed.data.type != 'rich' || !embed.data.image || !embed.data.image.url) return
+            embedsR.push(embed.data.image.url)
             if (options.update && !embed.fetched) embed.fetched = true
         })
         embedsR.reverse()
         for (var i in embedsR) {
             var embed = embedsR[i]
-            urls = [embed].concat(urls)
+            urls.unshift(embed)
             if (urls.length >= max) break
         }
     }
@@ -2919,7 +2969,7 @@ functions.getUrls = async function (msg, options = {}) {
         attachmentsR.reverse()
         for (var i in attachmentsR) {
             var attachment = attachmentsR[i]
-            urls = [attachment].concat(urls)
+            urls.unshift(attachment)
             if (urls.length >= max) break
         }
     }
@@ -2934,7 +2984,7 @@ functions.getUrls = async function (msg, options = {}) {
         stickersR.reverse()
         for (var i in stickersR) {
             var sticker = stickersR[i]
-            urls = [sticker].concat(urls)
+            urls.unshift(sticker)
             if (urls.length >= max) break
         }
     }
@@ -2973,8 +3023,8 @@ functions.lastUrl = function (msg, i, tempdir, global) {
     let { lastUrl } = poopy.functions
 
     var urlsGlobal = !global &&
-        tempdata[msg.author.id][msg.id]?.['lastUrls'] ||
-        data.guildData[msg.guild.id]['channels'][msg.channel.id]['lastUrls']
+        tempdata[msg.author.id][msg.id]?.lastUrls ||
+        data.guildData[msg.guild.id].channels[msg.channel.id].lastUrls
     var urls = urlsGlobal.slice()
     var url = urls[i]
 
@@ -3009,8 +3059,8 @@ functions.lastUrls = function (msg, tempdir, global) {
     let tempfiles = poopy.tempfiles
 
     var urlsGlobal = !global &&
-        tempdata[msg.author.id][msg.id]?.['lastUrls'] ||
-        data.guildData[msg.guild.id]['channels'][msg.channel.id]['lastUrls']
+        tempdata[msg.author.id][msg.id]?.lastUrls ||
+        data.guildData[msg.guild.id].channels[msg.channel.id].lastUrls
     var urls = urlsGlobal.slice()
 
     for (var i = 0; i < urls.length; i++) {
@@ -3053,12 +3103,12 @@ functions.addLastUrl = function (msg, url) {
     if (tempdata[msg.author.id][msg.id]) {
         var lasturls = [url].concat(lastUrls(msg))
         lasturls.splice(100)
-        tempdata[msg.author.id][msg.id]['lastUrls'] = lasturls
+        tempdata[msg.author.id][msg.id].lastUrls = lasturls
     }
 
     var lasturls = [url].concat(lastUrls(msg, false, true))
     lasturls.splice(100)
-    data.guildData[msg.guild.id]['channels'][msg.channel.id]['lastUrls'] = lasturls
+    data.guildData[msg.guild.id].channels[msg.channel.id].lastUrls = lasturls
 }
 
 functions.rateLimit = async function (msg) {
@@ -3070,18 +3120,18 @@ functions.rateLimit = async function (msg) {
     if (!process.env.CLOUDAMQP_URL) return false
     if (!tempdata[msg.author.id]) tempdata[msg.author.id] = {}
 
-    tempdata[msg.author.id]['ratelimit'] = (tempdata[msg.author.id]['ratelimit'] ?? 0) + 1
-    setTimeout(() => tempdata[msg.author.id]['ratelimit'] -= 1, 90000)
+    tempdata[msg.author.id].ratelimit = (tempdata[msg.author.id].ratelimit ?? 0) + 1
+    setTimeout(() => tempdata[msg.author.id].ratelimit -= 1, 90000)
 
-    if (tempdata[msg.author.id]['ratelimit'] >= config.rateLimit) {
-        tempdata[msg.author.id]['ratelimits'] = (tempdata[msg.author.id]['ratelimits'] ?? 0.5) * 2
-        var rateLimitTime = config.rateLimitTime * tempdata[msg.author.id]['ratelimits']
-        setTimeout(() => tempdata[msg.author.id]['ratelimits'] -= 1, rateLimitTime * 2)
+    if (tempdata[msg.author.id].ratelimit >= config.rateLimit) {
+        tempdata[msg.author.id].ratelimits = (tempdata[msg.author.id].ratelimits ?? 0.5) * 2
+        var rateLimitTime = config.rateLimitTime * tempdata[msg.author.id].ratelimits
+        setTimeout(() => tempdata[msg.author.id].ratelimits -= 1, rateLimitTime * 2)
 
-        await msg.reply(`you've been banned from using commands for ${rateLimitTime / 60000} minutes for crashing the file processor ${config.rateLimit * tempdata[msg.author.id]['ratelimits']} times LMAO!!!`).catch(() => { })
+        await msg.reply(`you've been banned from using commands for ${rateLimitTime / 60000} minutes for crashing the file processor ${config.rateLimit * tempdata[msg.author.id].ratelimits} times LMAO!!!`).catch(() => { })
         infoPost(`${msg.author.id} was rate limited for ${rateLimitTime / 60000} minutes`).catch(() => { })
-        tempdata[msg.author.id]['ratelimited'] = Date.now() + rateLimitTime
-        setTimeout(() => delete tempdata[msg.author.id]['ratelimited'], rateLimitTime)
+        tempdata[msg.author.id].ratelimited = Date.now() + rateLimitTime
+        setTimeout(() => delete tempdata[msg.author.id].ratelimited, rateLimitTime)
         return true
     }
 
@@ -3096,8 +3146,8 @@ functions.deleteMsgData = function (msg) {
         tempdata[msg.author.id] &&
         tempdata[msg.author.id][msg.id] &&
         (
-            !tempdata[msg.author.id][msg.id]['keyexecuting'] ||
-            tempdata[msg.author.id][msg.id]['keyexecuting'] <= 0
+            !tempdata[msg.author.id][msg.id].keyexecuting ||
+            tempdata[msg.author.id][msg.id].keyexecuting <= 0
         )
     ) {
         delete tempdata[msg.author.id][msg.id]
@@ -3106,9 +3156,11 @@ functions.deleteMsgData = function (msg) {
 
 functions.dmSupport = function (msg) {
     let poopy = this
-    let { DiscordTypes, DMGuild, Collection } = poopy.modules
+    let bot = poopy.bot
 
-    if (msg.channel?.type == DiscordTypes.ChannelType.DM && msg.channel?.recipients) msg.channel.type = DiscordTypes.ChannelType.GroupDM
+    let { Discord, DMGuild, Collection } = poopy.modules
+
+    if (msg.channel?.type == Discord.ChannelType.DM && msg.channel?.recipients) msg.channel.type = Discord.ChannelType.GroupDM
 
     if (!msg.author && msg.user) msg.author = msg.user
     if (!msg.user && msg.author) msg.user = msg.author
@@ -3123,7 +3175,7 @@ functions.dmSupport = function (msg) {
     })
 
     if (!msg.channel) Object.defineProperty(msg, 'channel', {
-        value: msg.client.channels.cache.get(msg.channelId) || msg.author,
+        value: bot.user.channels && bot.user.channels.cache.get(msg.channelId) || msg.author,
         writable: true
     })
     if (msg.channel && !msg.channel.sendTyping) Object.defineProperty(msg.channel, 'sendTyping', {
@@ -3169,6 +3221,13 @@ functions.dmSupport = function (msg) {
         })
     }
 
+    if (msg.messageSnapshots?.size) {
+        var snapshot = msg.messageSnapshots.first()
+
+        msg.content = snapshot.content
+        msg.attachments = snapshot.attachments
+        msg.embeds = snapshot.embeds
+    }
 }
 
 functions.escapeKeywordResult = async function (string) {
@@ -3201,18 +3260,18 @@ functions.getKeywordsFor = async function (string, msg, isBot, { extrakeys = {},
         tempdata[msg.author.id][msg.id] = {}
     }
 
-    if (!tempdata[msg.author.id][msg.id]['keyexecuting']) {
-        tempdata[msg.author.id][msg.id]['keyexecuting'] = 0
+    if (!tempdata[msg.author.id][msg.id].keyexecuting) {
+        tempdata[msg.author.id][msg.id].keyexecuting = 0
     }
-    tempdata[msg.author.id][msg.id]['keyexecuting']++
+    tempdata[msg.author.id][msg.id].keyexecuting++
 
     try {
         var startTime = Date.now()
-        var extradkeys = declaredonly ? { ...tempdata[msg.author.id]['keydeclared'] } : { ...extrakeys, ...tempdata[msg.author.id]['keydeclared'] }
-        var extradfuncs = declaredonly ? { ...tempdata[msg.author.id]['funcdeclared'] } : { ...extrafuncs, ...tempdata[msg.author.id]['funcdeclared'] }
+        var extradkeys = declaredonly ? { ...tempdata[msg.author.id].keydeclared } : { ...extrakeys, ...tempdata[msg.author.id].keydeclared }
+        var extradfuncs = declaredonly ? { ...tempdata[msg.author.id].funcdeclared } : { ...extrafuncs, ...tempdata[msg.author.id].funcdeclared }
         var started = false
 
-        if (tempdata[msg.author.id]['ratelimited'] || globaldata['shit'].find(id => id === msg.author.id)) {
+        if (tempdata[msg.author.id].ratelimited || globaldata.shit.find(id => id === msg.author.id)) {
             return string
         }
 
@@ -3222,48 +3281,48 @@ functions.getKeywordsFor = async function (string, msg, isBot, { extrakeys = {},
             extrakeys: extradkeys,
             extrafuncs: extradfuncs,
             declaredonly: declaredonly
-        })) && tempdata[msg.author.id][msg.id]?.['return'] == undefined) {
+        })) && tempdata[msg.author.id][msg.id]?.return == undefined) {
             if (!started || !tempdata[msg.author.id][msg.id]) {
                 if (!tempdata[msg.author.id][msg.id]) {
                     tempdata[msg.author.id][msg.id] = {}
                 }
 
-                if (!tempdata[msg.author.id][msg.id]['keyattempts']) {
-                    tempdata[msg.author.id][msg.id]['keyattempts'] = 0
+                if (!tempdata[msg.author.id][msg.id].keyattempts) {
+                    tempdata[msg.author.id][msg.id].keyattempts = 0
                 }
 
-                if (!tempdata[msg.author.id][msg.id]['keyexecuting']) {
-                    tempdata[msg.author.id][msg.id]['keyexecuting'] = 0
+                if (!tempdata[msg.author.id][msg.id].keyexecuting) {
+                    tempdata[msg.author.id][msg.id].keyexecuting = 0
                 }
 
-                if (!tempdata[msg.author.id][msg.id]['keywordsExecuted']) {
-                    tempdata[msg.author.id][msg.id]['keywordsExecuted'] = []
+                if (!tempdata[msg.author.id][msg.id].keywordsExecuted) {
+                    tempdata[msg.author.id][msg.id].keywordsExecuted = []
                 }
 
-                if (!tempdata[msg.author.id]['arrays']) {
-                    tempdata[msg.author.id]['arrays'] = {}
+                if (!tempdata[msg.author.id].arrays) {
+                    tempdata[msg.author.id].arrays = {}
                 }
 
-                if (!tempdata[msg.author.id]['declared']) {
-                    tempdata[msg.author.id]['declared'] = {}
+                if (!tempdata[msg.author.id].declared) {
+                    tempdata[msg.author.id].declared = {}
                 }
 
-                if (!tempdata[msg.author.id]['keydeclared']) {
-                    tempdata[msg.author.id]['keydeclared'] = {}
+                if (!tempdata[msg.author.id].keydeclared) {
+                    tempdata[msg.author.id].keydeclared = {}
                 }
 
-                if (!tempdata[msg.author.id]['funcdeclared']) {
-                    tempdata[msg.author.id]['funcdeclared'] = {}
+                if (!tempdata[msg.author.id].funcdeclared) {
+                    tempdata[msg.author.id].funcdeclared = {}
                 }
 
                 started = true
             }
 
-            if (tempdata[msg.author.id]['ratelimited'] || globaldata['shit'].find(id => id === msg.author.id)) {
+            if (tempdata[msg.author.id].ratelimited || globaldata.shit.find(id => id === msg.author.id)) {
                 return string
             }
 
-            if (tempdata[msg.author.id][msg.id]['keyattempts'] >= config.keyLimit && !ownermode) {
+            if (tempdata[msg.author.id][msg.id].keyattempts >= config.keyLimit && !ownermode) {
                 infoPost(`Keyword attempts value exceeded`)
                 return 'Keyword attempts value exceeded.'
             }
@@ -3281,13 +3340,13 @@ functions.getKeywordsFor = async function (string, msg, isBot, { extrakeys = {},
                     var keyCut = keyName
                     if (key === undefined) var keyCut = keyName.substring(1); key = special.keys[keyCut] || extradkeys[keyCut]
 
-                    if (!ownermode && (key.limit != undefined && equalValues(tempdata[msg.author.id][msg.id]['keywordsExecuted'], keyName) >= key.limit) ||
-                        (key.cmdconnected && data.guildData[msg.guild.id]?.['disabled'].find(cmd => cmd.find(n => n === key.cmdconnected)))) {
+                    if (!ownermode && (key.limit != undefined && equalValues(tempdata[msg.author.id][msg.id].keywordsExecuted, keyName) >= key.limit) ||
+                        (key.cmdconnected && data.guildData[msg.guild.id]?.disabled.find(cmd => cmd.find(n => n === key.cmdconnected)))) {
                         string = string.replace(keyName, '')
                         break
                     }
 
-                    tempdata[msg.author.id][msg.id]['keywordsExecuted'].push(keyName)
+                    tempdata[msg.author.id][msg.id].keywordsExecuted.push(keyName)
 
                     var change
 
@@ -3302,7 +3361,7 @@ functions.getKeywordsFor = async function (string, msg, isBot, { extrakeys = {},
                     }
 
                     string = typeof (change) === 'object' && change[1] === true ? String(change[0]) : string.replace(keydata.match, String(change).replace(/\$&/g, '$\\&'))
-                    tempdata[msg.author.id][msg.id]['keyattempts'] += !data.guildData[msg.guild.id]['chaos'] ? (key.attemptvalue ?? 1) : 0
+                    tempdata[msg.author.id][msg.id].keyattempts += !data.guildData[msg.guild.id].chaos ? (key.attemptvalue ?? 1) : 0
                     break
 
                 case 'func':
@@ -3312,13 +3371,13 @@ functions.getKeywordsFor = async function (string, msg, isBot, { extrakeys = {},
                     if (func === undefined) funcCut = funcName.substring(0, funcName.length - 1); func = special.functions[funcCut] || extradfuncs[funcCut]
                     var m = match
 
-                    if (!ownermode && (func.limit != undefined && equalValues(tempdata[msg.author.id][msg.id]['keywordsExecuted'], funcName) >= func.limit) ||
-                        (func.cmdconnected && data.guildData[msg.guild.id]?.['disabled'].find(cmd => cmd.find(n => n === func.cmdconnected)))) {
+                    if (!ownermode && (func.limit != undefined && equalValues(tempdata[msg.author.id][msg.id].keywordsExecuted, funcName) >= func.limit) ||
+                        (func.cmdconnected && data.guildData[msg.guild.id]?.disabled.find(cmd => cmd.find(n => n === func.cmdconnected)))) {
                         string = string.replace(`${funcName}(${match})`, '')
                         break
                     }
 
-                    tempdata[msg.author.id][msg.id]['keywordsExecuted'].push(funcName)
+                    tempdata[msg.author.id][msg.id].keywordsExecuted.push(funcName)
 
                     match = match.replace(/\\\)/g, ')')
                     if (!func.raw) {
@@ -3338,38 +3397,36 @@ functions.getKeywordsFor = async function (string, msg, isBot, { extrakeys = {},
                     }
 
                     string = typeof (change) === 'object' && change[1] === true ? String(change[0]) : string.replace(`${funcName}(${match})`, String(change).replace(/\$&/g, '$\\&'))
-                    tempdata[msg.author.id][msg.id]['keyattempts'] += !data.guildData[msg.guild.id]['chaos'] ? (func.attemptvalue ?? 1) : 0
+                    tempdata[msg.author.id][msg.id].keyattempts += !data.guildData[msg.guild.id].chaos ? (func.attemptvalue ?? 1) : 0
                     break
             }
 
-            extradkeys = declaredonly ? { ...tempdata[msg.author.id]['keydeclared'] } : { ...extrakeys, ...tempdata[msg.author.id]['keydeclared'] }
-            extradfuncs = declaredonly ? { ...tempdata[msg.author.id]['funcdeclared'] } : { ...extrafuncs, ...tempdata[msg.author.id]['funcdeclared'] }
-
-            await sleep()
+            extradkeys = declaredonly ? { ...tempdata[msg.author.id].keydeclared } : { ...extrakeys, ...tempdata[msg.author.id].keydeclared }
+            extradfuncs = declaredonly ? { ...tempdata[msg.author.id].funcdeclared } : { ...extrafuncs, ...tempdata[msg.author.id].funcdeclared }
         }
 
         if (resetattempts) {
-            if (tempdata[msg.author.id][msg.id]['keywordsExecuted']) {
-                if (tempdata[msg.author.id][msg.id]['keywordsExecuted'].length) {
-                    infoPost(`Took ${(Date.now() - startTime) / 1000} seconds to execute keywords/functions: ${tempdata[msg.author.id][msg.id]['keywordsExecuted'].map(k => `\`${k}\``).join(', ')}`)
+            if (tempdata[msg.author.id][msg.id].keywordsExecuted) {
+                if (tempdata[msg.author.id][msg.id].keywordsExecuted.length) {
+                    infoPost(`Took ${(Date.now() - startTime) / 1000} seconds to execute keywords/functions: ${tempdata[msg.author.id][msg.id].keywordsExecuted.map(k => `\`${k}\``).join(', ')}`)
                 }
-                tempdata[msg.author.id][msg.id]['keywordsExecuted'] = []
+                tempdata[msg.author.id][msg.id].keywordsExecuted = []
             }
         }
 
-        if (tempdata[msg.author.id][msg.id]['return'] != undefined) {
-            string = tempdata[msg.author.id][msg.id]['return']
-            delete tempdata[msg.author.id][msg.id]['return']
+        if (tempdata[msg.author.id][msg.id].return != undefined) {
+            string = tempdata[msg.author.id][msg.id].return
+            delete tempdata[msg.author.id][msg.id].return
         }
 
-        if (tempdata[msg.author.id][msg.id]['keyexecuting']) {
-            tempdata[msg.author.id][msg.id]['keyexecuting']--
+        if (tempdata[msg.author.id][msg.id].keyexecuting) {
+            tempdata[msg.author.id][msg.id].keyexecuting--
         }
 
         return string
     } catch (e) {
-        if (tempdata[msg.author.id][msg.id]['keyexecuting']) {
-            tempdata[msg.author.id][msg.id]['keyexecuting']--
+        if (tempdata[msg.author.id][msg.id].keyexecuting) {
+            tempdata[msg.author.id][msg.id].keyexecuting--
         }
 
         console.log(e)
@@ -3402,7 +3459,10 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     let tempdata = poopy.tempdata
     let vars = poopy.vars
     let { Discord, fs } = poopy.modules
-    let { getLevel, execPromise, randomNumber, randomChoice, validateFile, downloadFile, dataGather } = poopy.functions
+    let {
+        getLevel, execPromise, randomNumber, fetchPingPerms,
+        randomChoice, validateFile, downloadFile, dataGather
+    } = poopy.functions
 
     await msg.channel.sendTyping().catch(() => { })
     var attachment = msg.attachments.first()?.url
@@ -3415,10 +3475,19 @@ functions.battle = async function (msg, subject, action, damage, chance) {
 
     subject = subject ?? attachment ?? sticker
 
-    var member = await bot.users.fetch((subject.match(/[0-9]+/) ?? [subject])[0]).catch(() => { })
+    var member = bot.users.fetch((subject.match(/[0-9]+/) ?? [subject])[0])
+    if (member?.catch) member = await member.catch(() => { })
+
+    var isPoopy = member && member.id == bot.user.id
+
+    if (isPoopy) {
+        member = msg.author
+        damage = Number.MAX_SAFE_INTEGER
+    }
+
     var guildMember = await msg.guild.members.fetch((subject.match(/[0-9]+/) ?? [subject])[0]).catch(() => { })
 
-    var yourData = data.userData[msg.author.id]
+    var yourData = isPoopy ? data.userData[bot.user.id] : data.userData[msg.author.id]
 
     var subjData = member && (
         data.userData[member.id] ||
@@ -3426,6 +3495,19 @@ functions.battle = async function (msg, subject, action, damage, chance) {
             data.userData[member.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.userData(config.database, member.id).catch(() => { }) || {}
         )
     )
+
+    if (member) {
+        var yourBlock = (yourData.blocked ?? []).find(u => u.id == (isPoopy ? bot.user.id : member.id))
+        var subjBlock = (subjData.blocked ?? []).find(u => u.id == msg.author.id)
+
+        var blockPhrase = yourBlock && subjBlock ? "you blocked each other" :
+            yourBlock ? "you blocked them" : "they blocked you"
+
+        if (yourBlock || subjBlock) {
+            await msg.reply(`You can't attack **${member.displayName.replace(/\@/g, '@‌')}** because **${blockPhrase}**.`).catch(() => { })
+            return
+        }
+    }
 
     var fakeSubj = !member && !guildMember
     var fakeSubjData = fakeSubj && (
@@ -3450,8 +3532,8 @@ functions.battle = async function (msg, subject, action, damage, chance) {
         }
     }
 
-    let attacked = Math.random() < chance + (yourData.accuracy * 0.1)
-    let critical = attacked && Math.random() < 0.1 + (yourData.accuracy * 0.05)
+    let attacked = isPoopy || (Math.random() < chance + (yourData.accuracy * 0.1))
+    let critical = isPoopy || (attacked && Math.random() < 0.1 + (yourData.accuracy * 0.05))
     let critmult = critical ? Math.floor(Math.random() * 3) + 2 : 1
     let died = false
 
@@ -3477,12 +3559,12 @@ functions.battle = async function (msg, subject, action, damage, chance) {
 
             damage = Math.max(Math.round(damage / (subjData.defense / 20 + 1) * 10) / 10, 1)
             subjData.health -= damage
-            if (member.id != msg.author.id && guildMember) exp = Math.floor(Math.random() * subjData.maxHealth / 5) + subjData.maxHealth / 20 + (yourData.loot * 10) * critmult * (Math.pow(getLevel(subjData.exp).level, 2) / 50) * Math.round(1 / chance)
+            if (!isPoopy && member.id != msg.author.id && guildMember) exp = Math.floor(Math.random() * subjData.maxHealth / 5) + subjData.maxHealth / 20 + (yourData.loot * 10) * critmult * (Math.pow(getLevel(subjData.exp).level, 2) / 50) * Math.round(1 / chance)
 
             if (subjData.health <= 0) {
                 subjData.health = 0
                 subjData.death = Date.now() + 30_000
-                if (member.id != msg.author.id && guildMember) {
+                if (!isPoopy && member.id != msg.author.id && guildMember) {
                     exp *= 50
                     reward = Math.floor(exp / 75 * power * (yourData.loot / 10 + 1))
                 }
@@ -3492,7 +3574,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
             yourData.exp += exp
             yourData.bucks += reward
 
-            data.botData.leaderboard[msg.author.id] = {
+            data.botData.leaderboard[isPoopy ? bot.user.id : msg.author.id] = {
                 tag: msg.author.tag,
                 bucks: yourData.bucks
             }
@@ -3513,24 +3595,24 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     if (critical) actions.push('***CRITICAL HIT!***')
     actions.push(
         action
-            .replace('{src}', msg.author.username)
-            .replace('{trgt}', (member && member.username) ?? subject ?? 'this')
+            .replace('{src}', isPoopy ? bot.user.displayName : msg.author.displayName)
+            .replace('{trgt}', (member && member.displayName) ?? subject ?? 'this')
             .replace('{dmg}', damage)
     )
-    if (died) actions.push('They have died.')
+    if (died) actions.push(!isPoopy && member && member.id == msg.author.id ? 'You\'ve literally killed yourself... but at what cost...?' : `${isPoopy ? "You" : "They"} have died.`)
     if (level > lastLevel) actions.push(`You leveled UP!`)
 
     var stats = []
 
     if ((member && subjData) || (fakeSubj && fakeSubjData)) {
         stats.push({
-            name: `${msg.author.username}'s Health`,
-            value: `${yourData.health} HP`,
+            name: `${isPoopy ? bot.user.displayName : msg.author.displayName}'s Health`,
+            value: `${yourData.health.toFixed(1)} HP`,
             inline: true
         })
-        if (member ? member.id != msg.author.id : fakeSubj) stats.push({
-            name: `${subjData ? member.username : subject}'s Health`,
-            value: `${(subjData ? subjData : fakeSubjData).health} HP`,
+        if ((member ? member.id != msg.author.id : fakeSubj) || isPoopy) stats.push({
+            name: `${subjData ? member.displayName : subject}'s Health`,
+            value: `${(subjData ? subjData : fakeSubjData).health.toFixed(1)} HP`,
             inline: true
         })
     }
@@ -3538,7 +3620,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     if (exp) {
         stats.push({
             name: "Experience",
-            value: `+${exp} XP`,
+            value: `+${exp.toFixed(1)} XP`,
             inline: true
         })
     }
@@ -3568,12 +3650,12 @@ functions.battle = async function (msg, subject, action, damage, chance) {
                 icon_url: bot.user.displayAvatarURL({
                     dynamic: true, size: 1024, extension: 'png'
                 }),
-                text: bot.user.username
+                text: bot.user.displayName
             },
         }],
         content: `${attacked ? actions.join(' ') : 'You missed!'}${stats.length ? `\n\n${stats.map(s => `**${s.name}**: ${s.value}`).join('\n')}` : ''}`,
         allowedMentions: {
-            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+            parse: fetchPingPerms(msg)
         }
     }
 
@@ -3632,7 +3714,7 @@ functions.userToken = function (id, token) {
     let data = poopy.data
     let { randomChoice, decrypt, randomKey } = poopy.functions
 
-    var tokens = data.userData[id]['tokens'][token] ?? []
+    var tokens = data.userData[id].tokens[token] ?? []
     var userTkn = randomChoice(tokens)
 
     return userTkn ? decrypt(userTkn) : randomKey(token)
@@ -3770,14 +3852,17 @@ functions.sendFile = async function (msg, filepath, filename, extraOptions) {
     let data = poopy.data
     let tempfiles = poopy.tempfiles
     let vars = poopy.vars
-    let { validateFileFromPath, execPromise, infoPost, rateLimit, addLastUrl, generateId } = poopy.functions
+    let {
+        validateFileFromPath, execPromise, infoPost,
+        rateLimit, addLastUrl, generateId, fetchPingPerms
+    } = poopy.functions
     let { fs, Discord } = poopy.modules
 
     extraOptions = extraOptions || {}
 
     var returnUrl
 
-    var prefix = data.guildData[msg.guild.id]['prefix']
+    var prefix = data.guildData[msg.guild.id].prefix
     var args = msg.content.substring(prefix.toLowerCase().length).split(' ')
 
     extraOptions.catbox = extraOptions.catbox ?? args.includes('-catbox')
@@ -3875,11 +3960,21 @@ functions.sendFile = async function (msg, filepath, filename, extraOptions) {
                 if (isUrl) {
                     addLastUrl(msg, fileLink)
                 } else {
-                    await msg.reply(fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink).catch(() => { })
+                    await msg.reply({
+                        content: fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink,
+                        allowedMentions: {
+                            parse: fetchPingPerms(msg)
+                        }
+                    }).catch(() => { })
                     infoPost(`Couldn\'t upload catbox.moe file, reason:\n\`${fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink}\``)
                 }
             } else {
-                await msg.reply(fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink).catch(() => { })
+                await msg.reply({
+                    content: fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink,
+                    allowedMentions: {
+                        parse: fetchPingPerms(msg)
+                    }
+                }).catch(() => { })
                 if (!isUrl) {
                     infoPost(`Couldn\'t upload catbox.moe file, reason:\n\`${fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink}\``)
                 }
@@ -3924,7 +4019,10 @@ functions.sendFile = async function (msg, filepath, filename, extraOptions) {
     } else {
         infoPost(`Sending file to channel`)
         var sendObject = {
-            files: [new Discord.AttachmentBuilder(`${filepath}/${filename}`)]
+            files: [new Discord.AttachmentBuilder(`${filepath}/${filename}`)],
+            allowedMentions: {
+                parse: fetchPingPerms(msg)
+            }
         }
 
         if (extraOptions.content) sendObject.content = extraOptions.content
@@ -3937,7 +4035,12 @@ functions.sendFile = async function (msg, filepath, filename, extraOptions) {
             var fileLink = await vars.Catbox.upload(`${filepath}/${filename}`).catch(() => { })
             if (fileLink) {
                 var isUrl = vars.validUrl.test(fileLink)
-                await msg.reply(fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink).catch(() => { })
+                await msg.reply({
+                    content: fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink,
+                    allowedMentions: {
+                        parse: fetchPingPerms(msg)
+                    }
+                }).catch(() => { })
 
                 if (!isUrl) {
                     infoPost(`Couldn\'t upload catbox.moe file, reason:\n\`${fileLink.includes('retard') ? 'ok so what happened right here is i tried to upload a gif with a size bigger than 20 mb to catbox.moe but apparently you cant do it so uhhhhhh haha no link for you' : fileLink}\``)
@@ -4072,7 +4175,7 @@ functions.validateFileFromPath = async function (path, exception, rejectMessages
             for (var paramName in info) {
                 if (limitObject[paramName]) {
                     var param = info[paramName]
-                    var rejectMessage = rejectMessages ? rejectMessages[paramName] : limitObject[paramName]['message']
+                    var rejectMessage = rejectMessages ? rejectMessages[paramName] : limitObject[paramName].message
 
                     if (param > limitObject[paramName][shorttype]) {
                         reject(rejectMessage.replace('{param}', limitObject[paramName][shorttype]))
@@ -4267,7 +4370,7 @@ functions.validateFile = async function (url, exception, rejectMessages) {
             for (var paramName in info) {
                 if (limitObject[paramName]) {
                     var param = info[paramName]
-                    var rejectMessage = rejectMessages ? rejectMessages[paramName] : limitObject[paramName]['message']
+                    var rejectMessage = rejectMessages ? rejectMessages[paramName] : limitObject[paramName].message
 
                     if (param > limitObject[paramName][shorttype]) {
                         reject(rejectMessage.replace('{param}', limitObject[paramName][shorttype]))
@@ -4310,8 +4413,8 @@ functions.changeStatus = function () {
             status: 'online',
             activities: [
                 {
-                    name: choosenStatus['name'] + ` | ${config.globalPrefix}help`,
-                    type: DiscordTypes.ActivityType[choosenStatus['type']],
+                    name: choosenStatus.name + ` | ${config.globalPrefix}help`,
+                    type: DiscordTypes.ActivityType[choosenStatus.type],
                     url: 'https://www.youtube.com/watch?v=LDQO0ALm0gE',
                 }
             ],
@@ -4386,13 +4489,25 @@ functions.waitMessageCooldown = async function () {
     let poopy = this
     let config = poopy.config
     let vars = poopy.vars
+    let functions = poopy.functions
 
     if (config.msgcooldown <= 0) return
 
-    var elapsed = Date.now() - vars.msgcooldown
-    while (elapsed < config.msgcooldown) {
-        await functions.sleep(config.msgcooldown - elapsed)
-        elapsed = Date.now() - vars.msgcooldown
+    const positionInQueue = ++vars.msgcount
+
+    try {
+        const delay = config.msgcooldown * (positionInQueue - 1)
+
+        if (delay > 0) {
+            await functions.sleep(delay)
+        }
+
+        const elapsed = Date.now() - vars.msgcooldown
+        if (elapsed < config.msgcooldown) {
+            await functions.sleep(config.msgcooldown - elapsed)
+        }
+    } finally {
+        vars.msgcount--
     }
 }
 
@@ -4401,6 +4516,7 @@ functions.setMessageCooldown = async function (msg) {
     let vars = poopy.vars
 
     vars.msgcooldown = Date.now()
+
     return msg
 }
 
@@ -4412,7 +4528,7 @@ functions.calculateHivemindStatus = async function (poopy) {
     var cusage = process.cpuUsage()
     var cused = (cusage.user + cusage.system) / 1024 / 1024
 
-    return `${bot.user.username} #${process.env.HIVEMIND_ID} is here.\n\nCPU: ${cused}`
+    return `${bot.user.displayName} #${process.env.HIVEMIND_ID} is here.\n\nCPU: ${cused}`
 }
 
 functions.updateHivemindStatus = async function () {
@@ -4455,23 +4571,23 @@ functions.getTotalHivemindStatus = async function () {
 
     var status = [];
 
-    var messages = await hivemindChannel.messages.fetch()
-    if (messages.catch) messages.catch((err) => { console.log(err) })
+    var messages = hivemindChannel.messages.fetch()
+    if (messages.catch) messages = await messages.catch((err) => { console.log(err) })
 
     messages.forEach(async (msg) => {
         var regexResult = /(?<botName>[^#]+) #(?<id>[^ ]+)/g.exec(msg.content)
         if (!regexResult) {
-            await msg.delete().then(msg => console.log(`Deleted non-hivemind message from ${msg.author.username} as ${bot.user.username} #${process.env.HIVEMIND_ID}.`)).catch((err) => { console.log(err) });
+            await msg.delete().then(msg => console.log(`Deleted non-hivemind message from ${msg.author.displayName} as ${bot.user.displayName} #${process.env.HIVEMIND_ID}.`)).catch((err) => { console.log(err) });
             return;
         }
         var { botName, id } = regexResult.groups
-        if (botName !== bot.user.username) return;
+        if (botName !== bot.user.displayName) return;
 
         var timestamp = msg.editedTimestamp || msg.createdTimestamp
 
         if ((Date.now() - timestamp) > 60000 + 30000) {
             if (id == process.env.HIVEMIND_ID) {
-                await msg.delete().then(msg => console.log(`Deleted outdated message from ${msg.author.username} as ${bot.user.username} #${process.env.HIVEMIND_ID}.\nTimestamp is: ${timestamp} (${(new Date(timestamp)).toLocaleString('en-gb')})`)).catch((err) => { console.log(err) });
+                await msg.delete().then(msg => console.log(`Deleted outdated message from ${msg.author.displayName} as ${bot.user.displayName} #${process.env.HIVEMIND_ID}.\nTimestamp is: ${timestamp} (${(new Date(timestamp)).toLocaleString('en-gb')})`)).catch((err) => { console.log(err) });
             }
 
             return

@@ -10,7 +10,7 @@ module.exports = {
         declopts.declaredonly = true
         var word = await getKeywordsFor(matches[1], msg, isBot, declopts).catch(() => { }) ?? ''
 
-        tempdata[msg.author.id][msg.id]['return'] = word
+        tempdata[msg.author.id][msg.id].return = word
 
         return ''
     },

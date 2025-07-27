@@ -65,7 +65,12 @@ module.exports = {
             var url = fetched[i]
 
             var fileinfo = await validateFile(url).catch(async error => {
-                await msg.reply(error).catch(() => { })
+                await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
                 await msg.channel.sendTyping().catch(() => { })
                 return
             })
@@ -77,7 +82,7 @@ module.exports = {
                 await msg.reply({
                     content: `Unsupported file: \`${url}\``,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 return
@@ -115,7 +120,12 @@ module.exports = {
             },
             responseType: 'arraybuffer'
         }).catch(async (e) => {
-            await msg.reply(e.response.statusText).catch(() => { })
+            await msg.reply({
+                content: e.response.statusText,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             fs.rmSync(`${filepath}`, { force: true, recursive: true })
         })
 

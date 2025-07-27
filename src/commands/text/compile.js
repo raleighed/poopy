@@ -11,7 +11,8 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let vars = poopy.vars
-        let { axios, DiscordTypes } = poopy.modules
+        let { axios } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => { })
 
@@ -64,7 +65,7 @@ module.exports = {
             await msg.reply({
                 content: err.stack,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
         })
@@ -83,7 +84,7 @@ module.exports = {
         if (!msg.nosend) await msg.reply({
             content: output,
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             }
         }).catch(() => { })
         return output

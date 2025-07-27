@@ -52,15 +52,15 @@ var formatters = [
         }
     },
     {
-        wholeMatch: /&lt;a?:[a-zA-Z\d_]+?:\d+&gt;/,
+        wholeMatch: /&lt;a?:[a-zA-Z\d_]+?:[0-9]+&gt;/,
         format: (demoji) => {
-            var demojiidmatch = demoji.match(/\d+/g)
+            var demojiidmatch = demoji.match(/[0-9]+/g)
             var demojiid = demojiidmatch[demojiidmatch.length - 1]
             return `<img class="emoji" alt="${demoji}" src="https://cdn.discordapp.com/emojis/${demojiid}.${demoji.startsWith('<a') ? 'gif' : 'png'}?size=1024">`
         }
     },
     {
-        wholeMatch: /&lt;t:-?\d+:[tTdDfFR]&gt;/,
+        wholeMatch: /&lt;t:-?[0-9]+:[tTdDfFR]&gt;/,
         format: (timestamp) => {
             var args = timestamp.substring(4, timestamp.length - 4).split(':')
 

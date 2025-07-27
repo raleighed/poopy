@@ -1,6 +1,6 @@
 module.exports = {
     name: ['mask', 'alphamerge'],
-    args: [{ "name": "file", "required": false, "specifarg": false, "orig": "{file}" }, { "name": "mask", "required": false, "specifarg": false, "orig": "{mask}" }, { "name": "keep", "required": false, "specifarg": true, "orig": "[-keep]" }, {
+    args: [{ "name": "file", "required": false, "specifarg": false, "orig": "{file}" }, { "name": "mask", "required": false, "specifarg": false, "orig": "{mask}" }, { "name": "keep", "required": false, "specifarg": true, "orig": "[-keep]" }, { "name": "noblend", "required": false, "specifarg": true, "orig": "[-noblend]" }, {
         "name": "origin", "required": false, "specifarg": true, "orig": "[-origin <x (left/center/right)> <y (top/middle/bottom)>]",
         "autocomplete": [
             'left top',
@@ -16,7 +16,10 @@ module.exports = {
     }, { "name": "offsetpos", "required": false, "specifarg": true, "orig": "[-offsetpos <x> <y>]" }, { "name": "width", "required": false, "specifarg": true, "orig": "[-width/height <pixels or percentage>]" }, { "name": "height", "required": false, "specifarg": true, "orig": "[-width/height <pixels or percentage>]" }, { "name": "keepaspectratio", "required": false, "specifarg": true, "orig": "[-keepaspectratio <mode (increase or decrease)>]", "autocomplete": ['increase', 'decrease'] }],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, getUrls, validateFile, downloadFile, execPromise, findpreset, sendFile } = poopy.functions
+        let {
+            lastUrl, getUrls, validateFile, downloadFile, fetchPingPerms,
+            execPromise, findpreset, sendFile
+        } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let vars = poopy.vars
 
@@ -75,7 +78,12 @@ module.exports = {
             width: `the width of the first file exceeds the limit of {param} hahahaha (try to use the shrink command)`,
             height: `the height of the first file exceeds the limit of {param} hahahaha (try to use the shrink command)`
         }).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -87,7 +95,12 @@ module.exports = {
             width: `the width of the second file exceeds the limit of {param} hahahaha (try to use the shrink command)`,
             height: `the height of the second file exceeds the limit of {param} hahahaha (try to use the shrink command)`
         }).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -100,7 +113,7 @@ module.exports = {
                 await msg.reply({
                     content: error,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 await msg.channel.sendTyping().catch(() => { })
@@ -113,7 +126,7 @@ module.exports = {
                 await msg.reply({
                     content: 'Unsupported file types.',
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 await msg.channel.sendTyping().catch(() => { })
@@ -155,24 +168,24 @@ module.exports = {
         }
 
         if ((filetype.mime.startsWith('image') && !(vars.gifFormats.find(f => f === filetype.ext))) && (filetype2.mime.startsWith('image') && !(vars.gifFormats.find(f => f === filetype2.ext)))) {
-            await execPromise(`ffmpeg -i ${filepath}/${filename} -i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto[mask];[0:v][mask]alphamerge[out]" -map "[out]" -preset ${findpreset(args)} ${filepath}/output.png`)
+            await execPromise(`ffmpeg -i ${filepath}/${filename} -i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto${!args.find(arg => arg === '-noblend') ? `[blend];[0:v]alphaextract[alpha];[alpha][blend]blend=all_mode=multiply[mask]` : `[mask]`};[0:v][mask]alphamerge[out]" -map "[out]" -preset ${findpreset(args)} ${filepath}/output.png`)
             return await sendFile(msg, filepath, `output.png`)
         } else if ((filetype.mime.startsWith('image') && !(vars.gifFormats.find(f => f === filetype.ext))) && ((filetype2.mime.startsWith('image') && vars.gifFormats.find(f => f === filetype2.ext)))) {
-            await execPromise(`ffmpeg -stream_loop -1 -i ${filepath}/${filename} -i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto,colorkey=0xFFFFFF:0.01:0,curves=r='0/0 1/0':g='0/0 1/${172/255}':b='0/0 1/${145/255}'[mask];[0:v][mask]overlay=shortest=1:x=0:y=0:format=auto,colorkey=0x00AC91:0.01:0,scale='min(400,iw)':min'(400,ih)':force_original_aspect_ratio=decrease,split[gnout][gpout];[gpout]palettegen=reserve_transparent=1[palette];[gnout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -preset ${findpreset(args)} -gifflags -offsetting ${filepath}/output.gif`)
+            await execPromise(`ffmpeg -stream_loop -1 -i ${filepath}/${filename} -i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto${!args.find(arg => arg === '-noblend') ? `[blend];[0:v]alphaextract[alpha];[alpha][blend]blend=all_mode=multiply[amask]` : `[amask]`};[amask]colorkey=0xFFFFFF:0.01:1,curves=r='0/0 1/0':g='0/0 1/${172 / 255}':b='0/0 1/${145 / 255}'[mask];[0:v][mask]overlay=shortest=1:x=0:y=0:format=auto,colorkey=0x00AC91:0.01:0,scale='min(400,iw)':min'(400,ih)':force_original_aspect_ratio=decrease,split[gnout][gpout];[gpout]palettegen=reserve_transparent=1[palette];[gnout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -preset ${findpreset(args)} -gifflags -offsetting ${filepath}/output.gif`)
             return await sendFile(msg, filepath, `output.gif`)
         } else if ((filetype.mime.startsWith('image') && vars.gifFormats.find(f => f === filetype.ext)) && (filetype2.mime.startsWith('image') && !(vars.gifFormats.find(f => f === filetype2.ext)))) {
-            await execPromise(`ffmpeg -i ${filepath}/${filename} -stream_loop -1 -i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto,colorkey=0xFFFFFF:0.01:0,curves=r='0/0 1/0':g='0/0 1/${172/255}':b='0/0 1/${145/255}'[mask];[0:v][mask]overlay=shortest=1:x=0:y=0:format=auto,colorkey=0x00AC91:0.01:0,split[gnout][gpout];[gpout]palettegen=reserve_transparent=1[palette];[gnout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -preset ${findpreset(args)} -gifflags -offsetting ${filepath}/output.gif`)
+            await execPromise(`ffmpeg -i ${filepath}/${filename} -stream_loop -1 -i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto${!args.find(arg => arg === '-noblend') ? `[blend];[0:v]alphaextract[alpha];[alpha][blend]blend=all_mode=multiply[amask]` : `[amask]`};[amask]colorkey=0xFFFFFF:0.01:1,curves=r='0/0 1/0':g='0/0 1/${172 / 255}':b='0/0 1/${145 / 255}'[mask];[0:v][mask]overlay=shortest=1:x=0:y=0:format=auto,colorkey=0x00AC91:0.01:0,split[gnout][gpout];[gpout]palettegen=reserve_transparent=1[palette];[gnout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -preset ${findpreset(args)} -gifflags -offsetting ${filepath}/output.gif`)
             return await sendFile(msg, filepath, `output.gif`)
         } else if (filetype.mime.startsWith('video') || filetype2.mime.startsWith('video')) {
-            await execPromise(`ffmpeg ${(filetype2.mime.startsWith('video') && !(filetype.mime.startsWith('video'))) ? '-stream_loop -1 ' : ''}-i ${filepath}/${filename} ${(filetype.mime.startsWith('video') && !(filetype2.mime.startsWith('video'))) ? '-stream_loop -1 ' : ''}-i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -map ${filetype.mime.startsWith('video') ? '0' : '1'}:a? -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto,colorkey=0xFFFFFF:0.01:1,curves=r='0/0 1/0':g='0/0 1/0':b='0/0 1/0'[mask];[0:v][mask]overlay=shortest=1:format=auto:x=0:y=0,scale=ceil(iw/2)*2:ceil(ih/2)*2[out]" -map "[out]" -preset ${findpreset(args)} -c:v libx264 -pix_fmt yuv420p ${filepath}/output.mp4`)
+            await execPromise(`ffmpeg ${(filetype2.mime.startsWith('video') && !(filetype.mime.startsWith('video'))) ? '-stream_loop -1 ' : ''}-i ${filepath}/${filename} ${(filetype.mime.startsWith('video') && !(filetype2.mime.startsWith('video'))) ? '-stream_loop -1 ' : ''}-i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -map ${filetype.mime.startsWith('video') ? '0' : '1'}:a? -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto${!args.find(arg => arg === '-noblend') ? `[blend];[0:v]alphaextract[alpha];[alpha][blend]blend=all_mode=multiply[amask]` : `[amask]`};[amask]colorkey=0xFFFFFF:0.01:1,curves=r='0/0 1/0':g='0/0 1/0':b='0/0 1/0'[mask];[0:v][mask]overlay=shortest=1:format=auto:x=0:y=0,scale=ceil(iw/2)*2:ceil(ih/2)*2[out]" -map "[out]" -preset ${findpreset(args)} -c:v libx264 -pix_fmt yuv420p ${filepath}/output.mp4`)
             return await sendFile(msg, filepath, `output.mp4`)
         } else {
-            await execPromise(`ffmpeg -stream_loop -1 -i ${filepath}/${filename} -i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto,colorkey=0xFFFFFF:0.01:0,curves=r='0/0 1/0':g='0/0 1/${172/255}':b='0/0 1/${145/255}'[mask];[0:v][mask]overlay=shortest=1:x=0:y=0:format=auto,colorkey=0x00AC91:0.01:0,split[gnout][gpout];[gpout]palettegen=reserve_transparent=1[palette];[gnout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -preset ${findpreset(args)} -gifflags -offsetting ${filepath}/output.gif`)
+            await execPromise(`ffmpeg -stream_loop -1 -i ${filepath}/${filename} -i ${filepath}/${filename2} -f lavfi -i "color=0x${args.find(arg => arg === '-keep') ? 'FFFFFF' : '000000'}FF:s=${width}x${height},format=rgba" -filter_complex "[1:v]scale=${size[0]}:${size[1]}${keepaspectratio ? `:force_original_aspect_ratio=${keepaspectratio}` : ''},hue=s=0[overlay];[2:v][overlay]overlay=x=${originx}+${Math.round(ox)}:y=${originy}+${Math.round(oy)}:format=auto${!args.find(arg => arg === '-noblend') ? `[blend];[0:v]alphaextract[alpha];[alpha][blend]blend=all_mode=multiply[amask]` : `[amask]`};[amask]colorkey=0xFFFFFF:0.01:1,curves=r='0/0 1/0':g='0/0 1/${172 / 255}':b='0/0 1/${145 / 255}'[mask];[0:v][mask]overlay=shortest=1:x=0:y=0:format=auto,colorkey=0x00AC91:0.01:0,split[gnout][gpout];[gpout]palettegen=reserve_transparent=1[palette];[gnout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -preset ${findpreset(args)} -gifflags -offsetting ${filepath}/output.gif`)
             return await sendFile(msg, filepath, `output.gif`)
         }
     },
     help: {
-        name: 'mask/alphamerge {file} {mask} [-keep] [overlay options]',
+        name: 'mask/alphamerge {file} {mask} [-keep] [-noblend] [overlay options]',
         value: 'Uses the specified mask on the file. Might not work well on GIFs though!'
     },
     cooldown: 2500,

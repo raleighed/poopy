@@ -5,10 +5,16 @@ module.exports = {
         "required": true,
         "specifarg": false,
         "orig": "<user>",
-        "autocomplete": function (interaction) {
+        "autocomplete": async function (interaction) {
             let poopy = this
+            let { data, config } = poopy
+            let { dataGather } = poopy.functions
 
-            var memberData = poopy.data.guildData[interaction.guild.id]['allMembers']
+            if (!data.guildData[interaction.guild.id]) {
+                data.guildData[interaction.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
+            }
+
+            var memberData = data.guildData[interaction.guild.id].allMembers ?? {}
             var memberKeys = Object.keys(memberData).sort((a, b) => memberData[b].messages - memberData[a].messages)
 
             return memberKeys.map(id => {
@@ -30,7 +36,7 @@ module.exports = {
     }],
     execute: async function (msg, args, opts) {
         let poopy = this
-        let { shuffle, randomChoice, yesno, dataGather } = poopy.functions
+        let { shuffle, randomChoice, yesno, dataGather, fetchPingPerms } = poopy.functions
         let { Discord, DiscordTypes } = poopy.modules
         let json = poopy.json
         let data = poopy.data
@@ -84,12 +90,11 @@ module.exports = {
             })
             var ho = randomChoice(hi)
             ho.resolve = true
-            console.log(hi)
 
             var hu = await yesno(msg.channel, `It's time to choose the wise one`, msg.member, hi, msg).catch((e) => console.log(e))
 
             if (hu) {
-                data.userData[msg.author.id]['bucks'] += 5000
+                data.userData[msg.author.id].bucks += 5000
                 await msg.reply(`***YES!!🥳🥳🥳🥳🎉🎉*** *YES !!!!!* **THAT'S THE** __*Only Thing You Need From The Doctor*__, the ${ho.emoji}.🎉🎉🎉🎉🎉🎉 ***AND*** *NOW* YOUHAVE, __*100% Fresh Juiced from Florida*__, __***\`+5000 POBUCKS\`***__ *FOREVER*👍`).catch(() => { })
             } else {
                 await msg.reply('invalid').catch(() => { })
@@ -99,13 +104,13 @@ module.exports = {
 
         args[1] = args[1] ?? ''
 
-        var member = await bot.users.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => { })
+        var member = await bot.users.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => { })
 
         if (!member) {
             await msg.reply({
                 content: `Invalid user ID: **${args[1]}**`,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             return
@@ -118,18 +123,18 @@ module.exports = {
             tempdata[member.id] = {}
         }
 
-        if (data.userData[member.id]['dms'] === undefined && !tempdata[member.id]['dmconsent'] && member.id != msg.author.id) {
-            tempdata[msg.author.id]['dmconsent'] = true
+        if (data.userData[member.id].dms === undefined && !tempdata[member.id].dmconsent && member.id != msg.author.id) {
+            tempdata[msg.author.id].dmconsent = true
 
             var pending = await msg.reply('Pending response.').catch(() => { })
             var send = await yesno(member, `${!anon ? msg.author.tag : 'Someone'} is trying to send you a message. Will you consent to any unrelated DMs sent with the \`dm\` command?`, member.id).catch(() => { })
 
             if (send !== undefined) {
-                data.userData[member.id]['dms'] = send
+                data.userData[member.id].dms = send
                 member.send({
                     content: `Unrelated DMs from \`dm\` will **${!send ? 'not ' : ''}be sent** to you now.`,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 if (pending) {
@@ -139,7 +144,7 @@ module.exports = {
                 pending.edit('Couldn\'t send a message to this user. Make sure they share any of the servers I\'m in, or not have me blocked.').catch(() => { })
             }
         } else {
-            if (data.userData[member.id]['dms'] === false && member.id != msg.author.id && !data.guildData[msg.guild.id]['chaos']) {
+            if (data.userData[member.id].dms === false && member.id != msg.author.id && !data.guildData[msg.guild.id].chaos) {
                 await msg.reply('I don\'t have the permission to send unrelated DMs to this user.').catch(() => { })
                 return
             }
@@ -149,8 +154,7 @@ module.exports = {
             var dmChannel = await member.createDM().catch(() => { })
             if (!dmChannel) return
 
-            if (dmChannel.onsfw == undefined) dmChannel.onsfw = !!dmChannel.nsfw
-            dmChannel.nsfw = !!data.guildData[dmChannel.id]?.['channels']?.[dmChannel.id]?.['nsfw']
+            dmChannel.nsfw = !!data.guildData[dmChannel.id]?.channels?.[dmChannel.id]?.nsfw
 
             if (!dmChannel.nsfw) saidMessage = saidMessage.replace(/https?:\/\/(rule34|e621)([!#$&-;=?-[\]_a-z~]|%[0-9a-fA-F])*/g, 'no')
 

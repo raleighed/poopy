@@ -5,8 +5,7 @@ module.exports = {
     let poopy = this
     let config = poopy.config
     let bot = poopy.bot
-    let { displayShop } = poopy.functions
-    let { DiscordTypes } = poopy.modules
+    let { displayShop, fetchPingPerms } = poopy.modules
 
     let types = ['upgrades', 'buffs', 'items']
 
@@ -16,7 +15,7 @@ module.exports = {
         if (config.textEmbeds) msg.reply({
           content: instruction,
           allowedMentions: {
-            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+            parse: fetchPingPerms(msg)
           }
         }).catch(() => { })
         else msg.reply({
@@ -28,7 +27,7 @@ module.exports = {
               "icon_url": bot.user.displayAvatarURL({
                 dynamic: true, size: 1024, extension: 'png'
               }),
-              "text": bot.user.username
+              "text": bot.user.displayName
             },
           }]
         }).catch(() => { })

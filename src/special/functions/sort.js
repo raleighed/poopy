@@ -7,7 +7,7 @@ module.exports = {
 
     var word = matches[1]
 
-    var array = tempdata[msg.author.id]['arrays'][word]
+    var array = tempdata[msg.author.id].arrays[word]
     if (!array) return ''
 
     array.sort((a, b) => {

@@ -4,18 +4,15 @@ module.exports = {
     func: async function (matches, msg) {
         let poopy = this
         let { splitKeyFunc } = poopy.functions
-        let { Discord, DiscordTypes } = poopy.modules
+        let { DiscordTypes } = poopy.modules
 
         var word = matches[1]
         var split = splitKeyFunc(word)
         var id = split[0] ?? ''
-        var perms = split.slice(1).length ? split.slice(1) : ''
-        var permlist = Discord.Permissions.FLAGS
+        var perms = split.slice(1).length ? split.slice(1) : []
 
-        for (var i in perms) {
-            var perm = perms[i]
-
-            if (!(permlist[perm])) {
+        for (var perm of perms) {
+            if (!(DiscordTypes.PermissionFlagsBits[perm])) {
                 return `Invalid permission: ${perm}`
             }
         }

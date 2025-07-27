@@ -13,8 +13,8 @@ module.exports = {
         name = regexClean(name)
         var value = split[1] ?? ''
         var phrase = string.replace(new RegExp(`${regexClean(fullword)}\\s*`, 'i'), '')
-        tempdata[msg.author.id]['declared'][`[${name}]`] = value
-        tempdata[msg.author.id]['funcdeclared'][`[${name}]`] = {
+        tempdata[msg.author.id].declared[`[${name}]`] = value
+        tempdata[msg.author.id].funcdeclared[`[${name}]`] = {
             func: async function (matches, msg, isBot, _, opts) {
                 var word = matches[1]
                 var split = splitKeyFunc(word)
@@ -30,7 +30,7 @@ module.exports = {
                     }
                 }
 
-                return await getKeywordsFor(value.replace(new RegExp(`\\[${name}\\]\\(([\\s\\S]*?)\\)`, 'ig'), tempdata[msg.author.id]['declared'][`[${name}]`] || ''), msg, isBot, valOpts).catch(() => { }) ?? ''
+                return await getKeywordsFor(value.replace(new RegExp(`\\[${name}\\]\\(([\\s\\S]*?)\\)`, 'ig'), tempdata[msg.author.id].declared[`[${name}]`] || ''), msg, isBot, valOpts).catch(() => { }) ?? ''
             },
             raw: true
         }

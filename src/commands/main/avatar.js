@@ -7,16 +7,20 @@ module.exports = {
         "required": false,
         "specifarg": false,
         "orig": "[user]",
-        "autocomplete": function (interaction) {
+        "autocomplete": async function (interaction) {
             let poopy = this
+            let { data, config } = poopy
+            let { dataGather } = poopy.functions
 
-            var memberData = poopy.data.guildData[interaction.guild.id]['allMembers']
+            if (!data.guildData[interaction.guild.id]) {
+                data.guildData[interaction.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
+            }
+
+            var memberData = data.guildData[interaction.guild.id].allMembers ?? {}
             var memberKeys = Object.keys(memberData).sort((a, b) => memberData[b].messages - memberData[a].messages)
 
             return memberKeys.map(id => {
-                return {
-                    name: memberData[id].username, value: id
-                }
+                return { name: memberData[id].username, value: id }
             })
         }
     },
@@ -30,27 +34,28 @@ module.exports = {
         let poopy = this
         let bot = poopy.bot
         let config = poopy.config
-        let { Discord, DiscordTypes, whatwg } = poopy.modules
+        let { Discord, whatwg } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => {})
 
         args[1] = args[1] ?? ' '
 
-        var member = await msg.guild.members.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => {}) ??
-            await bot.users.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => {}) ??
+        var member = await msg.guild.members.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => {}) ??
+            await bot.users.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => {}) ??
             msg.member
 
         if (!member) {
             await msg.reply({
                 content: `Invalid user ID: **${args[1]}**`,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => {})
             return
         }
 
-        var username = member.username ?? member.user.username
+        var username = member.displayName ?? member.user.displayName
         if (args.includes('-global') || member.user) member = member.user
         var avatar = new Discord.AttachmentBuilder(member.displayAvatarURL({
             dynamic: true, size: 1024, extension: 'png'
@@ -59,7 +64,7 @@ module.exports = {
 
         var avObject = {
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             },
             files: [avatar]
         }
@@ -70,7 +75,7 @@ module.exports = {
             color: 0x472604,
             footer: {
                 icon_url: bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                text: bot.user.username
+                text: bot.user.displayName
             },
             image: {
                 url: `attachment://${parsedAvatar.path[parsedAvatar.path.length - 1]}`

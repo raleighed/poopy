@@ -6,6 +6,7 @@ module.exports = {
         let config = poopy.config
         let data = poopy.data
         let { Discord, DiscordTypes } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
         let tempdata = poopy.tempdata
 
         await msg.channel.sendTyping().catch(() => { })
@@ -29,7 +30,7 @@ module.exports = {
                 tts = true
             }
 
-            var max = data.guildData[msg.guild.id]['chaos'] ? 1984 : 25
+            var max = data.guildData[msg.guild.id].chaos ? 1984 : 25
 
             var saidMessage = args.slice(2).join(' ')
             var attachments = msg.attachments.map(attachment => new Discord.AttachmentBuilder(attachment.url, attachment.name))
@@ -38,7 +39,7 @@ module.exports = {
                 await msg.reply({
                     content: 'Invalid number: **' + args[1] + '**',
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 return;
@@ -53,7 +54,7 @@ module.exports = {
             };
             var sendObject = {
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 },
                 files: attachments,
                 stickers: msg.stickers,
@@ -69,7 +70,7 @@ module.exports = {
             if (msg.type === DiscordTypes.InteractionType.ApplicationCommand && del) await msg.deferReply({ ephemeral: true }).catch(() => { })
 
             for (var i = 0; i < numToRepeat; i++) {
-                if (tempdata[msg.guild.id][msg.channel.id]['shut']) break
+                if (tempdata[msg.guild.id][msg.channel.id].shut) break
 
                 if (reply) {
                     await reply.reply(sendObject).catch(() => { })

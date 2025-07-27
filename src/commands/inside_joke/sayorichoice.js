@@ -7,7 +7,6 @@ module.exports = {
     let config = poopy.config
     let { fs, Jimp, Discord } = poopy.modules
     let { sendFile } = poopy.functions
-        let { DiscordTypes } = poopy.modules
 
     await msg.channel.sendTyping().catch(() => { })
     var saidMessage = args.slice(1).join(' ').replace(/’/g, '\'')

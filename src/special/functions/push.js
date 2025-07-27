@@ -11,7 +11,7 @@ module.exports = {
     var name = split[0] ?? ''
     var value = split[1] ?? ''
 
-    var array = tempdata[msg.author.id]['arrays'][name]
+    var array = tempdata[msg.author.id].arrays[name]
     if (!array) return ''
 
     array.push(value)

@@ -3,8 +3,10 @@ module.exports = {
     args: [{"name":"file","required":false,"specifarg":false,"orig":"{file}"},{"name":"audio","required":false,"specifarg":false,"orig":"{audio}"},{"name":"offset","required":false,"specifarg":true,"orig":"[-offset <seconds (you can use hh:mm:ss)>]"},{"name":"waituntilend","required":false,"specifarg":true,"orig":"[-waituntilend]"}],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, getUrls, validateFile, downloadFile, execPromise, sendFile } = poopy.functions
-        let { DiscordTypes } = poopy.modules
+        let {
+            lastUrl, getUrls, validateFile, fetchPingPerms,
+            downloadFile, execPromise, sendFile
+        } = poopy.functions
         let { fs } = poopy.modules
 
         await msg.channel.sendTyping().catch(() => { })
@@ -28,7 +30,12 @@ module.exports = {
             width: `the width of the first file exceeds the limit of {param} hahahaha (try to use the shrink command)`,
             height: `the height of the first file exceeds the limit of {param} hahahaha (try to use the shrink command)`
         }).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -40,7 +47,12 @@ module.exports = {
             width: `the width of the second file exceeds the exception limit of {param} hahahaha there's nothing you can do`,
             height: `the height of the second file exceeds the exception limit of {param} hahahaha there's nothing you can do`
         }).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -53,7 +65,7 @@ module.exports = {
                 await msg.reply({
                     content: error,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 await msg.channel.sendTyping().catch(() => { })
@@ -66,7 +78,7 @@ module.exports = {
                 await msg.reply({
                     content: 'Unsupported file types.',
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 await msg.channel.sendTyping().catch(() => { })

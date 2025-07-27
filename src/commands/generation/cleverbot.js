@@ -3,7 +3,7 @@ module.exports = {
     args: [{ "name": "message", "required": false, "specifarg": false, "orig": "{message}" }, { "name": "once", "required": false, "specifarg": true, "orig": "[-once]" }],
     execute: async function (msg, args) {
         let poopy = this
-        let { cleverbot, dmSupport, getKeywordsFor, deleteMsgData } = poopy.functions
+        let { cleverbot, dmSupport, getKeywordsFor, fetchPingPerms, deleteMsgData } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let tempdata = poopy.tempdata
         let bot = poopy.bot
@@ -26,7 +26,7 @@ module.exports = {
                 channel.send({
                     content: err.stack,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
             })
@@ -35,7 +35,7 @@ module.exports = {
                 if (!msg.nosend) channel.send({
                     content: resp,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 return resp
@@ -65,7 +65,7 @@ module.exports = {
                 try {
                     dmSupport(m)
 
-                    if (tempdata[msg.guild.id][msg.channel.id]['shut']) return
+                    if (tempdata[msg.guild.id][msg.channel.id].shut) return
 
                     var content = await getKeywordsFor(m.content ?? '', m, false).catch(() => { }) ?? m.content
 
@@ -75,7 +75,7 @@ module.exports = {
                         channel.send({
                             content: err.stack,
                             allowedMentions: {
-                                parse: ((!m.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !m.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && m.author.id !== m.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                parse: fetchPingPerms(m)
                             }
                         }).catch(() => { })
                     })
@@ -83,7 +83,7 @@ module.exports = {
                         channel.send({
                             content: resp,
                             allowedMentions: {
-                                parse: ((!m.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !m.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && m.author.id !== m.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                parse: fetchPingPerms(m)
                             }
                         }).catch(() => { })
                     }
@@ -94,13 +94,13 @@ module.exports = {
 
             collector.on('end', async (_, reason) => {
                 try {
-                    if (tempdata[msg.guild.id][msg.channel.id]['shut']) return
+                    if (tempdata[msg.guild.id][msg.channel.id].shut) return
                     delete tempdata[guildid][channelid][authorid].messageCollector
                     if (reason === 'time') {
                         channel.send({
                             content: 'I\'m running out of time...',
                             allowedMentions: {
-                                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && authorid !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                parse: fetchPingPerms(m)
                             }
                         }).catch(() => { })
                     }

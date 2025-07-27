@@ -1,0 +1,1758 @@
+{
+    "battlers": [
+        {
+            "name": "Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c6/Battler.png"
+        },
+        {
+            "name": "Blonde Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5a/Blonde_Battler.png"
+        },
+        {
+            "name": "Trowel Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/67/Trowel_Battler.png"
+        },
+        {
+            "name": "Builder Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9e/Builder_Battler.png"
+        },
+        {
+            "name": "Sword Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/88/Sword_Battler.png"
+        },
+        {
+            "name": "Brigand Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/06/Brigand_Battler.png"
+        },
+        {
+            "name": "Slinger Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1a/Slinger_Battler.png"
+        },
+        {
+            "name": "Stunner Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/fa/Stunner_Battler.png"
+        },
+        {
+            "name": "Baller Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/75/Baller_Battler.png"
+        },
+        {
+            "name": "Soccer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e5/Soccer_Battler.png"
+        },
+        {
+            "name": "Rocket Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/95/Rocket_Battler.png"
+        },
+        {
+            "name": "Crocket Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a5/Crocket_Battler.png"
+        },
+        {
+            "name": "Bomb Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5c/Bomb_Battler.png"
+        },
+        {
+            "name": "Kamikaze Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d9/Kamikaze_Battler.png"
+        },
+        {
+            "name": "Titan Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/12/Titan_Battler.png"
+        },
+        {
+            "name": "Telamon Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a4/Telamon_Battler.png"
+        },
+        {
+            "name": "Paintball Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9e/Paintball_Battler.png"
+        },
+        {
+            "name": "Sniper Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/59/Sniper_Battler.png"
+        },
+        {
+            "name": "Speed Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9d/Speed_Battler.png"
+        },
+        {
+            "name": "Dual Speed Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/fe/Dual_Speed_Battler.png"
+        },
+        {
+            "name": "Regen Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1d/Regen_Battler.png"
+        },
+        {
+            "name": "Dual Regen Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/52/Dual_Regen_Battler.png"
+        },
+        {
+            "name": "Gravity Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/01/Gravity_Battler.png"
+        },
+        {
+            "name": "Dual Gravity Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1a/Dual_Gravity_Battler.png"
+        },
+        {
+            "name": "Krip",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/ab/Krip.png"
+        },
+        {
+            "name": "Mafia Krip",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/67/Mafia_Krip.png"
+        },
+        {
+            "name": "Grenade Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/09/Grenade_Battler.png"
+        },
+        {
+            "name": "Arson Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a9/Arson_Battler.png"
+        },
+        {
+            "name": "Hammer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/60/Hammer_Battler.png"
+        },
+        {
+            "name": "Banhammer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/06/Banhammer_Battler.png"
+        },
+        {
+            "name": "Sailor Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/85/Sailor_Battler.png"
+        },
+        {
+            "name": "Pirate Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/ef/Pirate_Battler.png"
+        },
+        {
+            "name": "Bugle Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a8/Bugle_Battler.png"
+        },
+        {
+            "name": "Drummer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/41/Drummer_Battler.png"
+        },
+        {
+            "name": "Spartan Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/19/Spartan_Battler.png"
+        },
+        {
+            "name": "Barbaric Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b5/Barbaric_Battler.png"
+        },
+        {
+            "name": "Birthday Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e7/Birthday_Battler.png"
+        },
+        {
+            "name": "Celebration Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d7/Celebration_Battler.png"
+        },
+        {
+            "name": "Butcher Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/77/Butcher_Battler.png"
+        },
+        {
+            "name": "Chainsaw Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/77/Chainsaw_Battler.png"
+        },
+        {
+            "name": "Jester Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/19/Jester_Battler.png"
+        },
+        {
+            "name": "Terror Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/02/Terror_Battler.png"
+        },
+        {
+            "name": "Cloak Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8c/Cloak_Battler.png"
+        },
+        {
+            "name": "Cyber Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/fb/Cyber_Battler.png"
+        },
+        {
+            "name": "Protest Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/20/Protest_Battler.png"
+        },
+        {
+            "name": "Outcry Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/bd/Outcry_Battler.png"
+        },
+        {
+            "name": "Mage Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a0/Mage_Battler.png"
+        },
+        {
+            "name": "Dryad Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/88/Dryad_Battler.png"
+        },
+        {
+            "name": "Stagger Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/09/Stagger_Battler.png"
+        },
+        {
+            "name": "Slasher Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/57/Slasher_Battler.png"
+        },
+        {
+            "name": "Teapot Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6b/Teapot_Battler.png"
+        },
+        {
+            "name": "Newell Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8b/Newell_Battler.png"
+        },
+        {
+            "name": "Lil' Doombringer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1d/Lil%27_Doombringer.png"
+        },
+        {
+            "name": "Lil' Deathbringer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4c/Lil%27_Deathbringer.png"
+        },
+        {
+            "name": "Tumored Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/ca/Tumored_Battler.png"
+        },
+        {
+            "name": "Tarnished Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f1/Tarnished_Battler.png"
+        },
+        {
+            "name": "Lil' Turking",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/44/Lil%27_Turking.png"
+        },
+        {
+            "name": "Lil' Infernus",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6e/Lil%27_Infernus.png"
+        },
+        {
+            "name": "Tumored Trowel",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d3/Tumored_Trowel.png"
+        },
+        {
+            "name": "Tarnished Trowel",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/fa/Tarnished_Trowel.png"
+        },
+        {
+            "name": "Lil' EXEC",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/29/Lil%27_EXEC.png"
+        },
+        {
+            "name": "Lil' X-TREME",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7c/Lil%27_X-TREME.png"
+        },
+        {
+            "name": "Tumored Sword",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d5/Tumored_Sword.png"
+        },
+        {
+            "name": "Tarnished Sword",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/3b/Tarnished_Sword.png"
+        },
+        {
+            "name": "Lil' Cesus",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c2/Lil%27_Cesus.png"
+        },
+        {
+            "name": "Lil' Chronos",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/50/Lil%27_Chronos.png"
+        },
+        {
+            "name": "Tumored Slinger",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c3/Tumored_Slinger.png"
+        },
+        {
+            "name": "Eye Of Rah",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/85/Eye_Of_Rah.png"
+        },
+        {
+            "name": "Papaler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/11/Papaler.png"
+        },
+        {
+            "name": "Veteran Papaler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/30/Veteran_Papaler.png"
+        },
+        {
+            "name": "Golden Hammer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/93/Golden_Hammer.png"
+        },
+        {
+            "name": "Golden Banhammer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/82/Golden_Banhammer.png"
+        },
+        {
+            "name": "RAIG",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7f/RAIG.png"
+        },
+        {
+            "name": "RAIG COLOSSAL",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/55/RAIG_COLOSSAL.png"
+        },
+        {
+            "name": "FRIEND",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f0/FRIEND.png"
+        },
+        {
+            "name": "OMEGA FRIEND",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a2/OMEGA_FRIEND.png"
+        },
+        {
+            "name": "Blud",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/59/Blud.png"
+        },
+        {
+            "name": "Blood",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b5/Blood.png"
+        },
+        {
+            "name": "Ninja Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/af/Ninja_Battler.png"
+        },
+        {
+            "name": "Assassin Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/68/Assassin_Battler.png"
+        },
+        {
+            "name": "Healer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c3/Healer_Battler.png"
+        },
+        {
+            "name": "Medic Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b4/Medic_Battler.png"
+        },
+        {
+            "name": "Slateskin Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9a/Slateskin_Battler.png"
+        },
+        {
+            "name": "Ceramic Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/05/Ceramic_Battler.png"
+        },
+        {
+            "name": "Cola Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b9/Cola_Battler.png"
+        },
+        {
+            "name": "Binge Cola Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/52/Binge_Cola_Battler.png"
+        },
+        {
+            "name": "Brew Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c0/Brew_Battler.png"
+        },
+        {
+            "name": "Binge Brew Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/80/Binge_Brew_Battler.png"
+        },
+        {
+            "name": "Goala Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2a/Goala_Battler.png"
+        },
+        {
+            "name": "Binge Goala Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/3d/Binge_Goala_Battler.png"
+        },
+        {
+            "name": "Hobo Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6f/Hobo_Battler.png"
+        },
+        {
+            "name": "Hoarder Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8d/Hoarder_Battler.png"
+        },
+        {
+            "name": "Boxer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4b/Boxer_Battler.png"
+        },
+        {
+            "name": "Shanker Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/3e/Shanker_Battler.png"
+        },
+        {
+            "name": "Flashlight Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b7/Flashlight_Battler.png"
+        },
+        {
+            "name": "Lantern Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/99/Lantern_Battler.png"
+        },
+        {
+            "name": "Archer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f3/Archer_Battler.png"
+        },
+        {
+            "name": "Crossbow Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/29/Crossbow_Battler.png"
+        },
+        {
+            "name": "Fencer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/62/Fencer_Battler.png"
+        },
+        {
+            "name": "Scherma Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/73/Scherma_Battler.png"
+        },
+        {
+            "name": "Miner Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/13/Miner_Battler.png"
+        },
+        {
+            "name": "Prospect Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/12/Prospect_Battler.png"
+        },
+        {
+            "name": "Spiked Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/63/Spiked_Battler.png"
+        },
+        {
+            "name": "Barbed Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/0d/Barbed_Battler.png"
+        },
+        {
+            "name": "Trainee Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/30/Trainee_Battler.png"
+        },
+        {
+            "name": "Drafted Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/63/Drafted_Battler.png"
+        },
+        {
+            "name": "Batter Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/14/Batter_Battler.png"
+        },
+        {
+            "name": "Striker Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/24/Striker_Battler.png"
+        },
+        {
+            "name": "Sleepy Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/19/Sleepy_Battler.png"
+        },
+        {
+            "name": "Nighty Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/ad/Nighty_Battler.png"
+        },
+        {
+            "name": "Cowboy Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2a/Cowboy_Battler.png"
+        },
+        {
+            "name": "Gunslinger Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/95/Gunslinger_Battler.png"
+        },
+        {
+            "name": "Officer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/59/Officer_Battler.png"
+        },
+        {
+            "name": "Sheriff Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/13/Sheriff_Battler.png"
+        },
+        {
+            "name": "Gamble Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f0/Gamble_Battler.png"
+        },
+        {
+            "name": "Luckroll Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a4/Luckroll_Battler.png"
+        },
+        {
+            "name": "Prankster Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5a/Prankster_Battler.png"
+        },
+        {
+            "name": "Tomfoolery Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/98/Tomfoolery_Battler.png"
+        },
+        {
+            "name": "Megaphone Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8a/Megaphone_Battler.png"
+        },
+        {
+            "name": "Micspammer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/df/Micspammer_Battler.png"
+        },
+        {
+            "name": "Coil Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8c/Coil_Battler.png"
+        },
+        {
+            "name": "Rail Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/dd/Rail_Battler.png"
+        },
+        {
+            "name": "Expo Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/70/Expo_Battler.png"
+        },
+        {
+            "name": "Vulcan Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4f/Vulcan_Battler.png"
+        },
+        {
+            "name": "Fireball Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c1/Fireball_Battler.png"
+        },
+        {
+            "name": "Ignis Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2d/Ignis_Battler.png"
+        },
+        {
+            "name": "Iceball Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8f/Iceball_Battler.png"
+        },
+        {
+            "name": "Frigus Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/76/Frigus_Battler.png"
+        },
+        {
+            "name": "Hurtorb Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7d/Hurtorb_Battler.png"
+        },
+        {
+            "name": "Healorb Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/ab/Healorb_Battler.png"
+        },
+        {
+            "name": "Motorbike Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/81/Motorbike_Battler.png"
+        },
+        {
+            "name": "Hyperbike Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c2/Hyperbike_Battler.png"
+        },
+        {
+            "name": "Retro Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/30/Retro_Battler.png"
+        },
+        {
+            "name": "Atari Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/99/Atari_Battler.png"
+        },
+        {
+            "name": "Farmer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/ed/Farmer_Battler.png"
+        },
+        {
+            "name": "Rancher Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/cf/Rancher_Battler.png"
+        },
+        {
+            "name": "Glass Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e6/Glass_Battler.png"
+        },
+        {
+            "name": "Payload Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f8/Payload_Battler.png"
+        },
+        {
+            "name": "Winged Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/0d/Winged_Battler.png"
+        },
+        {
+            "name": "Jetpack Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e7/Jetpack_Battler.png"
+        },
+        {
+            "name": "Remote Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b2/Remote_Battler.png"
+        },
+        {
+            "name": "Voodoo Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/83/Voodoo_Battler.png"
+        },
+        {
+            "name": "Werewolf Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a2/Werewolf_Battler.png"
+        },
+        {
+            "name": "Beastly Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/44/Beastly_Battler.png"
+        },
+        {
+            "name": "Moai Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a5/Moai_Battler.png"
+        },
+        {
+            "name": "Tiki Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/51/Tiki_Battler.png"
+        },
+        {
+            "name": "Prototype Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/24/Prototype_Battler.png"
+        },
+        {
+            "name": "Archetype Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5c/Archetype_Battler.png"
+        },
+        {
+            "name": "Chairman",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b1/Chairman.png"
+        },
+        {
+            "name": "Raigquitter",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f3/Raigquitter.png"
+        },
+        {
+            "name": "Tix Collector",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2a/Tix_Collector.png"
+        },
+        {
+            "name": "B. Money",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d7/B._Money.png"
+        },
+        {
+            "name": "Wes",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/0f/Wes.png"
+        },
+        {
+            "name": "Maxwell",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d5/Maxwell.png"
+        },
+        {
+            "name": "Mu",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/62/Mu.png"
+        },
+        {
+            "name": "Crimson",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/01/Crimson.png"
+        },
+        {
+            "name": "Conjuror",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/84/Conjuror.png"
+        },
+        {
+            "name": "Trebuchet",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/cf/Trebuchet.png"
+        },
+        {
+            "name": "Dark Reaper",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e6/Dark_Reaper.png"
+        },
+        {
+            "name": "Lord Skelly",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6b/Lord_Skelly.png"
+        },
+        {
+            "name": "Intern Elf",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/06/Intern_Elf.png"
+        },
+        {
+            "name": "Mall Santa",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9f/Mall_Santa.png"
+        },
+        {
+            "name": "Psi",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/56/Psi.png"
+        },
+        {
+            "name": "Noir",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/0e/Noir.png"
+        },
+        {
+            "name": "Operator",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/17/Operator.png"
+        },
+        {
+            "name": "Commander",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2e/Commander.png"
+        },
+        {
+            "name": "Iota",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/19/Iota.png"
+        },
+        {
+            "name": "Ivory",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/55/Ivory.png"
+        },
+        {
+            "name": "Bluesteel",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/db/Bluesteel.png"
+        },
+        {
+            "name": "Goldaurum",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/45/Goldaurum.png"
+        },
+        {
+            "name": "Deinx94",
+            "image": "https://cdn.discordapp.com/attachments/1050863721238515772/1399092400994914354/Render_Secret_Deinx94.png"
+        }
+    ],
+    "enemies": [
+        {
+            "name": "Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9d/Battler_Enemy.png"
+        },
+        {
+            "name": "Trowel Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/68/Trowel_Battler_Enemy.png"
+        },
+        {
+            "name": "Sword Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c2/Sword_Battler_Enemy.png"
+        },
+        {
+            "name": "Slinger Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e9/Slinger_Battler_Enemy.png"
+        },
+        {
+            "name": "Baller Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b0/Baller_Battler_Enemy.png"
+        },
+        {
+            "name": "Paintball Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d9/Paintball_Battler_Enemy.png"
+        },
+        {
+            "name": "Paintmaster",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7e/Paintmaster.png"
+        },
+        {
+            "name": "Speed Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a9/Speed_Battler_Enemy.png"
+        },
+        {
+            "name": "Regen Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4d/Regen_Battler_Enemy.png"
+        },
+        {
+            "name": "Gravity Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/84/Gravity_Battler_Enemy.png"
+        },
+        {
+            "name": "Rocket Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/50/Rocket_Battler_Enemy.png"
+        },
+        {
+            "name": "Bomb Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2a/Bomb_Battler_Enemy.png"
+        },
+        {
+            "name": "Jetrock",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/51/Jetrock.png"
+        },
+        {
+            "name": "Hammer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/93/Hammer_Battler_Enemy.png"
+        },
+        {
+            "name": "Grenade Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/cc/Grenade_Battler_Enemy.png"
+        },
+        {
+            "name": "Titan Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/94/Titan_Battler_Enemy.png"
+        },
+        {
+            "name": "Doombringer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/08/Doombringer.png"
+        },
+        {
+            "name": "Blonde Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a7/Blonde_Battler_Enemy.png"
+        },
+        {
+            "name": "Builder Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/49/Builder_Battler_Enemy.png"
+        },
+        {
+            "name": "Brigand Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/60/Brigand_Battler_Enemy.png"
+        },
+        {
+            "name": "Stunner Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f6/Stunner_Battler_Enemy.png"
+        },
+        {
+            "name": "Soccer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/3d/Soccer_Battler_Enemy.png"
+        },
+        {
+            "name": "Sniper Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/73/Sniper_Battler_Enemy.png"
+        },
+        {
+            "name": "Terminator",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/81/Terminator.png"
+        },
+        {
+            "name": "Dual Speed Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/df/Dual_Speed_Battler_Enemy.png"
+        },
+        {
+            "name": "Dual Regen Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/06/Evil_Dual_Regen_New.png"
+        },
+        {
+            "name": "Dual Gravity Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/0a/Dual_Gravity_Battler_Enemy.png"
+        },
+        {
+            "name": "Crocket Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/21/Crocket_Battler_Enemy.png"
+        },
+        {
+            "name": "Kamikaze Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d2/Kamikaze_Battler_Enemy.png"
+        },
+        {
+            "name": "Hellfighter",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9d/Hellfighter.png"
+        },
+        {
+            "name": "Banhammer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1e/Banhammer_Battler_Enemy.png"
+        },
+        {
+            "name": "Arson Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e3/Arson_Battler_Enemy.png"
+        },
+        {
+            "name": "Telamon Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/09/Telamon_Battler_Enemy.png"
+        },
+        {
+            "name": "Deathbringer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8f/Deathbringer.png"
+        },
+        {
+            "name": "Firebrand",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/11/Firebrand.png"
+        },
+        {
+            "name": "Arch",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/32/Arch.png"
+        },
+        {
+            "name": "Gallant",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1a/Gallant.png"
+        },
+        {
+            "name": "Sailor Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8f/Sailor_Battler_Enemy.png"
+        },
+        {
+            "name": "Bucket Tagger",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2e/Bucket_Tagger.png"
+        },
+        {
+            "name": "Arm Cannoneer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/05/Arm_Cannoneer.png"
+        },
+        {
+            "name": "Redbeard",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/83/Redbeard.png"
+        },
+        {
+            "name": "Bugle Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/97/Bugle_Battler_Enemy.png"
+        },
+        {
+            "name": "Guitar Trainee",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a1/Guitar_Trainee.png"
+        },
+        {
+            "name": "Cymbal Boy",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/12/Cymbal_Boy.png"
+        },
+        {
+            "name": "DJ Radical",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/35/DJ_Radical.png"
+        },
+        {
+            "name": "Radmobile",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c4/Radmobile.png"
+        },
+        {
+            "name": "Spartan Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/60/Spartan_Battler_Enemy.png"
+        },
+        {
+            "name": "Gargant",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/55/Gargant.png"
+        },
+        {
+            "name": "Turking",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/64/Turking.png"
+        },
+        {
+            "name": "Dual Firebrand",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/93/Dual_Firebrand.png"
+        },
+        {
+            "name": "Nemesis",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e3/Nemesis.png"
+        },
+        {
+            "name": "Shieldman",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f5/Shieldman.png"
+        },
+        {
+            "name": "Pirate Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8a/Pirate_Battler_Enemy.png"
+        },
+        {
+            "name": "Treasure Seller",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/11/Treasure_Seller.png"
+        },
+        {
+            "name": "Uzi Rambo",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/71/Uzi_Rambo.png"
+        },
+        {
+            "name": "Bulldozer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f5/Bulldozer.png"
+        },
+        {
+            "name": "Drummer Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/76/Drummer_Battler_Enemy.png"
+        },
+        {
+            "name": "Guitar Hero",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/cb/Guitar_Hero.png"
+        },
+        {
+            "name": "Saxophone Man",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/16/Saxophone_Man.png"
+        },
+        {
+            "name": "Rockstar Radical",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/84/Rockstar_Radical.png"
+        },
+        {
+            "name": "Bombcopter",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/46/Bombcopter.png"
+        },
+        {
+            "name": "Barbaric Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9b/Barbaric_Battler_Enemy.png"
+        },
+        {
+            "name": "Gehenna",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/bd/Gehenna.png"
+        },
+        {
+            "name": "Infernus",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d2/Infernus.png"
+        },
+        {
+            "name": "Darkheart",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4b/Darkheart.png"
+        },
+        {
+            "name": "Outlaw",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f0/Outlaw.png"
+        },
+        {
+            "name": "Penny",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/ab/Penny.png"
+        },
+        {
+            "name": "Patrol",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/fd/Patrol.png"
+        },
+        {
+            "name": "Butcher Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/76/Butcher_Battler_Enemy.png"
+        },
+        {
+            "name": "Amputator",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/ca/Amputator.png"
+        },
+        {
+            "name": "Mad Scientist",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1a/Mad_Scientist.png"
+        },
+        {
+            "name": "Doctor Bright",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/35/Doctor_Bright.png"
+        },
+        {
+            "name": "Jester Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8a/Jester_Battler_Enemy.png"
+        },
+        {
+            "name": "Blinder",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/86/Blinder.png"
+        },
+        {
+            "name": "Monkey Bread",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/97/Monkey_Bread.png"
+        },
+        {
+            "name": "Littleman",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1a/Littleman.png"
+        },
+        {
+            "name": "Pianist",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/22/Pianist.png"
+        },
+        {
+            "name": "Insecure",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/24/Insecure.png"
+        },
+        {
+            "name": "Deleter",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5e/Deleter.png"
+        },
+        {
+            "name": "Cloak Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/27/Cloak_Battler_Enemy.png"
+        },
+        {
+            "name": "Sapper",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/76/Sapper.png"
+        },
+        {
+            "name": "Fatboy",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5a/Fatboy.png"
+        },
+        {
+            "name": "EXEC",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8b/EXEC.png"
+        },
+        {
+            "name": "Dual Darkheart",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4a/Dual_Darkheart.png"
+        },
+        {
+            "name": "Vigilante",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c7/Vigilante.png"
+        },
+        {
+            "name": "Betty",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c3/Betty.png"
+        },
+        {
+            "name": "Principal",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/ea/Principal.png"
+        },
+        {
+            "name": "Chainsaw Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5b/Chainsaw_Battler_Enemy.png"
+        },
+        {
+            "name": "Executioner",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/93/Executioner.png"
+        },
+        {
+            "name": "Crazy Chemist",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2e/Crazy_Chemist.png"
+        },
+        {
+            "name": "Mister Mancer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e0/Mister_Mancer.png"
+        },
+        {
+            "name": "Terror Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/ff/Terror_Battler_Enemy.png"
+        },
+        {
+            "name": "Corrupter",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/43/Confuddler.png"
+        },
+        {
+            "name": "Gorilla Barrel",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5e/Gorilla_Barrel.png"
+        },
+        {
+            "name": "Bloodhorn",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/be/Bloodhorn.png"
+        },
+        {
+            "name": "Grandmaster",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/28/Grandmaster.png"
+        },
+        {
+            "name": "Blackmail",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b4/Blackmail.png"
+        },
+        {
+            "name": "Melvin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/cc/Melvin.png"
+        },
+        {
+            "name": "Expunger",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/cc/Expunger.png"
+        },
+        {
+            "name": "Cyber Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/70/Cyber_Battler_Enemy.png"
+        },
+        {
+            "name": "Stunlock",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e7/Stunlock.png"
+        },
+        {
+            "name": "Warhead",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/50/Warhead.png"
+        },
+        {
+            "name": "X-TREME",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a2/X-TREME.png"
+        },
+        {
+            "name": "Windforce",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/71/Windforce.png"
+        },
+        {
+            "name": "Flight",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1e/Flight.png"
+        },
+        {
+            "name": "Knight",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6b/Knight.png"
+        },
+        {
+            "name": "Airhead",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/98/Airhead.png"
+        },
+        {
+            "name": "Mage Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/19/Mage_Battler_Enemy.png"
+        },
+        {
+            "name": "Viking",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c0/Viking.png"
+        },
+        {
+            "name": "Henchman",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/96/Henchman.png"
+        },
+        {
+            "name": "Monsalt",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/47/Monsalt.png"
+        },
+        {
+            "name": "Rook",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1b/Rook.png"
+        },
+        {
+            "name": "Bishop",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f0/Bishop.png"
+        },
+        {
+            "name": "King",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1d/King.png"
+        },
+        {
+            "name": "Stagger Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f0/Stagger_Battler_Enemy.png"
+        },
+        {
+            "name": "Ire",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7d/Ire.png"
+        },
+        {
+            "name": "Grappler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a5/Grappler.png"
+        },
+        {
+            "name": "Singer",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e0/Singer.png"
+        },
+        {
+            "name": "Judgement",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b0/Judgement.png"
+        },
+        {
+            "name": "McBurn",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f1/McBurn.png"
+        },
+        {
+            "name": "Martyr",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/35/Martyr.png"
+        },
+        {
+            "name": "Killbot",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/17/Killbot.png"
+        },
+        {
+            "name": "Beacon",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b3/Beacon.png"
+        },
+        {
+            "name": "Teapot Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/43/Teapot_Battler_Enemy.png"
+        },
+        {
+            "name": "Father",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/11/Father.png"
+        },
+        {
+            "name": "Cesus",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/50/Cesus.png"
+        },
+        {
+            "name": "Dual Windforce",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f5/Dual_Windforce.png"
+        },
+        {
+            "name": "Jolly",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/85/Jolly.png"
+        },
+        {
+            "name": "Pwnsalot",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/54/Pwnsalot.png"
+        },
+        {
+            "name": "Skittle",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/df/Skittle.png"
+        },
+        {
+            "name": "Dryad Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c3/Dryad_Battler_Enemy.png"
+        },
+        {
+            "name": "Norman",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2e/Norman.png"
+        },
+        {
+            "name": "Trollage",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d4/Trollage.png"
+        },
+        {
+            "name": "Monolith",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/56/Monolith.png"
+        },
+        {
+            "name": "Slasher Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2e/Slasher_Battler_Enemy.png"
+        },
+        {
+            "name": "Fury",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/46/Fury.png"
+        },
+        {
+            "name": "Crusader",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/eb/Crusader.png"
+        },
+        {
+            "name": "Vocalist",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/be/Vocalist.png"
+        },
+        {
+            "name": "Punishment",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5f/Punishment.png"
+        },
+        {
+            "name": "McBlast",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a8/McBlast.png"
+        },
+        {
+            "name": "Reinbo",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5a/Reinbo.png"
+        },
+        {
+            "name": "Atomic",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7b/Atomic.png"
+        },
+        {
+            "name": "Ultimate",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/22/Ultimate.png"
+        },
+        {
+            "name": "Newell Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/eb/Newell_Battler_Enemy.png"
+        },
+        {
+            "name": "Crusher",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7a/Crusher.png"
+        },
+        {
+            "name": "Cross",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4e/Cross.png"
+        },
+        {
+            "name": "Chronos",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/94/Chronos.png"
+        },
+        {
+            "name": "Battler (Classic)",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b8/Battler_%28Classic%29.png"
+        },
+        {
+            "name": "Shield Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/03/Shield_Battler.png"
+        },
+        {
+            "name": "Sword Battler (Classic)",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8c/Sword_Battler_%28Classic%29.png"
+        },
+        {
+            "name": "Rusher Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8d/Rusher_Battler.png"
+        },
+        {
+            "name": "Bomber Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c3/Bomber_Battler.png"
+        },
+        {
+            "name": "Dark Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e1/Dark_Battler.png"
+        },
+        {
+            "name": "Dark Shield Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/23/Dark_Shield_Battler.png"
+        },
+        {
+            "name": "Dark Sword Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8c/Dark_Sword_Battler.png"
+        },
+        {
+            "name": "Dark Rusher Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/26/Dark_Rusher_Battler.png"
+        },
+        {
+            "name": "Dark Bomber Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/72/Dark_Bomber_Battler.png"
+        },
+        {
+            "name": "Speedster",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/db/Speedster.png"
+        },
+        {
+            "name": "Regenerator",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b3/Regenerator.png"
+        },
+        {
+            "name": "Gravitator",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/67/Gravitator.png"
+        },
+        {
+            "name": "Fusecoil",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/bb/Fusecoil.png"
+        },
+        {
+            "name": "Ragester",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/41/Ragester.png"
+        },
+        {
+            "name": "Magerator",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a5/Magerator.png"
+        },
+        {
+            "name": "Spiritator",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f8/Spiritator.png"
+        },
+        {
+            "name": "Soulfuse",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c5/Soulfuse.png"
+        },
+        {
+            "name": "Soul of Speed",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/67/Soul_of_Speed.png"
+        },
+        {
+            "name": "Soul of Regen",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7e/Soul_of_Regen.png"
+        },
+        {
+            "name": "Soul of Gravity",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/be/Soul_of_Gravity.png"
+        },
+        {
+            "name": "Cake Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/74/Cake_Battler.png"
+        },
+        {
+            "name": "Baker Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/0c/Baker_Battler.png"
+        },
+        {
+            "name": "Mystery Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/68/Mystery_Battler.png"
+        },
+        {
+            "name": "Birthday Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4f/Birthday_Battler_Enemy.png"
+        },
+        {
+            "name": "Puke Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c4/Puke_Battler.png"
+        },
+        {
+            "name": "Fudge Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6b/Fudge_Battler.png"
+        },
+        {
+            "name": "Enigma Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7b/Enigma_Battler.png"
+        },
+        {
+            "name": "Celebration Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/10/Celebration_Battler_Enemy.png"
+        },
+        {
+            "name": "Giant Noob",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e5/Giant_Noob.png"
+        },
+        {
+            "name": "Icedagger Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/95/Icedagger_Battler.png"
+        },
+        {
+            "name": "Snowtrooper Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/8d/Snowtrooper_Battler.png"
+        },
+        {
+            "name": "Freeze Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/ff/Freeze_Battler.png"
+        },
+        {
+            "name": "Breaker Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7d/Breaker_Battler.png"
+        },
+        {
+            "name": "Gale Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/5f/Gale_Battler.png"
+        },
+        {
+            "name": "Icecaster Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/68/Icecaster_Battler.png"
+        },
+        {
+            "name": "Frostburn Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6d/Frostburn_Battler.png"
+        },
+        {
+            "name": "Stalagmight",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e3/Stalagmight.png"
+        },
+        {
+            "name": "Bedridden",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e9/Bedridden.png"
+        },
+        {
+            "name": "Dual Icedagger Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/30/Dual_Icedagger_Battler.png"
+        },
+        {
+            "name": "Icegunner Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/68/Icegunner_Battler.png"
+        },
+        {
+            "name": "Icicle Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/95/Icicle_Battler.png"
+        },
+        {
+            "name": "Breacher Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/3/39/Breacher_Battler.png"
+        },
+        {
+            "name": "Mistral Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/ee/Mistral_Battler.png"
+        },
+        {
+            "name": "Fowlcaster Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2e/Fowlcaster_Battler.png"
+        },
+        {
+            "name": "Okami Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/29/Okami_Battler.png"
+        },
+        {
+            "name": "Stalagcythe",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/02/Stalagcythe.png"
+        },
+        {
+            "name": "Treachstone",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/20/Treachstone.png"
+        },
+        {
+            "name": "Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/1d/Muffin.png"
+        },
+        {
+            "name": "Sprinter Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/08/Sprinter_Muffin.png"
+        },
+        {
+            "name": "Recruit Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6e/Recruit_Muffin.png"
+        },
+        {
+            "name": "Armored Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b2/Armored_Muffin.png"
+        },
+        {
+            "name": "Cupcake",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/90/Cupcake.png"
+        },
+        {
+            "name": "Bazooka Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/10/Bazooka_Muffin.png"
+        },
+        {
+            "name": "Specialist Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6b/Specialist_Muffin.png"
+        },
+        {
+            "name": "Cultist Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/24/Cultist_Muffin.png"
+        },
+        {
+            "name": "Tank Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a5/Tank_Muffin.png"
+        },
+        {
+            "name": "Catalog Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/8/87/Catalog_Muffin.png"
+        },
+        {
+            "name": "Fat Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/79/Fat_Muffin.png"
+        },
+        {
+            "name": "Exploder Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2e/Exploder_Muffin.png"
+        },
+        {
+            "name": "Soldier Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c3/Soldier_Muffin.png"
+        },
+        {
+            "name": "Shielded Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c9/Shielded_Muffin.png"
+        },
+        {
+            "name": "Cake",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f0/Cake.png"
+        },
+        {
+            "name": "Robotic Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e1/Robotic_Muffin.png"
+        },
+        {
+            "name": "Anarchist Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/0a/Anarchist_Muffin.png"
+        },
+        {
+            "name": "Illuminist Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e8/Illuminist_Muffin.png"
+        },
+        {
+            "name": "Prism Tank Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d3/Prism_Tank_Muffin.png"
+        },
+        {
+            "name": "Doomsday Muffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/fa/Doomsday_Muffin.png"
+        },
+        {
+            "name": "Brand",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/62/Brand.png"
+        },
+        {
+            "name": "Birdshot",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f9/Birdshot.png"
+        },
+        {
+            "name": "Artifact",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a8/Artifact.png"
+        },
+        {
+            "name": "Boxtrot",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/ce/Boxtrot.png"
+        },
+        {
+            "name": "Princess",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f2/Princess.png"
+        },
+        {
+            "name": "Burnout",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/fb/Burnout.png"
+        },
+        {
+            "name": "Boffin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f1/Boffin.png"
+        },
+        {
+            "name": "Clifford",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/63/Clifford.png"
+        },
+        {
+            "name": "Scorch",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/06/Scorch.png"
+        },
+        {
+            "name": "Scorch",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c4/Bigshot.png"
+        },
+        {
+            "name": "Braverush",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/63/Braverush.png"
+        },
+        {
+            "name": "Shankcut",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/41/Shankcut.png"
+        },
+        {
+            "name": "Sweetheart",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c2/Sweetheart.png"
+        },
+        {
+            "name": "Bottled",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/10/Bottled.png"
+        },
+        {
+            "name": "Brainiac",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/96/Brainiac.png"
+        },
+        {
+            "name": "Sunbeam",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/e/e4/Sunbeam.png"
+        },
+        {
+            "name": "Razor",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/a0/Razor.png"
+        },
+        {
+            "name": "Shader",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b4/Shader.png"
+        },
+        {
+            "name": "Mobster",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f2/Mobster.png"
+        },
+        {
+            "name": "CRIME",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/0a/CRIME.png"
+        },
+        {
+            "name": "Slenderhead",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/f9/Slenderhead.png"
+        },
+        {
+            "name": "Jeff",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/46/Jeff.png"
+        },
+        {
+            "name": "Gamblecore",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7a/Gamblecore.png"
+        },
+        {
+            "name": "Zipbomb",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/02/Zipbomb.png"
+        },
+        {
+            "name": "Edgelord",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9f/Edgelord.png"
+        },
+        {
+            "name": "Sparkle",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/70/Sparkle.png"
+        },
+        {
+            "name": "Kingpin",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2e/Kingpin.png"
+        },
+        {
+            "name": "PRIME",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/7b/PRIME.png"
+        },
+        {
+            "name": "Screecherhead",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/24/Screecherhead.png"
+        },
+        {
+            "name": "Omor",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b3/Omor.png"
+        },
+        {
+            "name": "Ransomware",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/6f/Ransomware.png"
+        },
+        {
+            "name": "Redzone",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/6/63/Redzone.png"
+        },
+        {
+            "name": "Warrior",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/97/Warrior.png"
+        },
+        {
+            "name": "Hunter",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4b/Hunter.png"
+        },
+        {
+            "name": "Damned",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/9/9d/Damned.png"
+        },
+        {
+            "name": "Champion",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d7/Champion.png"
+        },
+        {
+            "name": "Arbalest",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/f/ff/Arbalest.png"
+        },
+        {
+            "name": "Tormented",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/59/Tormented.png"
+        },
+        {
+            "name": "Bloodcaster",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/0/02/Bloodcaster.png"
+        },
+        {
+            "name": "Cadaver",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/bb/Cadaver.png"
+        },
+        {
+            "name": "Acolyte",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/c/c2/Acolyte.png"
+        },
+        {
+            "name": "Outcast",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/4/4c/Outcast.png"
+        },
+        {
+            "name": "Blight",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/a/ac/Blight.png"
+        },
+        {
+            "name": "Mystery II Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b7/Mystery_II_Battler.png"
+        },
+        {
+            "name": "McDonald Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/d3/McDonald_Battler.png"
+        },
+        {
+            "name": "American Fatboy",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/5/55/American_Fatboy.png"
+        },
+        {
+            "name": "Cyborg Rocket Battle",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b7/Cyborg_Rocket_Battle.png"
+        },
+        {
+            "name": "Enigma II Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/b/b3/Enigma_II_Battler.png"
+        },
+        {
+            "name": "Grimace Battler",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/2/2d/Grimace_Battler.png"
+        },
+        {
+            "name": "Grimace",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/d/da/Grimace.png"
+        },
+        {
+            "name": "Patriot Warhead",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/1/15/Patriot_Warhead.png"
+        },
+        {
+            "name": "Cyborg Crocket Battle",
+            "image": "https://static.wikia.nocookie.net/the-battle-bricks/images/7/71/Cyborg_Crocket_Battle.png"
+        }
+    ]
+}

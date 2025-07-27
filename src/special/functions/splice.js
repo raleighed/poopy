@@ -12,7 +12,7 @@ module.exports = {
     var index = split[1] ?? '0'
     var deleteCount = split[2] ?? '1'
 
-    var array = tempdata[msg.author.id]['arrays'][name]
+    var array = tempdata[msg.author.id].arrays[name]
     if (!array) return ''
 
     array.splice(index, deleteCount)

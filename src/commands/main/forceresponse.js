@@ -29,7 +29,7 @@ module.exports = {
                     parse: ['users']
                 }
             }).catch(() => { })
-            tempdata[msg.guild.id][msg.channel.id]['forceres'] = {
+            tempdata[msg.guild.id][msg.channel.id].forceres = {
                 persist,
                 msg,
                 repliesonly,

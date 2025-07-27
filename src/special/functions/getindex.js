@@ -11,7 +11,7 @@ module.exports = {
         var name = split[0] ?? ''
         var index = Number(split[1] ?? '0')
 
-        var array = tempdata[msg.author.id]['arrays'][name]
+        var array = tempdata[msg.author.id].arrays[name]
         if (!array) return ''
         if (index < 0) index += array.length
 

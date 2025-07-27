@@ -103,7 +103,7 @@ module.exports = function (msg, fixedchoice) {
         { text: 'i dare someone to post porn on my dm\'s' },
         { text: '._.' },
         { pings: true, text: '' },
-        { text: `${msg.author.username.toUpperCase()} WHY` },
+        { text: `${msg.author.displayName.toUpperCase()} WHY` },
         { text: 'BRUH' },
         { text: msg.content },
         { text: 'SUS' },
@@ -117,17 +117,17 @@ module.exports = function (msg, fixedchoice) {
         { text: _verb() },
         { text: _noun() },
         { text: _adj() },
-        { pings: true, text: `stupid ${msg.author.username.toLowerCase()}` },
-        { text: `not ${msg.author.username.toLowerCase()}` },
-        { text: `wth ${msg.author.username.toLowerCase()}` },
-        { text: `lol ${msg.author.username.toLowerCase()}` },
-        { text: `${msg.author.username.toLowerCase()} ${adjectives[Math.floor(Math.random() * adjectives.length)]}` },
-        { text: `${msg.author.username.toLowerCase()}: ${_arab().toLowerCase()}` },
-        { text: `no not ${msg.author.username.toLowerCase()} with ${_arab().toLowerCase()}` },
+        { pings: true, text: `stupid ${msg.author.displayName.toLowerCase()}` },
+        { text: `not ${msg.author.displayName.toLowerCase()}` },
+        { text: `wth ${msg.author.displayName.toLowerCase()}` },
+        { text: `lol ${msg.author.displayName.toLowerCase()}` },
+        { text: `${msg.author.displayName.toLowerCase()} ${adjectives[Math.floor(Math.random() * adjectives.length)]}` },
+        { text: `${msg.author.displayName.toLowerCase()}: ${_arab().toLowerCase()}` },
+        { text: `no not ${msg.author.displayName.toLowerCase()} with ${_arab().toLowerCase()}` },
         { text: 'ahhhhhhhhhh' },
         { text: `${_location().toLowerCase()} suuucks` },
         { text: 'why am i a bot' },
-        { text: `${msg.author.username.toLowerCase()} ${shipAdjectives[Math.floor(Math.random() * shipAdjectives.length)]} ${_activemember(msg).toLowerCase()}` },
+        { text: `${msg.author.displayName.toLowerCase()} ${shipAdjectives[Math.floor(Math.random() * shipAdjectives.length)]} ${_activemember(msg).toLowerCase()}` },
         { text: `is ${_activemember(msg).toLowerCase()} hot` },
         { text: `im not pinging ${_activemember(msg).toLowerCase()}` },
         { text: `${_activemember(msg).toUpperCase()} IS ${sayoriAdjectives[Math.floor(Math.random() * sayoriAdjectives.length)]} NOT ME` },
@@ -136,7 +136,7 @@ module.exports = function (msg, fixedchoice) {
         { text: `${_activemember(msg).toLowerCase()}e` },
         { text: `${_adj()}e ${_activemember(msg).toLowerCase()}e` },
         { text: `${_activemember(msg).toUpperCase()} IS THE ${sayoriAdjectives[Math.floor(Math.random() * sayoriAdjectives.length)]} ${sayoriAdjectives[Math.floor(Math.random() * sayoriAdjectives.length)]} ${sayoriAdjectives[Math.floor(Math.random() * sayoriAdjectives.length)]} ${sayoriAdjectives[Math.floor(Math.random() * sayoriAdjectives.length)]}` },
-        { text: msg.author.username.toLowerCase() }
+        { text: msg.author.displayName.toLowerCase() }
     ]
 
     let choice = fixedchoice && (typeof (Number(fixedchoice)) == 'number' && (((Number(fixedchoice) - 1) >= options.length - 1 && options[options.length - 1]) || ((Number(fixedchoice) - 1) <= 0 && options[0]) || (isNaN(Number(fixedchoice)) && options[Math.floor(Math.random() * options.length)]) || options[Math.floor(Number(fixedchoice))]) || options[Math.floor(Math.random() * options.length)]) || options[Math.floor(Math.random() * options.length)]

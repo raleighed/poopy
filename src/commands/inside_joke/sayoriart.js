@@ -119,11 +119,11 @@ module.exports = {
       'https://cdn.discordapp.com/attachments/551420953704267789/846018326434021436/20210523_143344.jpg'
     ]
 
-    var sayori = await bot.users.fetch('758638862590803968')
+    var sayori = await bot.users.fetch('758638862590803968').catch(() => { })
     var art = sayoriart[Math.floor(Math.random() * sayoriart.length)]
 
     if (!msg.nosend) await msg.reply({
-      content: `This treasure was made by ${sayori.tag}.`,
+      content: `This treasure was made by ${sayori?.tag ?? "agentcherrybunny"}.`,
       files: [new Discord.AttachmentBuilder(art)]
     }).catch(() => { })
 

@@ -3,7 +3,10 @@ module.exports = {
     args: [{ "name": "hue", "required": false, "specifarg": false, "orig": "[hue (from -360 to 360)]" }, { "name": "saturation", "required": false, "specifarg": false, "orig": "[saturation (from -10 to 10)]" }, { "name": "lightness", "required": false, "specifarg": false, "orig": "[lightness (from -10 to 10)]" }, { "name": "file", "required": false, "specifarg": false, "orig": "{file}" }],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, validateFile, downloadFile, execPromise, findpreset, sendFile } = poopy.functions
+        let {
+            lastUrl, validateFile, downloadFile, execPromise,
+            findpreset, sendFile, fetchPingPerms
+        } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let vars = poopy.vars
 
@@ -18,7 +21,12 @@ module.exports = {
         var saturation = isNaN(Number(String(args[2]).replace(/,/g, ''))) ? 1 : Number(String(args[2]).replace(/,/g, '')) <= -10 ? -10 : Number(String(args[2]).replace(/,/g, '')) >= 10 ? 10 : Number(String(args[2]).replace(/,/g, '')) ?? 1
         var lightness = isNaN(Number(String(args[3]).replace(/,/g, ''))) ? 0 : Number(String(args[3]).replace(/,/g, '')) <= -10 ? -10 : Number(String(args[3]).replace(/,/g, '')) >= 10 ? 10 : Number(String(args[3]).replace(/,/g, '')) || 0
         var fileinfo = await validateFile(currenturl).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -51,7 +59,7 @@ module.exports = {
             await msg.reply({
                 content: `Unsupported file: \`${currenturl}\``,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })

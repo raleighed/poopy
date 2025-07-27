@@ -8,7 +8,7 @@ module.exports = {
         '**_collected** - Used when the collector stops running, containing all collected messages.',
     func: async function (matches, msg, isBot, _, opts) {
         let poopy = this
-        let { splitKeyFunc, getKeywordsFor, dmSupport, deleteMsgData } = poopy.functions
+        let { splitKeyFunc, getKeywordsFor, dmSupport, fetchPingPerms, deleteMsgData } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let config = poopy.config
         let data = poopy.data
@@ -32,7 +32,7 @@ module.exports = {
                 delete tempdata[guildid][channelid][authorid].messageCollector
             }
 
-            var filter = m => (config.allowbotusage || (data.guildData[msg.guild.id]['chaos'] && !m.webhookId) || !m.author.bot) && m.author.id != bot.user.id
+            var filter = m => (config.allowbotusage || (data.guildData[msg.guild.id].chaos && !m.webhookId) || !m.author.bot) && m.author.id != bot.user.id
             var collected = []
             var collector = channel.createMessageCollector({ filter, time: timeout * 1000 })
 
@@ -42,7 +42,7 @@ module.exports = {
                 try {
                     dmSupport(m)
 
-                    if (tempdata[msg.guild.id][msg.channel.id]['shut']) return
+                    if (tempdata[msg.guild.id][msg.channel.id].shut) return
                     var content = await getKeywordsFor(m.content ?? '', m, false).catch((e) => console.log(e)) ?? m.content
 
                     var valOpts = { ...opts }
@@ -80,7 +80,7 @@ module.exports = {
                     await channel.send({
                         content: collect,
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && authorid !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                 } catch (_) { }
@@ -90,7 +90,7 @@ module.exports = {
 
             collector.on('end', async (_, reason) => {
                 try {
-                    if (tempdata[msg.guild.id][msg.channel.id]['shut']) return
+                    if (tempdata[msg.guild.id][msg.channel.id].shut) return
                     delete tempdata[guildid][channelid][authorid].messageCollector
                     if (reason === 'time') {
                         var valOpts = { ...opts }
@@ -105,7 +105,7 @@ module.exports = {
                         await channel.send({
                             content: finishphrasek,
                             allowedMentions: {
-                                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && authorid !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                parse: fetchPingPerms(msg)
                             }
                         }).catch(() => { })
                     }

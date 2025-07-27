@@ -33,16 +33,20 @@ module.exports = {
             "required": true,
             "specifarg": false,
             "orig": "<id>",
-            "autocomplete": function (interaction) {
+            "autocomplete": async function (interaction) {
                 let poopy = this
+                let { data, config } = poopy
+                let { dataGather } = poopy.functions
 
-                var memberData = poopy.data.guildData[interaction.guild.id]['allMembers']
+                if (!data.guildData[interaction.guild.id]) {
+                    data.guildData[interaction.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
+                }
+
+                var memberData = data.guildData[interaction.guild.id].allMembers ?? {}
                 var memberKeys = Object.keys(memberData).sort((a, b) => memberData[b].messages - memberData[a].messages)
 
                 return memberKeys.map(id => {
-                    return {
-                        name: memberData[id].username, value: id
-                    }
+                    return { name: memberData[id].username, value: id }
                 })
             }
         }],
@@ -68,7 +72,7 @@ module.exports = {
             "autocomplete": function (interaction) {
                 let poopy = this
                 let { decrypt } = poopy.functions
-                return poopy.data.guildData[interaction.guild.id]['messages'].map(msg => decrypt(msg.content))
+                return poopy.data.guildData[interaction.guild.id].messages.map(msg => decrypt(msg.content))
             }
         }],
         "description": "Deletes the message, if it exists."
@@ -80,7 +84,21 @@ module.exports = {
     },
     {
         "name": "read",
-        "args": [],
+        "args": [{
+            "name": "channel",
+            "required": false,
+            "specifarg": false,
+            "orig": "[channel]",
+            "autocomplete": function (interaction) {
+                let poopy = this
+                let { DiscordTypes } = poopy.modules
+
+                return interaction.guild.channels.cache
+                    .filter(c => c.type != DiscordTypes.ChannelType.GuildCategory)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map(c => ({ name: c.name, value: c.id }))
+            }
+        }],
         "description": "Toggles whether the bot can read the messages from the channel or not."
     },
     {
@@ -94,7 +112,7 @@ module.exports = {
         let config = poopy.config
         let { fs, Discord, DiscordTypes, CryptoJS } = poopy.modules
         let data = poopy.data
-        let { similarity, yesno, decrypt, dataGather } = poopy.functions
+        let { similarity, yesno, decrypt, fetchPingPerms } = poopy.functions
         let bot = poopy.bot
 
         var options = {
@@ -103,14 +121,14 @@ module.exports = {
                 vars.filecount++
                 var filepath = `temp/${config.database}/file${currentcount}`
                 fs.mkdirSync(`${filepath}`)
-                fs.writeFileSync(`${filepath}/messagelist.txt`, data.guildData[msg.guild.id]['messages'].map(m => `Author: ${m.author}\n${decrypt(m.content)}`).join('\n\n-----------------------------------------------\n\n') || 'lmao theres nothing')
+                fs.writeFileSync(`${filepath}/messagelist.txt`, data.guildData[msg.guild.id].messages.map(m => `Author: ${m.author}\n${decrypt(m.content)}`).join('\n\n-----------------------------------------------\n\n') || 'lmao theres nothing')
                 if (!msg.nosend) await msg.reply({
                     files: [new Discord.AttachmentBuilder(`${filepath}/messagelist.txt`)]
                 }).catch(() => { })
                 fs.rm(`${filepath}`, {
                     force: true, recursive: true
                 })
-                return data.guildData[msg.guild.id]['messages'].map(m => `Author: ${m.author}\n${decrypt(m.content)}`).join('\n\n-----------------------------------------------\n\n') || 'lmao theres nothing'
+                return data.guildData[msg.guild.id].messages.map(m => `Author: ${m.author}\n${decrypt(m.content)}`).join('\n\n-----------------------------------------------\n\n') || 'lmao theres nothing'
             },
 
             search: async (msg, args) => {
@@ -123,7 +141,7 @@ module.exports = {
                 var cleanMessage = Discord.Util.cleanContent(saidMessage, msg).replace(/\@/g, '@‌')
                 var results = []
 
-                data.guildData[msg.guild.id]['messages'].forEach(message => {
+                data.guildData[msg.guild.id].messages.forEach(message => {
                     if (decrypt(message.content).toLowerCase().includes(cleanMessage.toLowerCase())) {
                         results.push(message)
                     }
@@ -148,7 +166,7 @@ module.exports = {
             },
 
             random: async (msg) => {
-                var messages = data.guildData[msg.guild.id]['messages']
+                var messages = data.guildData[msg.guild.id].messages
 
                 if (!messages.length) {
                     await msg.reply('No messages!').catch(() => { })
@@ -156,7 +174,12 @@ module.exports = {
                 }
 
                 var rand = decrypt(messages[Math.floor(Math.random() * messages.length)].content)
-                if (!msg.nosend) await msg.reply(rand).catch(() => { })
+                if (!msg.nosend) await msg.reply({
+                    content: rand,
+                    allowedMentions: {
+                        parse: fetchPingPerms(msg)
+                    }
+                }).catch(() => { })
                 return rand
             },
 
@@ -168,9 +191,14 @@ module.exports = {
 
                 args[1] = args[1] ?? ''
 
-                var member = await bot.users.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => { })
+                var member = await bot.users.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => { })
 
-                var messages = data.guildData[msg.guild.id]['messages'].filter(m => m.author == member.id)
+                if (!member) {
+                    await msg.reply('This member does not exist.').catch(() => { })
+                    return
+                }
+
+                var messages = data.guildData[msg.guild.id].messages.filter(m => m.author == member.id)
 
                 if (!messages.length) {
                     await msg.reply('No messages!').catch(() => { })
@@ -178,7 +206,12 @@ module.exports = {
                 }
 
                 var rand = decrypt(messages[Math.floor(Math.random() * messages.length)].content)
-                if (!msg.nosend) await msg.reply(rand).catch(() => { })
+                if (!msg.nosend) await msg.reply({
+                    content: rand,
+                    allowedMentions: {
+                        parse: fetchPingPerms(msg)
+                    }
+                }).catch(() => { })
                 return rand
             },
 
@@ -190,7 +223,7 @@ module.exports = {
 
                 var saidMessage = args.slice(1).join(' ')
                 var cleanMessage = Discord.Util.cleanContent(saidMessage, msg).replace(/\@/g, '@‌')
-                var findMessage = data.guildData[msg.guild.id]['messages'].find(message => decrypt(message.content).toLowerCase() === cleanMessage.toLowerCase())
+                var findMessage = data.guildData[msg.guild.id].messages.find(message => decrypt(message.content).toLowerCase() === cleanMessage.toLowerCase())
 
                 if (findMessage) {
                     await msg.reply(`That message already exists.`).catch(() => { })
@@ -204,18 +237,18 @@ module.exports = {
 
                     if (!send) return
 
-                    var messages = [{
+                    data.guildData[msg.guild.id].messages.unshift({
+                        id: null,
                         author: msg.author.id,
                         content: CryptoJS.AES.encrypt(cleanMessage, process.env.AUTH_TOKEN).toString(),
                         timestamp: Number.MAX_SAFE_INTEGER // genius
-                    }].concat(data.guildData[msg.guild.id]['messages'])
-                    messages.splice(10000)
-                    data.guildData[msg.guild.id]['messages'] = messages
+                    })
+                    data.guildData[msg.guild.id].messages.splice(10000)
 
                     if (!msg.nosend) await msg.reply({
                         content: `✅ Added ${cleanMessage}`,
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                     return `✅ Added ${cleanMessage}`
@@ -230,10 +263,10 @@ module.exports = {
 
                 var saidMessage = args.slice(1).join(' ')
                 var cleanMessage = Discord.Util.cleanContent(saidMessage, msg).replace(/\@/g, '@‌')
-                var findMessage = data.guildData[msg.guild.id]['messages'].findIndex(message => decrypt(message.content).toLowerCase() === cleanMessage.toLowerCase())
+                var findMessage = data.guildData[msg.guild.id].messages.findIndex(message => decrypt(message.content).toLowerCase() === cleanMessage.toLowerCase())
 
                 if (findMessage > -1) {
-                    data.guildData[msg.guild.id]['messages'].splice(findMessage, 1)
+                    data.guildData[msg.guild.id].messages.splice(findMessage, 1)
 
                     if (!msg.nosend) await msg.reply(`✅ Removed.`).catch(() => { })
                     return `✅ Removed.`
@@ -247,7 +280,7 @@ module.exports = {
                     var confirm = msg.nosend || await yesno(msg.channel, 'are you sure about this', msg.member, undefined, msg).catch(() => { })
 
                     if (confirm) {
-                        data.guildData[msg.guild.id]['messages'] = []
+                        data.guildData[msg.guild.id].messages = []
 
                         if (!msg.nosend) await msg.reply(`✅ All the messages from the database have been cleared.`).catch(() => { })
                         return `✅ All the messages from the database have been cleared.`
@@ -259,11 +292,28 @@ module.exports = {
 
             read: async (msg) => {
                 if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id)) {
-                    data.guildData[msg.guild.id]['channels'][msg.channel.id]['read'] = !(data.guildData[msg.guild.id]['channels'][msg.channel.id]['read'])
+                    var channelId = (args[2] && (args[2].match(/[0-9]+/) ?? [])[0]) || msg.channel.id
 
-                    var read = data.guildData[msg.guild.id]['channels'][msg.channel.id]['read']
-                    if (!msg.nosend) await msg.reply(`I **can${!read ? '\'t' : ''} read** messages from the channel now.`).catch(() => { })
-                    return `I **can${!read ? '\'t' : ''} read** messages from the channel now.`
+                    var findChannel = msg.guild.channels.cache.find(c => c.id === channelId)
+
+                    if (findChannel && findChannel.type != DiscordTypes.ChannelType.GuildCategory) {
+                        var findChannelIndex = data.guildData[msg.guild.id].read.indexOf(channelId)
+
+                        if (findChannelIndex > -1) {
+                            data.guildData[msg.guild.id].read.splice(findChannelIndex, 1)
+
+                            if (!msg.nosend) await msg.reply(`I **can't read** messages from the <#${findChannel.id}> channel now.`)
+                            return `I **can't read** messages from the <#${findChannel.id}> channel now.`
+                        } else {
+                            data.guildData[msg.guild.id].read.push(findChannel.id)
+
+                            if (!msg.nosend) await msg.reply(`I **can read** messages from the <#${findChannel.id}> channel now.`)
+                            return `I **can read** messages from the <#${findChannel.id}> channel now.`
+                        }
+                    } else {
+                        await msg.reply('Not a valid channel.')
+                        return
+                    }
                 } else {
                     await msg.reply('You need to be a moderator to execute that!').catch(() => { })
                     return;
@@ -272,23 +322,17 @@ module.exports = {
 
             readall: async (msg) => {
                 if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id)) {
-                    data.guildData[msg.guild.id]['read'] = !(data.guildData[msg.guild.id]['read'])
-                    var channels = [...msg.guild.channels.cache.values()]
-                    var channelData = !config.testing && process.env.MONGOOSE_URL && await dataGather.allChannelData(config.database, msg.guild.id).catch(() => { }) || {}
+                    if (data.guildData[msg.guild.id].read.length > 0) {
+                        data.guildData[msg.guild.id].read = []
 
-                    for (var channel of channels) {
-                        if (channel.type === DiscordTypes.ChannelType.GuildText || channel.type === DiscordTypes.ChannelType.GuildNews) {
-                            if (!data.guildData[msg.guild.id]['channels'][channel.id]) {
-                                data.guildData[msg.guild.id]['channels'][channel.id] = channelData[channel.id] || {}
-                            }
+                        if (!msg.nosend) await msg.reply(`I **can't read** messages from all channels now.`).catch(() => { })
+                        return `I **can't read** messages from all channels now.`
+                    } else {
+                        data.guildData[msg.guild.id].read = msg.guild.channels.cache.filter(c => c.type != DiscordTypes.ChannelType.GuildCategory).map(c => c.id)
 
-                            data.guildData[msg.guild.id]['channels'][channel.id]['read'] = data.guildData[msg.guild.id]['read']
-                        }
+                        if (!msg.nosend) await msg.reply(`I **can read** messages from all channels now.`).catch(() => { })
+                        return `I **can read** messages from all channels now.`
                     }
-
-                    var read = data.guildData[msg.guild.id]['read']
-                    if (!msg.nosend) await msg.reply(`I **can${!read ? '\'t' : ''} read** messages from all channels now.`).catch(() => { })
-                    return `I **can${!read ? '\'t' : ''} read** messages from all channels now.`
                 } else {
                     await msg.reply('You need the manage server permission to execute that!').catch(() => { })
                     return;
@@ -297,7 +341,7 @@ module.exports = {
         }
 
         if (!args[1]) {
-            var instruction = "**list** - Sends a text file with a list of all messages that exist within the guild's message database.\n\n**search** <query> - Searches for every message in the server that matches the query.\n\n**random** - Sends a random message from the database to the channel.\n\n**member** <id> - Sends a random message from that member to the channel.\n\n**add** <message> - Adds a new permanent message to the guild's database, if it is not duplicated.\n\n**delete** <message> - Deletes the message, if it exists.\n\n**clear** (manage server only) - Clears ALL the messages from the database.\n\n**read** (moderator only) - Toggles whether the bot can read the messages from the channel or not.\n\n**readall** (manage server only) - Toggles whether the bot can read the messages from all channels or not."
+            var instruction = "**list** - Sends a text file with a list of all messages that exist within the guild's message database.\n\n**search** <query> - Searches for every message in the server that matches the query.\n\n**random** - Sends a random message from the database to the channel.\n\n**member** <id> - Sends a random message from that member to the channel.\n\n**add** <message> - Adds a new permanent message to the guild's database, if it is not duplicated.\n\n**delete** <message> - Deletes the message, if it exists.\n\n**clear** (manage server only) - Clears ALL the messages from the database.\n\n**read** [channel] (moderator only) - Toggles whether the bot can read the messages from the channel or not.\n\n**readall** (manage server only) - Toggles whether the bot can read the messages from all channels or not."
             if (!msg.nosend) {
                 if (config.textEmbeds) msg.reply(instruction).catch(() => { })
                 else msg.reply({
@@ -309,7 +353,7 @@ module.exports = {
                             "icon_url": bot.user.displayAvatarURL({
                                 dynamic: true, size: 1024, extension: 'png'
                             }),
-                            "text": bot.user.username
+                            "text": bot.user.displayName
                         },
                     }]
                 }).catch(() => { })

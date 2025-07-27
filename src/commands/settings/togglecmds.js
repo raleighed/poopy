@@ -38,12 +38,13 @@ module.exports = {
         let config = poopy.config
         let commands = poopy.commands
         let { DiscordTypes } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
         var options = {
             list: async (msg) => {
                 var list = []
 
-                data.guildData[msg.guild.id]['disabled'].forEach(cmd => {
+                data.guildData[msg.guild.id].disabled.forEach(cmd => {
                     list.push(`- \`${cmd.join('/')}\``)
                 })
 
@@ -59,7 +60,7 @@ module.exports = {
                         icon_url: bot.user.displayAvatarURL({
                             dynamic: true, size: 1024, extension: 'png'
                         }),
-                        text: bot.user.username
+                        text: bot.user.displayName
                     }
                 }
 
@@ -67,7 +68,7 @@ module.exports = {
                     if (config.textEmbeds) msg.reply({
                         content: list.join('\n'),
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                     else msg.reply({
@@ -87,26 +88,26 @@ module.exports = {
                     var findCommand = commands.find(cmd => cmd.name.find(n => n === args[2].toLowerCase()))
 
                     if (findCommand) {
-                        var findDCommand = data.guildData[msg.guild.id]['disabled'].find(cmd => cmd.find(n => n === args[2].toLowerCase()))
+                        var findDCommand = data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === args[2].toLowerCase()))
 
                         if (findDCommand) {
-                            var index = data.guildData[msg.guild.id]['disabled'].findIndex(cmd => {
+                            var index = data.guildData[msg.guild.id].disabled.findIndex(cmd => {
                                 return cmd.find(n => {
                                     return n === args[2].toLowerCase()
                                 })
                             })
 
-                            data.guildData[msg.guild.id]['disabled'].splice(index, 1)
+                            data.guildData[msg.guild.id].disabled.splice(index, 1)
 
                             if (!msg.nosend) await msg.reply(`Enabled \`${findCommand.name.join('/')}\`.`)
                             return `Enabled \`${findCommand.name.join('/')}\`.`
                         } else {
-                            if (findCommand.name.find(n => n === args[0].toLowerCase()) && !data.guildData[msg.guild.id]['chaos']) {
+                            if (findCommand.name.find(n => n === args[0].toLowerCase()) && !data.guildData[msg.guild.id].chaos) {
                                 await msg.reply(`You can't disable the disabling command!`)
                                 return
                             }
 
-                            data.guildData[msg.guild.id]['disabled'].push(findCommand.name)
+                            data.guildData[msg.guild.id].disabled.push(findCommand.name)
 
                             if (!msg.nosend) await msg.reply(`Disabled \`${findCommand.name.join('/')}\`.`)
                             return `Disabled \`${findCommand.name.join('/')}\`.`
@@ -128,7 +129,7 @@ module.exports = {
                 if (config.textEmbeds) msg.reply({
                     content: instruction,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 else msg.reply({
@@ -140,7 +141,7 @@ module.exports = {
                             "icon_url": bot.user.displayAvatarURL({
                                 dynamic: true, size: 1024, extension: 'png'
                             }),
-                            "text": bot.user.username
+                            "text": bot.user.displayName
                         },
                     }]
                 }).catch(() => { })

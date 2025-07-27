@@ -4,23 +4,24 @@ module.exports = {
         "name": "source", "required": false, "specifarg": true, "orig": "[-source <language>]",
         "autocomplete": function () {
             let poopy = this
-            return poopy.vars.languages.map(lang => {
-                return { name: lang.name, value: lang.language }
+            return Object.entries(poopy.vars.languages).map(language => {
+                return { name: language[1], value: language[0] }
             })
         }
     }, {
         "name": "target", "required": false, "specifarg": true, "orig": "[-target <language>]",
         "autocomplete": function () {
             let poopy = this
-            return poopy.vars.languages.map(lang => {
-                return { name: lang.name, value: lang.language }
+            return Object.entries(poopy.vars.languages).map(language => {
+                return { name: language[1], value: language[0] }
             })
         }
     }],
     execute: async function (msg, args) {
         let poopy = this
         let vars = poopy.vars
-        let { axios, DiscordTypes } = poopy.modules
+        let { axios } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => { })
         if (args[1] === undefined) {
@@ -80,7 +81,7 @@ module.exports = {
                 filter(Boolean).
                 join(""),
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             }
         }).catch(() => { })
         return response.data.sentences.

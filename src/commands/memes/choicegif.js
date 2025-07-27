@@ -4,8 +4,10 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let { Jimp, fs, Discord } = poopy.modules
-        let { lastUrl, validateFile, downloadFile, execPromise, sendFile } = poopy.functions
-        let { DiscordTypes } = poopy.modules
+        let {
+            lastUrl, validateFile, downloadFile,
+            fetchPingPerms, execPromise, sendFile
+        } = poopy.functions
         let vars = poopy.vars
         let config = poopy.config
 
@@ -70,18 +72,6 @@ module.exports = {
                 },
                 name: 'Blue {text}',
                 filename: '4.png'
-            },
-
-            {
-                edit: async function (frame) {
-                    frame.convolute([
-                        [-2, -1, 0],
-                        [-1, 1, 1],
-                        [0, 1, 2]
-                    ])
-                },
-                name: 'MUGEN {text}',
-                filename: '5.png'
             },
 
             {
@@ -378,7 +368,12 @@ module.exports = {
         var text = matchedTextes[1]
         var currenturl = lastUrl(msg, 0) || args[1]
         var fileinfo = await validateFile(currenturl).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -445,7 +440,7 @@ module.exports = {
             await msg.reply({
                 content: `Unsupported file: \`${currenturl}\``,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })

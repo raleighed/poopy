@@ -7,11 +7,11 @@ module.exports = {
         let { getKeywordsFor } = poopy.functions
 
         var word = matches[1]
-        var currentAttempts = tempdata[msg.author.id][msg.id]['keyattempts']
+        var currentAttempts = tempdata[msg.author.id][msg.id].keyattempts
 
         await getKeywordsFor(word, msg, isBot, opts).catch(() => { })
 
-        return tempdata[msg.author.id][msg.id]['keyattempts'] - currentAttempts
+        return tempdata[msg.author.id][msg.id].keyattempts - currentAttempts
     },
     raw: true
 }

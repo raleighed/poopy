@@ -4,8 +4,10 @@ module.exports = {
     noargchange: true,
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, validateFile, lastUrls, downloadFile, sendFile } = poopy.functions
-        let { DiscordTypes } = poopy.modules
+        let {
+            lastUrl, validateFile, lastUrls,
+            fetchPingPerms, downloadFile, sendFile
+        } = poopy.functions
         let vars = poopy.vars
         let config = poopy.config
         let { fs, Jimp, Discord } = poopy.modules
@@ -52,13 +54,13 @@ module.exports = {
         if (stagematches) {
             for (var i in stagematches) {
                 var stagematch = stagematches[i]
-                var stagematch2 = stagematch.match(/^-stage\d+(words|image)$/)
+                var stagematch2 = stagematch.match(/^-stage[0-9]+(words|image)$/)
                 var argIndex = args.indexOf(stagematch)
                 var nextArgs = args.slice(argIndex + 1)
                 var arg = ''
                 for (var j in nextArgs) {
                     var nextArg = nextArgs[j]
-                    if (nextArg.match(/^-stage\d+(words|image)$|^-stages$/)) break
+                    if (nextArg.match(/^-stage[0-9]+(words|image)$|^-stages$/)) break
                     arg += `${nextArg} `
                 }
                 arg = arg.substring(0, arg.length - 1)
@@ -120,7 +122,7 @@ module.exports = {
             await msg.reply({
                 content: lasturlserror,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
@@ -143,7 +145,7 @@ module.exports = {
                     await msg.reply({
                         content: error,
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                     await msg.channel.sendTyping().catch(() => { })
@@ -155,7 +157,7 @@ module.exports = {
                     await msg.reply({
                         content: error,
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                     await msg.channel.sendTyping().catch(() => { })

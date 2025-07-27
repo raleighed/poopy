@@ -15,7 +15,7 @@ module.exports = {
     var phrase = string.replace(new RegExp(`${regexClean(fullword)}\\s*`, 'i'), '')
     var array = special.keys[`_${key.toLowerCase()}`].array
     if (!array) return ''
-    tempdata[msg.author.id]['arrays'][name] = typeof array == 'function' ? array.call(poopy, msg) : array
+    tempdata[msg.author.id].arrays[name] = typeof array == 'function' ? array.call(poopy, msg) : array
 
     return [phrase, true]
   },

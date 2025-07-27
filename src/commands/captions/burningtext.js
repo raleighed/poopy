@@ -15,7 +15,10 @@ module.exports = {
     }, { "name": "id", "required": false, "specifarg": true, "orig": "[-id <number (default 4)>]" }],
     execute: async function (msg, args) {
         let poopy = this
-        let { parseNumber, request, validateFile, downloadFile, sendFile } = poopy.functions
+        let {
+            parseNumber, request, validateFile,
+            fetchPingPerms, downloadFile, sendFile
+        } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => { })
 
@@ -83,12 +86,19 @@ module.exports = {
         }).catch(() => { })
 
         if (!response || !response.data) {
-            await msg.reply(`Error creating text from ID ${id}.`).catch(() => { })
+            await msg.reply({
+                content: `Error creating text from ID ${id}.`
+            }).catch(() => { })
             return
         }
 
         var fileinfo = await validateFile(response.data.renderLocation.replace('https', 'http'), 'very true').catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return
         })

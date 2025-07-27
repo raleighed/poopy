@@ -9,6 +9,6 @@ module.exports = {
 
     var user = await bot.users.fetch(word).catch(() => { })
 
-    return user ? user.username : ''
+    return user ? user.displayName.replace(/\@/g, '@‌') : ''
   }
 }

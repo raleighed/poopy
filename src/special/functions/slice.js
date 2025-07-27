@@ -12,10 +12,10 @@ module.exports = {
     var start = split[1] ?? '0'
     var end = split[2] ?? 'Infinity'
 
-    var array = tempdata[msg.author.id]['arrays'][name]
+    var array = tempdata[msg.author.id].arrays[name]
     if (!array) return ''
 
-    tempdata[msg.author.id]['arrays'][name] = array.slice(start, end)
+    tempdata[msg.author.id].arrays[name] = array.slice(start, end)
 
     return ''
   }

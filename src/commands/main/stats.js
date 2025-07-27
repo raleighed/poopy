@@ -4,7 +4,8 @@ module.exports = {
     execute: async function (msg) {
         let poopy = this
         let bot = poopy.bot
-        let { os, fs, DiscordTypes } = poopy.modules
+        let { os, fs } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
         let config = poopy.config
         let data = poopy.data
         let pkg = poopy.package
@@ -28,20 +29,20 @@ module.exports = {
         var channels = bot.channels.cache.size
         var emojis = bot.emojis.cache.size
         var files = fs.readdirSync(`temp/${config.database}`).length
-        var messages = data.botData['messages']
+        var messages = data.botData.messages
         var users = Object.keys(data.userData).length
-        var pcommands = data.botData['commands']
-        var reboots = data.botData['reboots']
+        var pcommands = data.botData.commands
+        var reboots = data.botData.reboots
         var members = 0
 
         bot.guilds.cache.forEach(guild => members += guild.memberCount)
 
         var statsEmbed = {
-            title: `${bot.user.username}'s Stats`,
+            title: `${bot.user.displayName}'s Stats`,
             color: 0x472604,
             footer: {
                 icon_url: bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                text: `${bot.user.username} - v${pkg.version}`
+                text: `${bot.user.displayName} - v${pkg.version}`
             },
             fields: [
                 {
@@ -136,7 +137,7 @@ module.exports = {
             if (config.textEmbeds) msg.reply({
                 content: `${statsEmbed.fields.map(p => `**${p.name}**: ${p.value}`).join('\n')}\n\nv${pkg.version}`,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             else msg.reply({

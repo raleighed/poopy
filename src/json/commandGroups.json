@@ -360,11 +360,8 @@
         "name": "search",
         "cmds": [
             "bing",
-            "e621",
             "gif",
             "image",
-            "rule34",
-            "sauce",
             "youtube"
         ],
         "description": "Search for things on the web."
@@ -376,8 +373,8 @@
             "keyexecution",
             "setprefix",
             "togglecmds",
-            "toggledms",
-            "togglensfw"
+            "restrictchannels",
+            "toggledms"
         ],
         "description": "Manage a server's Poopy settings, or your own Poopy settings."
     },

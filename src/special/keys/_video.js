@@ -8,11 +8,11 @@ module.exports = {
     
     var validVideo = new RegExp(`${vars.validUrl.source}\\.(mp4|mov|wmv|webp|avi)`)
 
-    var messages = data.guildData[msg.guild.id]['messages'].filter(m => decrypt(m.content).match(validImage))
+    var messages = data.guildData[msg.guild.id].messages.filter(m => decrypt(m.content).match(validVideo))
     var urlMessages = []
     
     for (var { ...m } of messages) {
-        var urls = decrypt(m.content).match(new RegExp(validImage, 'g'))
+        var urls = decrypt(m.content).match(new RegExp(validVideo, 'g'))
         for (var url of urls) {
             m.content = url
             urlMessages.push({ ...m })
@@ -29,11 +29,11 @@ module.exports = {
     
     var validVideo = new RegExp(`${vars.validUrl.source}\\.(mp4|mov|wmv|webp|avi)`)
 
-    var messages = data.guildData[msg.guild.id]['messages'].filter(m => decrypt(m.content).match(validImage))
+    var messages = data.guildData[msg.guild.id].messages.filter(m => decrypt(m.content).match(validVideo))
     var urlMessages = []
     
     for (var { ...m } of messages) {
-        var urls = decrypt(m.content).match(new RegExp(validImage, 'g'))
+        var urls = decrypt(m.content).match(new RegExp(validVideo, 'g'))
         for (var url of urls) {
             m.content = url
             urlMessages.push({ ...m })

@@ -3,8 +3,12 @@ module.exports = {
     args: [{"name":"file","required":false,"specifarg":false,"orig":"{file}"}],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, validateFile, downloadFile, execPromise, findpreset, userToken, request } = poopy.functions
-        let { fs, Discord, DiscordTypes } = poopy.modules
+        let {
+            lastUrl, validateFile, downloadFile,
+            fetchPingPerms, execPromise, findpreset,
+            userToken, request
+        } = poopy.functions
+        let { fs, Discord } = poopy.modules
         let vars = poopy.vars
         let config = poopy.config
 
@@ -16,7 +20,12 @@ module.exports = {
         };
         var currenturl = lastUrl(msg, 0) || args[1]
         var fileinfo = await validateFile(currenturl, true).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -82,7 +91,7 @@ module.exports = {
                 if (!msg.nosend) await msg.reply({
                     content: response.data.data.text.toLowerCase(),
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(async () => {
                     var currentcount = vars.filecount
@@ -155,7 +164,7 @@ module.exports = {
             if (!msg.nosend) await msg.reply({
                 content: response.data.data.text.toLowerCase(),
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(async () => {
                 var currentcount = vars.filecount
@@ -173,7 +182,7 @@ module.exports = {
             await msg.reply({
                 content: `Unsupported file: \`${currenturl}\``,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })

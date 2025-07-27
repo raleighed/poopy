@@ -63,7 +63,7 @@ async function start() {
             }
 
             while (!poopyStarted) await sleep(1000)
-            res.type('json').send(poopy.globaldata['psfiles'])
+            res.type('json').send(poopy.globaldata.psfiles)
         })
 
         app.get('/api/pspasta', async function (req, res) {
@@ -73,7 +73,7 @@ async function start() {
             }
 
             while (!poopyStarted) await sleep(1000)
-            res.type('json').send(poopy.globaldata['pspasta'])
+            res.type('json').send(poopy.globaldata.pspasta)
         })
 
         /* app.get('/ubervoices', async function (_, res) {
@@ -105,8 +105,8 @@ async function start() {
             var msg = new APIMessage({ req, res, poopy, messages })
 
             if (!data.guildData[msg.guild.id]) data.guildData[msg.guild.id] = {}
-            if (data.guildData[msg.guild.id]['prefix'] == undefined) data.guildData[msg.guild.id]['prefix'] = ''
-            if (data.guildData[msg.guild.id]['keyexec'] == undefined) data.guildData[msg.guild.id]['keyexec'] = 2
+            if (data.guildData[msg.guild.id].prefix == undefined) data.guildData[msg.guild.id].prefix = ''
+            if (data.guildData[msg.guild.id].keyexec == undefined) data.guildData[msg.guild.id].keyexec = 2
 
             var err
             await callbacks.messageCallback(msg).catch((e) => err = e.message)
@@ -131,7 +131,7 @@ async function start() {
 
         app.get('/psfile', async function (_, res) {
             while (!poopyStarted) await sleep(1000)
-            const psfiles = poopy.globaldata['psfiles']
+            const psfiles = poopy.globaldata.psfiles
             res.redirect(psfiles[Math.floor(Math.random() * psfiles.length)])
         })
 
@@ -178,8 +178,44 @@ async function start() {
                     config: {
                         testing: true,
                         globalPrefix: '2p:',
-                        database: 'testdata',
-                        intents: 3276799
+                        database: 'testdata'
+                    }
+                }
+            ]
+
+            if (indiaCondition()) {
+                tokens.push(
+                    {
+                        TOKEN: process.env.INDIA_TOKEN,
+                        config: {
+                            testing: true,
+                            self: true,
+                            globalPrefix: 'i:',
+                            database: 'testracist',
+                            msgcooldown: 3000,
+                            useReactions: true,
+                            textEmbeds: true,
+                            noInfoPost: true,
+                            intents: 3276799,
+                            allowpresence: false,
+                            illKillYouIfYouUseEval: []
+                        }
+                    }
+                )
+            }
+
+            break;
+
+        case 2:
+            tokens = [
+                {
+                    TOKEN: process.env.HIVEMIND_TOKEN,
+                    config: {
+                        testing: true,
+                        hivemind: true,
+                        noInfoPost: true,
+                        globalPrefix: 'hp:',
+                        database: 'hiveminddata'
                     }
                 }
             ]
@@ -200,48 +236,6 @@ async function start() {
                             intents: 3276799,
                             allowpresence: false,
                             illKillYouIfYouUseEval: [],
-                        }
-                    }
-                )
-            }
-
-            break;
-
-        case 2:
-            tokens = [
-                {
-                    TOKEN: process.env.HIVEMIND_TOKEN,
-                    config: {
-                        testing: true,
-                        hivemind: true,
-                        noInfoPost: true,
-                        globalPrefix: 'hp:',
-                        database: 'hiveminddata',
-                        intents: 3276799
-                    }
-                }
-            ]
-
-            if (indiaCondition()) {
-                tokens.push(
-                    {
-                        TOKEN: process.env.INDIA_TOKEN,
-                        config: {
-                            testing: true,
-                            hivemind: true,
-                            self: true,
-                            globalPrefix: 'i:',
-                            database: 'hivemindracist',
-                            msgcooldown: 3000,
-                            pingresponselimit: 5,
-                            pingresponsecooldown: 120000,
-                            useReactions: true,
-                            textEmbeds: true,
-                            noInfoPost: true,
-                            intents: 3276799,
-                            allowbotusage: true,
-                            allowpingresponses: false,
-                            illKillYouIfYouUseEval: []
                         }
                     }
                 )
@@ -273,6 +267,7 @@ async function start() {
                             textEmbeds: true,
                             noInfoPost: true,
                             intents: 3276799,
+                            allowpresence: false,
                             illKillYouIfYouUseEval: []
                         }
                     },

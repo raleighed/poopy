@@ -3,7 +3,7 @@ module.exports = {
     args: [],
     execute: async function (msg) {
         let poopy = this
-        let { DiscordTypes } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
         
         // code here
         const starts = ["Champ,", "Fact:", "Everybody says", "Dang...", "Check it:", "Just sayin',", "Superstar,", "Tiger,", "Self,", "Know this:", "News alert:", "Girl,", "Ace,", "Excuse me but", "Experts agree:", "In my opinion,", "Hear ye, hear ye:", "Okay, listen up:"]
@@ -24,7 +24,7 @@ module.exports = {
         if (!msg.nosend) await msg.reply({
             content: finalMessage,
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             }
         }).catch(() => { })
         return finalMessage

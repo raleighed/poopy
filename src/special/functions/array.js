@@ -9,7 +9,7 @@ module.exports = {
     var word = matches[1]
     var fullword = `${matches[0]}(${matches[1]})`
     var phrase = string.replace(new RegExp(`${regexClean(fullword)}\\s*`, 'i'), '')
-    tempdata[msg.author.id]['arrays'][word] = []
+    tempdata[msg.author.id].arrays[word] = []
 
     return [phrase, true]
   },

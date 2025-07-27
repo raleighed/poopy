@@ -61,14 +61,14 @@ async function send(payload) {
 
         const channelData = tempdata[msg.guild?.id]?.[msg.channel?.id]
 
-        if (channelData?.['shut']) return
-        if (channelData?.['forceres'] && (typeof payload == 'object' ? (
+        if (channelData?.shut) return
+        if (channelData?.forceres && (typeof payload == 'object' ? (
             payload.content ||
             payload.files || payload.embeds ||
             payload.stickers
         ) : payload)) {
-            var forceres = channelData['forceres']
-            delete channelData['forceres']
+            var forceres = channelData.forceres
+            delete channelData.forceres
 
             var content = typeof payload == 'object' ? (payload.content ?? '') : payload
             var m = msg
@@ -83,7 +83,7 @@ async function send(payload) {
                 }
             }).catch(() => { }) ?? forceres.res
 
-            if (forceres.persist && !channelData['forceres']) channelData['forceres'] = forceres
+            if (forceres.persist && !channelData.forceres) channelData.forceres = forceres
 
             switch (typeof payload) {
                 case 'string':
@@ -230,7 +230,7 @@ class Guild {
 
         let bot = poopy.bot
 
-        this.name = `${bot.user.username}'s API`
+        this.name = `${bot.user.displayName}'s API`
         this.emojis = {
             cache: new Collection()
         }
@@ -403,6 +403,7 @@ class User {
         this._data = data
 
         this.username = 'User'
+        this.displayName = 'User'
         this.tag = 'User'
         this.id = CryptoJS.MD5(req.ip).toString()
         this.createdTimestamp = Date.now()

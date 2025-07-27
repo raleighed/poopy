@@ -100,6 +100,7 @@ function generate(message) {
 module.exports = async function (src, { o_length = 6, o_freq = 20000, o_factor = 1 } = {}) {
     var srcimg = await Canvas.loadImage(src).catch(() => { });
     if (!srcimg) return ''
+    
     var canvas = Canvas.createCanvas(srcimg.width, srcimg.height)
     var context = canvas.getContext("2d");
     context.drawImage(srcimg, 0, 0, srcimg.width, srcimg.height, 0, 0, srcimg.width, srcimg.height);

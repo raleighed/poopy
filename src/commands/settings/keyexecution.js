@@ -34,7 +34,7 @@ module.exports = {
                 return
             }
 
-            data.guildData[msg.guild.id]['keyexec'] = mode.value
+            data.guildData[msg.guild.id].keyexec = mode.value
             if (!msg.nosend) await msg.reply(`Key execution mode set to \`${args[1].toCapperCase()}\`. ${mode.desc}`).catch(() => { })
             return `Key execution mode set to \`${args[1].toCapperCase()}\`. ${mode.desc}`
         } else {

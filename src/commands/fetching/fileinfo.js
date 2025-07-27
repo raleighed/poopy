@@ -3,7 +3,7 @@ module.exports = {
     args: [{ "name": "file", "required": false, "specifarg": false, "orig": "{file}" }],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, validateFile, execPromise } = poopy.functions
+        let { lastUrl, validateFile, execPromise, fetchPingPerms } = poopy.functions
         let { prettyBytes, DiscordTypes } = poopy.modules
         let vars = poopy.vars
         let bot = poopy.bot
@@ -17,7 +17,12 @@ module.exports = {
         };
         var currenturl = lastUrl(msg, 0)
         var fileinfo = await validateFile(currenturl, 'very true').catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -298,7 +303,7 @@ module.exports = {
             "color": 0x472604,
             "footer": {
                 "icon_url": bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                "text": bot.user.username
+                "text": bot.user.displayName
             },
             "thumbnail": {
                 "url": currenturl

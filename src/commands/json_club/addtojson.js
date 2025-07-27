@@ -15,7 +15,7 @@ module.exports = {
         let config = poopy.config
         let globaldata = poopy.globaldata
         let arrays = poopy.arrays
-        let { DiscordTypes } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
         var jsonid = config.ownerids.find(id => id == msg.author.id) || config.jsoning.find(id => id == msg.author.id);
         if (jsonid === undefined) {
@@ -52,16 +52,16 @@ module.exports = {
             if (!msg.nosend) await msg.reply({
                 content: '✅ Added ' + saidMessage,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
 
-            arrays.psFiles = globaldata['psfiles']
-            arrays.psPasta = globaldata['pspasta']
-            arrays.funnygifs = globaldata['funnygif']
-            arrays.poopPhrases = globaldata['poop']
-            arrays.dmPhrases = globaldata['dmphrases']
-            arrays.shitting = globaldata['shitting']
+            arrays.psFiles = globaldata.psfiles
+            arrays.psPasta = globaldata.pspasta
+            arrays.funnygifs = globaldata.funnygif
+            arrays.poopPhrases = globaldata.poop
+            arrays.dmPhrases = globaldata.dmphrases
+            arrays.shitting = globaldata.shitting
 
             return '✅ Added ' + saidMessage
         };

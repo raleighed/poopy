@@ -70,8 +70,8 @@ module.exports = {
         let data = poopy.data
         let bot = poopy.bot
         let config = poopy.config
-        let { CryptoJS, DiscordTypes } = poopy.modules
-        let { decrypt } = poopy.functions
+        let { CryptoJS } = poopy.modules
+        let { decrypt, fetchPingPerms } = poopy.functions
 
         let tokenList = {
             AI21_KEY: {
@@ -132,7 +132,7 @@ module.exports = {
                                 "color": 0x472604,
                                 "footer": {
                                     icon_url: bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                                    text: bot.user.username
+                                    text: bot.user.displayName
                                 },
                                 "fields": Object.keys(tokenList).map(token => {
                                     var tokenInfo = tokenList[token]
@@ -159,30 +159,38 @@ module.exports = {
 
             list: async (msg) => {
                 if (!msg.nosend) {
-                    if (config.textEmbeds) await msg.reply(Object.keys(tokenList).map(token => {
-                        var tokens = data.userData[msg.author.id]['tokens'][token] ?? []
+                    if (config.textEmbeds) await msg.reply({
+                        content: Object.keys(tokenList).map(token => {
+                            var tokens = data.userData[msg.author.id].tokens[token] ?? []
 
-                        return `\`${token}\` -> ${tokens.length > 0 ? tokens.map(t => decrypt(t, !args.includes('-show'))).join(', ') : 'None.'}`
-                    }).join('\n').substring(0, 2000)).catch(() => { })
+                            return `\`${token}\` -> ${tokens.length > 0 ? tokens.map(t => decrypt(t, !args.includes('-show'))).join(', ') : 'None.'}`
+                        }).join('\n').substring(0, 2000),
+                        allowedMentions: {
+                            parse: fetchPingPerms(msg)
+                        }
+                    }).catch(() => { })
                     else await msg.reply({
                         embeds: [{
                             "title": 'Token Manager',
                             "description": Object.keys(tokenList).map(token => {
-                                var tokens = data.userData[msg.author.id]['tokens'][token] ?? []
+                                var tokens = data.userData[msg.author.id].tokens[token] ?? []
 
                                 return `\`${token}\` -> ${tokens.length > 0 ? tokens.map(t => decrypt(t, !args.includes('-show'))).join(', ') : 'None.'}`
                             }).join('\n'),
                             "color": 0x472604,
                             "footer": {
                                 icon_url: bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                                text: bot.user.username
+                                text: bot.user.displayName
                             }
-                        }]
+                        }],
+                        allowedMentions: {
+                            parse: fetchPingPerms(msg)
+                        }
                     }).catch(() => { })
                 }
 
                 return Object.keys(tokenList).map(token => {
-                    var tokens = data.userData[msg.author.id]['tokens'][token] ?? []
+                    var tokens = data.userData[msg.author.id].tokens[token] ?? []
 
                     return `\`${token}\` -> ${tokens.length > 0 ? tokens.map(t => decrypt(t, !args.includes('-show'))).join(', ') : 'None.'}`
                 }).join('\n')
@@ -218,12 +226,17 @@ module.exports = {
 
                 var encrypted = CryptoJS.AES.encrypt(value, process.env.AUTH_TOKEN).toString()
 
-                var tokens = data.userData[msg.author.id]['tokens']
+                var tokens = data.userData[msg.author.id].tokens
 
                 tokens[token] = tokens[token] ?? []
                 tokens[token].push(encrypted)
 
-                if (!msg.nosend) await msg.reply(`✅ \`${token}\` added.`).catch(() => { })
+                if (!msg.nosend) await msg.reply({
+                    content: `✅ \`${token}\` added.`,
+                    allowedMentions: {
+                        parse: fetchPingPerms(msg)
+                    }
+                }).catch(() => { })
                 return `✅ \`${token}\` added.`
             },
 
@@ -242,9 +255,14 @@ module.exports = {
                     return
                 }
 
-                delete data.userData[msg.author.id]['tokens'][token]
+                delete data.userData[msg.author.id].tokens[token]
 
-                if (!msg.nosend) await msg.reply(`✅ \`${token}\` has been reset.`).catch(() => { })
+                if (!msg.nosend) await msg.reply({
+                    content: `✅ \`${token}\` has been reset.`,
+                    allowedMentions: {
+                        parse: fetchPingPerms(msg)
+                    }
+                }).catch(() => { })
                 return `✅ \`${token}\` has been reset.`
             }
         }
@@ -255,7 +273,7 @@ module.exports = {
                 if (config.textEmbeds) msg.reply({
                     content: instruction,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 else msg.reply({
@@ -267,7 +285,7 @@ module.exports = {
                             "icon_url": bot.user.displayAvatarURL({
                                 dynamic: true, size: 1024, extension: 'png'
                             }),
-                            "text": bot.user.username
+                            "text": bot.user.displayName
                         },
                     }]
                 }).catch(() => { })

@@ -4,6 +4,7 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let { DiscordTypes } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
         if (args[1] === undefined) {
             await msg.reply('Where are the arguments?!').catch(() => { })
@@ -18,12 +19,12 @@ module.exports = {
 
         if (saidEmojis) {
             var emojisArray = saidEmojis.split(',')
-            var messageToReact = await msg.channel.messages.fetch(saidMessage)
-            if (messageToReact.catch) messageToReact.catch(async () => {
+            var messageToReact = msg.channel.messages.fetch(saidMessage)
+            if (messageToReact.catch) messageToReact = await messageToReact.catch(async () => {
                     await msg.reply({
                         content: 'Invalid message ID: **' + saidMessage + '**',
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                     return
@@ -38,7 +39,7 @@ module.exports = {
                     await msg.reply({
                         content: 'Invalid emoji: **' + emoji + '**',
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                     return

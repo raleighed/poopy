@@ -6,7 +6,7 @@ module.exports = {
     let vars = poopy.vars
     let { decrypt } = poopy.functions
 
-    var messages = data.guildData[msg.guild.id]['messages'].filter(m => decrypt(m.content).match(vars.validUrl))
+    var messages = data.guildData[msg.guild.id].messages.filter(m => decrypt(m.content).match(vars.validUrl))
     var urlMessages = []
     
     for (var { ...m } of messages) {
@@ -25,7 +25,7 @@ module.exports = {
     let vars = poopy.vars
     let { decrypt } = poopy.functions
 
-    var messages = data.guildData[msg.guild.id]['messages'].filter(m => decrypt(m.content).match(vars.validUrl))
+    var messages = data.guildData[msg.guild.id].messages.filter(m => decrypt(m.content).match(vars.validUrl))
     var urlMessages = []
     
     for (var { ...m } of messages) {

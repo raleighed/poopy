@@ -10,7 +10,7 @@ module.exports = {
     execute: async function (msg, args, opts) {
         let poopy = this
         let config = poopy.config
-        let { getOption, infoPost } = poopy.functions
+        let { getOption, infoPost, fetchPingPerms } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let bot = poopy.bot
         let vars = poopy.vars
@@ -45,12 +45,12 @@ module.exports = {
                             url: 'https://www.youtube.com/watch?v=LDQO0ALm0gE'
                         }
                     ],
-                });
+                })
                 vars.statusChanges = permanent;
                 if (!msg.nosend) await msg.reply({
                     content: `Poopy\'s status set to: **${saidMessage} (${args[1]})**`,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 return `Poopy\'s status set to: **${saidMessage} (${args[1]})**`
@@ -59,7 +59,7 @@ module.exports = {
                 await msg.reply({
                     content: `Invalid status type: **${args[2]}** (Available: **Playing**, **Listening**, **Watching**, **Streaming**, **Competing**)`,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
             }

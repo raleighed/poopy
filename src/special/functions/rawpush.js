@@ -11,7 +11,7 @@ module.exports = {
     var name = await getKeywordsFor(split[0] ?? '', msg, isBot, opts).catch(() => { }) ?? ''
     var value = split[1] ?? ''
 
-    var array = tempdata[msg.author.id]['arrays'][name]
+    var array = tempdata[msg.author.id].arrays[name]
     if (!array) return ''
 
     array.push(value)

@@ -3,7 +3,10 @@ module.exports = {
     args: [{"name":"message","required":false,"specifarg":false,"orig":"\"{message}\""},{"name":"nickname","required":false,"specifarg":false,"orig":"\"{nickname}\""},{"name":"username","required":false,"specifarg":false,"orig":"\"{username}\""},{"name":"file","required":false,"specifarg":false,"orig":"{file}"}],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, validateFile, downloadFile, execPromise, findpreset, sendFile } = poopy.functions
+        let {
+            lastUrl, validateFile, downloadFile, execPromise,
+            findpreset, sendFile, fetchPingPerms
+        } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let vars = poopy.vars
         let { Jimp, Discord } = poopy.modules
@@ -20,7 +23,7 @@ module.exports = {
                 saidMessage = saidMessage.replace(new RegExp(target, 'ig'), symbolReplacement.replacement)
             })
         })
-        var dft = ['""', `"${msg.member.nickname || msg.author.username}"`, `"${msg.author.username}"`]
+        var dft = ['""', `"${msg.member.nickname || msg.author.displayName}"`, `"${msg.author.displayName}"`]
         var matchedTextes = saidMessage.match(/"([\s\S]*?)"/g)
         if (!matchedTextes) {
             matchedTextes = dft
@@ -38,7 +41,12 @@ module.exports = {
         var username = '@' + matchedTextes[2].substring(1, matchedTextes[2].length - 1)
         var currenturl = lastUrl(msg, 0) || args[1]
         var fileinfo = await validateFile(currenturl).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -118,7 +126,7 @@ module.exports = {
             await msg.reply({
                 content: `Unsupported file: \`${currenturl}\``,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })

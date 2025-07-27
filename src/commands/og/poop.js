@@ -4,7 +4,7 @@ module.exports = {
     execute: async function (msg) {
         let poopy = this
         let arrays = poopy.arrays
-        let { DiscordTypes } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => { })
         var poop = arrays.poopPhrases[Math.floor(Math.random() * arrays.poopPhrases.length)]
@@ -14,7 +14,7 @@ module.exports = {
         if (!msg.nosend) await msg.reply({
             content: poop,
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             }
         }).catch(() => { })
         return poop

@@ -7,10 +7,10 @@ module.exports = {
 
     var word = matches[1]
 
-    var array = tempdata[msg.author.id]['arrays'][word]
+    var array = tempdata[msg.author.id].arrays[word]
     if (!array) return ''
 
-    tempdata[msg.author.id]['arrays'][word] = array.reverse()
+    tempdata[msg.author.id].arrays[word] = array.reverse()
 
     return ''
   }

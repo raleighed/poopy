@@ -14,8 +14,8 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let { tempdata } = poopy
-        let { getOption, parseNumber, userToken } = poopy.functions
-        let { axios, fs, Discord, DiscordTypes } = poopy.modules
+        let { getOption, parseNumber, userToken, fetchPingPerms } = poopy.functions
+        let { axios, fs, Discord } = poopy.modules
         let vars = poopy.vars
         let config = poopy.config
 
@@ -32,8 +32,8 @@ module.exports = {
 
         if (!tempdata[msg.channel.id]) tempdata[msg.channel.id] = {}
         
-        var history = tempdata[msg.channel.id]?.['chathistories']
-        if (!history) history = tempdata[msg.channel.id]['chathistories'] = {} 
+        var history = tempdata[msg.channel.id]?.chathistories
+        if (!history) history = tempdata[msg.channel.id].chathistories = {} 
 
         var ourHistory = history[instruct]
         if (!ourHistory) ourHistory = history[instruct] = [
@@ -75,7 +75,7 @@ module.exports = {
             if (!msg.nosend) await msg.reply({
                 content: resp.data.choices[0].message.content,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(async () => {
                 var currentcount = vars.filecount

@@ -2,10 +2,16 @@ module.exports = {
     name: ['battlestats', 'userstats'],
     args: [{
         "name": "user", "required": false, "specifarg": false, "orig": "{user}",
-        "autocomplete": function (interaction) {
+        "autocomplete": async function (interaction) {
             let poopy = this
+            let { data, config } = poopy
+            let { dataGather } = poopy.functions
 
-            var memberData = poopy.data.guildData[interaction.guild.id]['allMembers']
+            if (!data.guildData[interaction.guild.id]) {
+                data.guildData[interaction.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
+            }
+
+            var memberData = data.guildData[interaction.guild.id].allMembers ?? {}
             var memberKeys = Object.keys(memberData).sort((a, b) => memberData[b].messages - memberData[a].messages)
 
             return memberKeys.map(id => {
@@ -19,20 +25,19 @@ module.exports = {
         let data = poopy.data
         let vars = poopy.vars
         let config = poopy.config
-        let { getLevel, dataGather } = poopy.functions
-        let { DiscordTypes } = poopy.modules
+        let { getLevel, dataGather, fetchPingPerms } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => { })
 
         args[1] = args[1] ?? ''
 
-        var member = await bot.users.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => { }) ?? msg.author
+        var member = await bot.users.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => { }) ?? msg.author
 
         if (!member) {
             await msg.reply({
                 content: `Invalid user ID: **${args[1]}**`,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             return
@@ -49,37 +54,37 @@ module.exports = {
         }
         if (!data.userData[member.id].battleSprites) data.userData[member.id].battleSprites = {}
 
-        var levelData = getLevel(data.userData[member.id]['exp'])
+        var levelData = getLevel(data.userData[member.id].exp)
 
         var battleStats = [
             {
                 name: "Health",
-                value: `${data.userData[member.id]['health']} HP`,
+                value: `${data.userData[member.id].health} HP`,
                 inline: true
             },
             {
                 name: "Max Health",
-                value: `${data.userData[member.id]['maxHealth']} HP`,
+                value: `${data.userData[member.id].maxHealth} HP`,
                 inline: true
             },
             {
                 name: "Attack",
-                value: data.userData[member.id]['attack'],
+                value: data.userData[member.id].attack,
                 inline: true
             },
             {
                 name: "Defense",
-                value: data.userData[member.id]['defense'],
+                value: data.userData[member.id].defense,
                 inline: true
             },
             {
                 name: "Accuracy",
-                value: data.userData[member.id]['accuracy'],
+                value: data.userData[member.id].accuracy,
                 inline: true
             },
             {
                 name: "Loot",
-                value: data.userData[member.id]['loot'],
+                value: data.userData[member.id].loot,
                 inline: true
             },
             {
@@ -94,19 +99,19 @@ module.exports = {
             },
             {
                 name: "Total Experience",
-                value: `${data.userData[member.id]['exp']} XP`,
+                value: `${data.userData[member.id].exp} XP`,
                 inline: true
             },
             {
                 name: "Pobucks",
-                value: `${data.userData[member.id]['bucks']} P$`,
+                value: `${data.userData[member.id].bucks} P$`,
                 inline: true
             },
         ]
 
         var sendObject = {
             embeds: [{
-                title: `${member.username}\'s Stats`,
+                title: `${member.displayName}\'s Stats`,
                 color: 0x472604,
                 thumbnail: {
                     url: member.displayAvatarURL({
@@ -115,20 +120,20 @@ module.exports = {
                 },
                 footer: {
                     icon_url: bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                    text: bot.user.username
+                    text: bot.user.displayName
                 },
                 fields: battleStats
             }],
-            content: `**${member.username}'s Stats**\n\n${battleStats.map(s => `**${s.name}**: ${s.value}`).join('\n')}`,
+            content: `**${member.displayName}'s Stats**\n\n${battleStats.map(s => `**${s.name}**: ${s.value}`).join('\n')}`,
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             }
         }
         if (config.textEmbeds) delete sendObject.embeds
         else delete sendObject.content
         if (!msg.nosend) await msg.reply(sendObject).catch(() => { })
 
-        return `**${member.username}'s Stats**\n\n${battleStats.map(s => `**${s.name}**: ${s.value}`).join('\n')}`
+        return `**${member.displayName}'s Stats**\n\n${battleStats.map(s => `**${s.name}**: ${s.value}`).join('\n')}`
     },
     help: {
         name: 'battlestats/userstats {user}',

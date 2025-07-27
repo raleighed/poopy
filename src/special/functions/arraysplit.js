@@ -13,7 +13,7 @@ module.exports = {
     var phr = split[2] ?? ''
     var fullword = `${matches[0]}(${matches[1]})`
     var phrase = string.replace(new RegExp(`${regexClean(fullword)}\\s*`, 'i'), '')
-    tempdata[msg.author.id]['arrays'][name] = splitKeyFunc(phr, { separator: separator })
+    tempdata[msg.author.id].arrays[name] = splitKeyFunc(phr, { separator: separator })
     return [phrase, true]
   },
   attemptvalue: 5

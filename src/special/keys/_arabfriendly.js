@@ -1,5 +1,5 @@
 module.exports = {
-  desc: `Returns a random word from the arabottify command's dictionary, except it doesn't include words like "sex" or "penis".`,
+  desc: `Returns a random word from the arabottify command's dictionary, except it doesn't include naughty words.`,
   func: function () {
     let poopy = this
     let json = poopy.json

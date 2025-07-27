@@ -4,7 +4,7 @@ module.exports = {
     let poopy = this
     let data = poopy.data
 
-    var datamembers = data.guildData[msg.guild.id]['allMembers'];
+    var datamembers = data.guildData[msg.guild.id].allMembers;
     var keys = Object.keys(datamembers)
     return keys[Math.floor(Math.random() * keys.length)]
   },
@@ -12,7 +12,7 @@ module.exports = {
     let poopy = this
     let data = poopy.data
 
-    var datamembers = data.guildData[msg.guild.id]['allMembers'];
+    var datamembers = data.guildData[msg.guild.id].allMembers;
     return Object.keys(datamembers)
   }
 }

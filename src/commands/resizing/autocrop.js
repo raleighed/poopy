@@ -3,8 +3,11 @@ module.exports = {
     args: [{ "name": "file", "required": false, "specifarg": false, "orig": "{file}" }, { "name": "limit", "required": false, "specifarg": true, "orig": "[-limit <threshold (from 0 to 255)>]" }, { "name": "round", "required": false, "specifarg": true, "orig": "[-round <divisor>]" }, { "name": "invert", "required": false, "specifarg": true, "orig": "[-invert]" }],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, getOption, parseNumber, validateFile, downloadFile, execPromise, findpreset, sendFile } = poopy.functions
-        let { DiscordTypes } = poopy.modules
+        let {
+            lastUrl, getOption, parseNumber,
+            validateFile, fetchPingPerms, downloadFile,
+            execPromise, findpreset, sendFile
+        } = poopy.functions
         let { fs } = poopy.modules
         let vars = poopy.vars
 
@@ -21,7 +24,12 @@ module.exports = {
 
         var currenturl = lastUrl(msg, 0)
         var fileinfo = await validateFile(currenturl, true).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -87,7 +95,7 @@ module.exports = {
             await msg.reply({
                 content: `Unsupported file: \`${currenturl}\``,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })

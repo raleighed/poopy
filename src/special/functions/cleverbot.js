@@ -15,5 +15,6 @@ module.exports = {
 
     return word
   },
-  attemptvalue: 10
+  attemptvalue: 10,
+  cmdconnected: ['cleverbot']
 }

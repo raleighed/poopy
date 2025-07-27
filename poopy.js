@@ -27,8 +27,8 @@ class Poopy {
             database: 'poopydata',
             globalPrefix: 'p:',
             stfu: false,
-            intents: 65209,
-            ownerids: ['464438783866175489', '454732245425455105', '613501149282172970', '486845950200119307', '714448511508414547', '395947826690916362', '340847078236225537'],
+            intents: 46721,
+            ownerids: ['464438783866175489', '454732245425455105', '613501149282172970', '486845950200119307', '714448511508414547', '395947826690916362', '340847078236225537', '1392969858878279811'],
             jsoning: ['411624455194804224', '486845950200119307'],
             illKillYouIfYouUseEval: ['535467581881188354'],
             guildfilter: {
@@ -96,7 +96,7 @@ class Poopy {
                 }
             },
             commandLimit: 5,
-            defaultDisabled: [['e926', 'furryart']],
+            defaultDisabled: [],
             keyLimit: 500,
             rateLimit: 3,
             rateLimitTime: 60000 * 2,
@@ -137,6 +137,7 @@ class Poopy {
         vars.started = false
         vars.msgcooldown = false
         vars.statusChanges = true
+        vars.msgcount = 0
         vars.filecount = 0
         vars.cps = 0
 
@@ -173,10 +174,18 @@ class Poopy {
         modules.Discord.Util = modules.Discord.Util ?? modules.Discord
         modules.Discord.AttachmentBuilder = modules.Discord.AttachmentBuilder ?? modules.Discord.MessageAttachment
 
+        if (!modules.Discord.ChannelType) {
+            modules.Discord.ChannelType = Object.fromEntries(
+                Object.entries(modules.DiscordTypes.ChannelType)
+                    .filter(([_, val]) => typeof val == "number")
+                    .map(([key, val]) => [key, modules.Discord.Constants.ChannelTypes[val]])
+            )
+        }
+
         // we can create thge bot now
         let { Discord, DiscordTypes, Collection, fs, CryptoJS } = modules
         let { envsExist, configFlagsEnabled,
-            chunkArray, chunkObject, requireJSON, findCommand,
+            chunkArray, chunkObject, requireJSON, findCommand, fetchPingPerms,
             dmSupport, sleep, gatherData, deleteMsgData, infoPost,
             getKeywordsFor, getUrls, randomChoice, similarity, yesno,
             cleverbot, regexClean, decrypt, getOption, getTotalHivemindStatus } = functions
@@ -536,20 +545,21 @@ class Poopy {
         }
 
         callbacks.messageCallback = async msg => {
-            var origcontent = msg.content
-
             dmSupport(msg)
 
-            data.botData['messages']++
+            var origcontent = msg.content
+            if (!msg.user || !msg.author) return
+
+            data.botData.messages++
 
             var dataError = false
             await gatherData(msg).catch((err) => dataError = err)
             if (dataError) return console.log(dataError)
 
-            var prefix = data.guildData[msg.guild.id]?.['prefix'] ?? config.globalPrefix
-            var hivemind = data.guildData[msg.guild.id]['poopymode'] ? "All" : "One"
+            var prefix = data.guildData[msg.guild.id]?.prefix ?? config.globalPrefix
+            var hivemind = data.guildData[msg.guild.id].poopymode ? "All" : "One"
 
-            if (msg.channel.type == DiscordTypes.ChannelType.DM && msg.type !== DiscordTypes.InteractionType.ApplicationCommand && !origcontent.includes(prefix)) {
+            if (msg.channel.type == Discord.ChannelType.DM && msg.type !== DiscordTypes.InteractionType.ApplicationCommand && !origcontent.toLowerCase().includes(prefix.toLowerCase())) {
                 if (msg.author.bot || msg.author.id == bot.user.id) return
                 await msg.channel.sendTyping().catch(() => { })
                 await sleep(Math.floor(Math.random() * 500) + 500)
@@ -566,138 +576,137 @@ class Poopy {
             var guildfilter = config.guildfilter
             var channelfilter = config.channelfilter
 
+            var isFiltered = (guildfilter.blacklist && guildfilter.ids.includes(msg.guild.id)) ||
+                (
+                    !(guildfilter.blacklist) &&
+                    !(guildfilter.ids.includes(msg.guild.id))
+                ) ||
+                (
+                    channelfilter.gids.includes(msg.guild.id) &&
+                    (
+                        (channelfilter.blacklist && channelfilter.ids.includes(msg.channel?.id)) ||
+                        (!(channelfilter.blacklist) && !(channelfilter.ids.includes(msg.channel?.id)))
+                    )
+                )
+
             if (
                 !msg.guild ||
                 !msg.channel ||
-                tempdata[msg.guild.id][msg.channel.id]['shut'] ||
-                (guildfilter.blacklist && guildfilter.ids.includes(msg.guild.id)) ||
-                (!(guildfilter.blacklist) && !(guildfilter.ids.includes(msg.guild.id))) ||
-                (channelfilter.gids.includes(msg.guild.id) &&
-                    ((channelfilter.blacklist && channelfilter.ids.includes(msg.channel.id)) ||
-                        (!(channelfilter.blacklist) && !(channelfilter.ids.includes(msg.channel.id)))))
+                tempdata[msg.guild.id][msg.channel.id].shut ||
+                isFiltered
             ) {
                 deleteMsgData(msg)
                 return
             }
 
-            var webhook = config.self ? msg.webhookId : await msg.fetchWebhook().catch(() => { })
+            var webhook = msg.webhookId || (msg.author.bot && !msg.author.flags)
 
             if (webhook || !msg.guild || !msg.channel) {
                 deleteMsgData(msg)
                 return
             }
 
-            if (data.guildData[msg.guild.id]['chaos'] && globaldata['shit'].find(id => id === msg.author.id)) {
+            if (data.guildData[msg.guild.id].chaos && globaldata.shit.find(id => id === msg.author.id)) {
                 await msg.reply('shit').catch(() => { })
                 return
             }
 
-            var cmds = data.guildData[msg.guild.id]['chaincommands'] == true ? origcontent.split(/ ?-\|- ?/) : [origcontent]
+            var cmds = data.guildData[msg.guild.id].chaincommands == true ? origcontent.split(/ ?-\|- ?/) : [origcontent]
             var allcontents = []
             var webhooked = false
 
             async function webhookify() {
                 webhooked = true
 
-                if (!(origcontent || msg.attachments.size || msg.embeds.length) ||
+                if (!(origcontent || msg.attachments.size || msg.embeds.length || msg.stickers.size) ||
                     (
-                        msg.channel.type === DiscordTypes.ChannelType.PublicThread ||
-                        msg.channel.type === DiscordTypes.ChannelType.PrivateThread ||
-                        msg.channel.type === DiscordTypes.ChannelType.AnnouncementThread
-                    )) {
+                        msg.channel.type === Discord.ChannelType.PublicThread ||
+                        msg.channel.type === Discord.ChannelType.PrivateThread ||
+                        msg.channel.type === Discord.ChannelType.AnnouncementThread
+                    ) ||
+                    !(
+                        data.guildData[msg.guild.id].members[msg.author.id].custom ||
+                        data.guildData[msg.guild.id].members[msg.author.id].impostor ||
+                        data.guildData[msg.guild.id].channels[msg.channel.id].battling
+                    )
+                ) {
                     return
                 }
 
-                if (data.guildData[msg.guild.id]['members'][msg.author.id]['custom']) {
-                    var attachments = msg.attachments.map(attachment => new Discord.AttachmentBuilder(attachment.url, attachment.name))
-                    var embeds = msg.embeds.filter(embed => embed.type === 'rich')
-                    var name = data.guildData[msg.guild.id]['members'][msg.author.id]['custom']['name']
-                    var randomindex = Math.floor(Math.random() * name.length)
-                    name = `${name.substring(0, randomindex)}​${name.substring(randomindex, name.length)}`
-                    var sendObject = {
-                        username: name.substring(0, 32),
-                        avatarURL: data.guildData[msg.guild.id]['members'][msg.author.id]['custom']['avatar'],
-                        files: attachments,
-                        embeds: embeds,
-                        stickers: msg.stickers,
-                        allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
-                        }
-                    }
-                    if (origcontent) {
-                        sendObject.content = origcontent
-                    }
-                    var webhooks = await msg.channel.fetchWebhooks().catch(() => { })
-                    if (webhooks ? webhooks.size : undefined) {
-                        var findWebhook = webhooks.find(webhook => bot.user === webhook.owner)
-                        if (findWebhook) {
-                            await findWebhook.send(sendObject).then(() => {
-                                msg.delete().catch(() => { })
-                            }).catch(() => { })
-                        } else {
-                            var createdWebhook = await msg.channel.createWebhook({ name: 'Poopyhook', avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png' }).catch(() => { })
-                            if (!createdWebhook) {
-                                await msg.reply(`I need the manage webhooks permission to turn you into ${data.guildData[msg.guild.id]['members'][msg.author.id]['custom']['name']}.`).catch(() => { })
-                            } else {
-                                await createdWebhook.send(sendObject).then(() => {
-                                    msg.delete().catch(() => { })
-                                }).catch(() => { })
-                            }
-                        }
-                    } else {
-                        var createdWebhook = await msg.channel.createWebhook({ name: 'Poopyhook', avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png' }).catch(() => { })
-                        if (!createdWebhook) {
-                            await msg.reply(`I need the manage webhooks permission to turn you into ${data.guildData[msg.guild.id]['members'][msg.author.id]['custom']['name']}.`).catch(() => { })
-                        } else {
-                            await createdWebhook.send(sendObject).then(() => {
-                                msg.delete().catch(() => { })
-                            }).catch(() => { })
-                        }
-                    }
-                } else if (data.guildData[msg.guild.id]['members'][msg.author.id]['impostor']) {
-                    var attachments = msg.attachments.map(attachment => new Discord.AttachmentBuilder(attachment.url, attachment.name))
-                    var embeds = msg.embeds.filter(embed => embed.type === 'rich')
-                    var sendObject = {
-                        username: msg.member.nickname || msg.author.username,
-                        avatarURL: 'https://cdn.discordapp.com/attachments/760223418968047629/835923486668750888/imposter.jpg',
-                        files: attachments,
-                        embeds: embeds,
-                        stickers: msg.stickers,
-                        allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
-                        }
-                    }
-                    if (origcontent) {
-                        sendObject.content = origcontent
-                    }
-                    var webhooks = await msg.channel.fetchWebhooks().catch(() => { })
-                    if (webhooks ? webhooks.size : undefined) {
-                        var findWebhook = webhooks.find(webhook => bot.user === webhook.owner)
-                        if (findWebhook) {
-                            await findWebhook.send(sendObject).then(() => {
-                                msg.delete().catch(() => { })
-                            }).catch(() => { })
+                var attachments = msg.attachments.map(attachment => new Discord.AttachmentBuilder(attachment.url, attachment.name))
+                var embeds = msg.embeds.filter(embed => embed.data.type === 'rich')
+                var stickers = msg.stickers
+                    .filter(sticker => sticker.format != 3)
+                    .map(sticker => new Discord.AttachmentBuilder(`https://media.discordapp.net/stickers/${sticker.id}.${sticker.format == 4 ? "gif" : "png"}?size=160`))
 
-                        } else {
-                            var createdWebhook = await msg.channel.createWebhook({ name: 'Poopyhook', avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png' }).catch(() => { })
-                            if (!createdWebhook) {
-                                await msg.reply(`I need the manage webhooks permission to turn you into the impostor.`).catch(() => { })
-                            } else {
-                                await createdWebhook.send(sendObject).then(() => {
-                                    msg.delete().catch(() => { })
-                                }).catch(() => { })
-                            }
-                        }
-                    } else {
-                        var createdWebhook = await msg.channel.createWebhook({ name: 'Poopyhook', avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png' }).catch(() => { })
-                        if (!createdWebhook) {
-                            await msg.reply(`I need the manage webhooks permission to turn you into the impostor.`).catch(() => { })
-                        } else {
-                            await createdWebhook.send(sendObject).then(() => {
-                                msg.delete().catch(() => { })
-                            }).catch(() => { })
-                        }
+                var sendObject = {
+                    username: msg.member.nickname || msg.author.displayName,
+                    files: data.guildData[msg.guild.id].webhookAttachments ? attachments.concat(stickers) : [],
+                    embeds: embeds,
+                    allowedMentions: {
+                        parse: fetchPingPerms(msg)
                     }
+                }
+
+                if (origcontent) {
+                    sendObject.content = origcontent
+                }
+
+                if (msg.reference) {
+                    sendObject.content = `> -# Reply to: https://discord.com/channels/${msg.reference.guildId}/${msg.reference.channelId}/${msg.reference.messageId}\n${sendObject.content}`
+                }
+
+                var turnInto = "a webhook"
+
+                if (data.guildData[msg.guild.id].members[msg.author.id].impostor) {
+                    turnInto = "the impostor"
+                    sendObject.avatarURL = 'https://cdn.discordapp.com/attachments/760223418968047629/835923486668750888/imposter.jpg'
+                }
+
+                if (data.guildData[msg.guild.id].members[msg.author.id].custom) {
+                    turnInto = data.guildData[msg.guild.id].members[msg.author.id].custom.name
+                    sendObject.username = data.guildData[msg.guild.id].members[msg.author.id].custom.name.substring(0, 32)
+                    sendObject.avatarURL = data.guildData[msg.guild.id].members[msg.author.id].custom.avatar
+                }
+
+                if (data.guildData[msg.guild.id].channels[msg.channel.id].battling) {
+                    var type = data.guildData[msg.guild.id].channels[msg.channel.id].battling == 2 ?
+                        "enemies" : "battlers"
+
+                    var battler = poopy.json.battlerJSON[type].reduce((closestBattler, currentBattler) =>
+                        similarity(currentBattler.name, msg.member.displayName) > similarity(closestBattler.name, msg.member.displayName)
+                            ? currentBattler : closestBattler
+                    )
+
+                    turnInto = battler.name
+                    sendObject.username = battler.name
+                    sendObject.avatarURL = battler.image
+                }
+
+                var webhooks = tempdata[msg.guild.id][msg.channel.id].webhooks ?? await msg.channel.fetchWebhooks().catch(() => { })
+                tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks
+
+                if (webhooks?.size) {
+                    var findWebhook = webhooks.find(webhook => bot.user === webhook.owner)
+                    if (findWebhook) {
+                        await findWebhook.send(sendObject).catch((e) => console.log(e))
+                        msg.delete().catch(() => { })
+                        return
+                    }
+                }
+
+                var createdWebhook = await msg.channel.createWebhook({ name: 'Poopyhook', avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png' }).catch(() => { })
+                if (!createdWebhook) {
+                    await msg.reply({
+                        content: `I need the manage webhooks permission to turn you into ${turnInto}.`,
+                        allowedMentions: {
+                            parse: fetchPingPerms(msg)
+                        }
+                    }).catch((e) => console.log(e))
+                } else {
+                    msg.channel.fetchWebhooks().then(webhooks => tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks).catch(() => { })
+                    await createdWebhook.send(sendObject).catch((e) => console.log(e))
+                    msg.delete().catch(() => { })
                 }
             }
 
@@ -712,8 +721,8 @@ class Poopy {
                     if (
                         !config.poosonia &&
                         (
-                            data.guildData[msg.guild.id]['keyexec'] == 2 ||
-                            (data.guildData[msg.guild.id]['keyexec'] == 1 && cmd.toLowerCase().startsWith(prefix.toLowerCase()))
+                            data.guildData[msg.guild.id].keyexec == 2 ||
+                            (data.guildData[msg.guild.id].keyexec == 1 && cmd.toLowerCase().startsWith(prefix.toLowerCase()))
                         ) && !commands.find(
                             c => c.raw &&
                                 c.name.find(n => cmd.toLowerCase().startsWith(`${prefix.toLowerCase()}${n.toLowerCase()}`))
@@ -724,7 +733,7 @@ class Poopy {
                             await msg.reply({
                                 content: err.stack,
                                 allowedMentions: {
-                                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                    parse: fetchPingPerms(msg)
                                 }
                             }).catch(() => { })
                         }) ?? 'error'
@@ -743,7 +752,7 @@ class Poopy {
                     if (allcontents.length >= cmds.length && !webhooked) {
                         var content = origcontent
                         msg.content = origcontent = allcontents.join(' -|- ')
-                        await webhookify().catch(() => { })
+                        await webhookify().catch((e) => console.log(e))
                         msg.content = origcontent = content
                     }
 
@@ -755,23 +764,23 @@ class Poopy {
                             await msg.reply({
                                 content: err.stack,
                                 allowedMentions: {
-                                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                    parse: fetchPingPerms(msg)
                                 }
                             }).catch(() => { })
                         } catch (_) { }
                     })
 
-                    if (tempdata[msg.guild.id][msg.channel.id]['shut']) break
+                    if (tempdata[msg.guild.id][msg.channel.id].shut) break
 
                     if (origcontent.toLowerCase().startsWith(prefix.toLowerCase()) && ((!msg.author.bot && msg.author.id != bot.user.id) || config.allowbotusage)) {
-                        data.guildData[msg.guild.id]['lastuse'] = Date.now()
+                        data.guildData[msg.guild.id].lastuse = Date.now()
 
                         var hivemindPass = true
 
-                        if (process.env.HIVEMIND_ID && config.hivemind && !data.guildData[msg.guild.id]['poopymode']) {
+                        if (process.env.HIVEMIND_ID && config.hivemind && !data.guildData[msg.guild.id].poopymode) {
                             await getTotalHivemindStatus().then(totalStatus => {
                                 var first = totalStatus[0].id == process.env.HIVEMIND_ID
-    
+
                                 if (!first) {
                                     hivemindPass = false
                                 }
@@ -786,10 +795,10 @@ class Poopy {
                             }
                         }
 
-                        if (tempdata[msg.author.id]['ratelimited']) {
+                        if (tempdata[msg.author.id].ratelimited) {
                             executed = true
 
-                            var totalSeconds = (tempdata[msg.author.id]['ratelimited'] - Date.now()) / 1000
+                            var totalSeconds = (tempdata[msg.author.id].ratelimited - Date.now()) / 1000
                             var days = Math.floor(totalSeconds / 86400);
                             totalSeconds %= 86400;
                             var hours = Math.floor(totalSeconds / 3600);
@@ -809,7 +818,7 @@ class Poopy {
                             return
                         }
 
-                        if (globaldata['shit'].find(id => id === msg.author.id)) {
+                        if (globaldata.shit.find(id => id === msg.author.id)) {
                             executed = true
                             if (hivemindPass) {
                                 await msg.reply('shit').catch(() => { })
@@ -817,24 +826,24 @@ class Poopy {
                             return
                         }
 
-                        if (data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown']) {
-                            if ((data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] - Date.now()) > 0 &&
-                                tempdata[msg.author.id]['cooler'] !== msg.id) {
+                        if (data.guildData[msg.guild.id].members[msg.author.id].coolDown) {
+                            if ((data.guildData[msg.guild.id].members[msg.author.id].coolDown - Date.now()) > 0 &&
+                                tempdata[msg.author.id].cooler !== msg.id) {
                                 if (hivemindPass) {
-                                    await msg.reply(`Calm down! Wait more ${(data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] - Date.now()) / 1000} seconds.`).catch(() => { })
+                                    await msg.reply(`Calm down! Wait more ${(data.guildData[msg.guild.id].members[msg.author.id].coolDown - Date.now()) / 1000} seconds.`).catch(() => { })
                                 }
                                 return
                             } else {
-                                data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] = false
-                                delete tempdata[msg.author.id]['cooler']
+                                data.guildData[msg.guild.id].members[msg.author.id].coolDown = false
+                                delete tempdata[msg.author.id].cooler
                             }
                         }
 
-                        tempdata[msg.author.id]['cooler'] = msg.id
+                        tempdata[msg.author.id].cooler = msg.id
 
                         var args = origcontent.substring(prefix.toLowerCase().length).split(' ')
                         var findCmd = findCommand(args[0].toLowerCase())
-                        var findLocalCmd = data.guildData[msg.guild.id]['localcmds'].find(cmd => cmd.name === args[0].toLowerCase())
+                        var findLocalCmd = data.guildData[msg.guild.id].localcmds.find(cmd => cmd.name === args[0].toLowerCase())
                         var similarCmds = []
 
                         for (var i in commands) {
@@ -849,8 +858,8 @@ class Poopy {
                             }
                         }
 
-                        for (var i in data.guildData[msg.guild.id]['localcmds']) {
-                            var fcmd = data.guildData[msg.guild.id]['localcmds'][i]
+                        for (var i in data.guildData[msg.guild.id].localcmds) {
+                            var fcmd = data.guildData[msg.guild.id].localcmds[i]
                             similarCmds.push({
                                 name: fcmd.name,
                                 type: 'local',
@@ -868,34 +877,34 @@ class Poopy {
                                 } else return
                             }
 
-                            if (data.guildData[msg.guild.id]['disabled'].find(cmd => cmd.find(n => n === args[0].toLowerCase()))) {
+                            if (data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === args[0].toLowerCase()))) {
                                 await msg.reply('This command is disabled in this server.').catch(() => { })
                             } else {
                                 var increaseCount = !(findCmd.execute.toString().includes('sendFile') && msg.nosend)
 
                                 if (increaseCount) {
-                                    if (tempdata[msg.author.id][msg.id]?.['execCount'] >= 1 && data.guildData[msg.guild.id]['chaincommands'] == false) {
+                                    if (tempdata[msg.author.id][msg.id]?.execCount >= 1 && data.guildData[msg.guild.id].chaincommands == false) {
                                         await msg.reply('You can\'t chain commands in this server.').catch(() => { })
                                         return
                                     }
 
-                                    if (tempdata[msg.author.id][msg.id]?.['execCount'] >= config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)) {
+                                    if (tempdata[msg.author.id][msg.id]?.execCount >= config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)) {
                                         await msg.reply(`Number of commands to run at the same time must be smaller or equal to **${config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)}**!`).catch(() => { })
                                         return
                                     }
 
-                                    if (!data.guildData[msg.guild.id]['chaos']) tempdata[msg.author.id][msg.id]['execCount']++
+                                    if (!data.guildData[msg.guild.id].chaos && tempdata[msg.author.id][msg.id]) tempdata[msg.author.id][msg.id].execCount++
                                 }
 
                                 if (findCmd.cooldown) {
-                                    data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] = (data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] || Date.now()) + findCmd.cooldown / ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) && (findCmd.type === 'Text' || findCmd.type === 'Main') ? 5 : 1)
+                                    data.guildData[msg.guild.id].members[msg.author.id].coolDown = (data.guildData[msg.guild.id].members[msg.author.id].coolDown || Date.now()) + findCmd.cooldown / ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) && (findCmd.type === 'Text' || findCmd.type === 'Main') ? 5 : 1)
                                 }
 
                                 delete msg.nosend
                                 msg.nosend = getOption(args, 'nosend', { n: 0, splice: true, dft: false })
 
                                 vars.cps++
-                                data.botData['commands']++
+                                data.botData.commands++
                                 var t = setTimeout(() => {
                                     vars.cps--
                                     clearTimeout(t)
@@ -906,12 +915,12 @@ class Poopy {
                                         await msg.reply({
                                             content: err.stack,
                                             allowedMentions: {
-                                                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                                parse: fetchPingPerms(msg)
                                             }
                                         }).catch(() => { })
                                     } catch (_) { }
                                 })
-                                data.botData['filecount'] = vars.filecount
+                                data.botData.filecount = vars.filecount
                             }
                         } else if (findLocalCmd) {
                             executed = true
@@ -922,7 +931,7 @@ class Poopy {
                             }
 
                             vars.cps++
-                            data.botData['commands']++
+                            data.botData.commands++
                             var t = setTimeout(() => {
                                 vars.cps--
                                 clearTimeout(t)
@@ -933,34 +942,34 @@ class Poopy {
                             var increaseCount = !!phrase.trim()
 
                             if (increaseCount) {
-                                if (tempdata[msg.author.id][msg.id]['execCount'] >= 1 && data.guildData[msg.guild.id]['chaincommands'] == false) {
+                                if (tempdata[msg.author.id][msg.id]?.execCount >= 1 && data.guildData[msg.guild.id].chaincommands == false) {
                                     await msg.reply('You can\'t chain commands in this server.').catch(() => { })
                                     return
                                 }
 
-                                if (tempdata[msg.author.id][msg.id]['execCount'] >= config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)) {
+                                if (tempdata[msg.author.id][msg.id]?.execCount >= config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)) {
                                     await msg.reply(`Number of commands to run at the same time must be smaller or equal to **${config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)}**!`).catch(() => { })
                                     return
                                 }
 
-                                if (!data.guildData[msg.guild.id]['chaos']) tempdata[msg.author.id][msg.id]['execCount']++
+                                if (!data.guildData[msg.guild.id].chaos && tempdata[msg.author.id][msg.id]) tempdata[msg.author.id][msg.id].execCount++
                             }
 
-                            if (tempdata[msg.guild.id][msg.channel.id]['shut']) break
+                            if (tempdata[msg.guild.id][msg.channel.id].shut) break
                             await msg.reply({
                                 content: phrase,
                                 allowedMentions: {
-                                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                    parse: fetchPingPerms(msg)
                                 }
                             }).catch(() => { })
 
-                            data.botData['filecount'] = vars.filecount
+                            data.botData.filecount = vars.filecount
                         } else if (similarCmds ? similarCmds.find(fcmd => fcmd.similarity >= 0.5) : undefined) {
                             executed = true
                             var useCmd = await yesno(msg.channel, `Did you mean to use \`${similarCmds[0].name}\`?`, msg.author.id, undefined, msg).catch(() => { })
                             if (useCmd) {
                                 if (similarCmds[0].type === 'cmd') {
-                                    if (data.guildData[msg.guild.id]['disabled'].find(cmd => cmd.find(n => n === similarCmds[0].name)) && hivemindPass) {
+                                    if (data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === similarCmds[0].name)) && hivemindPass) {
                                         await msg.reply('This command is disabled in this server.').catch(() => { })
                                     } else {
                                         var findCmd = findCommand(similarCmds[0].name)
@@ -974,25 +983,25 @@ class Poopy {
                                         var increaseCount = !(findCmd.execute.toString().includes('sendFile') && msg.nosend)
 
                                         if (increaseCount) {
-                                            if (tempdata[msg.author.id][msg.id]['execCount'] >= 1 && data.guildData[msg.guild.id]['chaincommands'] == false) {
+                                            if (tempdata[msg.author.id][msg.id]?.execCount >= 1 && data.guildData[msg.guild.id].chaincommands == false) {
                                                 await msg.reply('You can\'t chain commands in this server.').catch(() => { })
                                                 return
                                             }
 
-                                            if (tempdata[msg.author.id][msg.id]['execCount'] >= config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)) {
+                                            if (tempdata[msg.author.id][msg.id]?.execCount >= config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)) {
                                                 await msg.reply(`Number of commands to run at the same time must be smaller or equal to **${config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)}**!`).catch(() => { })
                                                 return
                                             }
 
-                                            if (!data.guildData[msg.guild.id]['chaos']) tempdata[msg.author.id][msg.id]['execCount']++
+                                            if (!data.guildData[msg.guild.id].chaos && tempdata[msg.author.id][msg.id]) tempdata[msg.author.id][msg.id].execCount++
                                         }
 
                                         if (findCmd.cooldown) {
-                                            data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] = (data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] || Date.now()) + findCmd.cooldown / ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) && (findCmd.type === 'Text' || findCmd.type === 'Main') ? 5 : 1)
+                                            data.guildData[msg.guild.id].members[msg.author.id].coolDown = (data.guildData[msg.guild.id].members[msg.author.id].coolDown || Date.now()) + findCmd.cooldown / ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) && (findCmd.type === 'Text' || findCmd.type === 'Main') ? 5 : 1)
                                         }
 
                                         vars.cps++
-                                        data.botData['commands']++
+                                        data.botData.commands++
                                         var t = setTimeout(() => {
                                             vars.cps--
                                             clearTimeout(t)
@@ -1003,24 +1012,24 @@ class Poopy {
                                                 await msg.reply({
                                                     content: err.stack,
                                                     allowedMentions: {
-                                                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                                        parse: fetchPingPerms(msg)
                                                     }
                                                 }).catch(() => { })
                                                 await msg.channel.sendTyping().catch(() => { })
                                             } catch (_) { }
                                         })
-                                        data.botData['filecount'] = vars.filecount
+                                        data.botData.filecount = vars.filecount
                                     }
                                 } else if (similarCmds[0].type === 'local') {
-                                    var findLocalCmd = data.guildData[msg.guild.id]['localcmds'].find(cmd => cmd.name === similarCmds[0].name)
+                                    var findLocalCmd = data.guildData[msg.guild.id].localcmds.find(cmd => cmd.name === similarCmds[0].name)
                                     if (!hivemindPass) {
                                         if (findLocalCmd.hivemindForce) {
                                             msg.nosend = true
                                         } else return
                                     }
-                                    
+
                                     vars.cps++
-                                    data.botData['commands']++
+                                    data.botData.commands++
                                     var t = setTimeout(() => {
                                         vars.cps--
                                         clearTimeout(t)
@@ -1031,29 +1040,29 @@ class Poopy {
                                     var increaseCount = !!phrase.trim()
 
                                     if (increaseCount) {
-                                        if (tempdata[msg.author.id][msg.id]['execCount'] >= 1 && data.guildData[msg.guild.id]['chaincommands'] == false) {
+                                        if (tempdata[msg.author.id][msg.id]?.execCount >= 1 && data.guildData[msg.guild.id].chaincommands == false) {
                                             await msg.reply('You can\'t chain commands in this server.').catch(() => { })
                                             return
                                         }
 
-                                        if (tempdata[msg.author.id][msg.id]['execCount'] >= config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)) {
+                                        if (tempdata[msg.author.id][msg.id]?.execCount >= config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)) {
                                             await msg.reply(`Number of commands to run at the same time must be smaller or equal to **${config.commandLimit * ((msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID) ? 5 : 1)}**!`).catch(() => { })
                                             return
                                         }
 
-                                        if (!data.guildData[msg.guild.id]['chaos']) tempdata[msg.author.id][msg.id]['execCount']++
+                                        if (!data.guildData[msg.guild.id].chaos && tempdata[msg.author.id][msg.id]) tempdata[msg.author.id][msg.id].execCount++
                                     }
 
-                                    if (tempdata[msg.guild.id][msg.channel.id]['shut']) return
+                                    if (tempdata[msg.guild.id][msg.channel.id].shut) return
 
                                     await msg.reply({
                                         content: phrase,
                                         allowedMentions: {
-                                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                            parse: fetchPingPerms(msg)
                                         }
                                     }).catch(() => { })
 
-                                    data.botData['filecount'] = vars.filecount
+                                    data.botData.filecount = vars.filecount
                                 }
                             }
                         }
@@ -1063,32 +1072,46 @@ class Poopy {
                 return executed
             }
 
-            var executed = await executeCommand().catch(async (e) => await msg.reply(e.stack).catch(() => { }))
+            var isRestricted = data.guildData[msg.guild.id].restricted.includes(msg.channel.id) && !(
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) ||
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) ||
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
+                msg.author.id === msg.guild.ownerID ||
+                (config.ownerids.find(id => id == msg.author.id))
+            )
+
+            var executed = !isRestricted ? await executeCommand().catch(async (e) => await msg.reply({
+                content: e.stack,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })) : false
 
             msg.content = origcontent = allcontents.length > 0 ? allcontents.join(' -|- ') : origcontent
 
-            if (!webhooked) await webhookify().catch(() => { })
+            if (!webhooked) await webhookify().catch((e) => console.log(e))
 
-            if (origcontent && ((!(msg.author.bot) && msg.author.id != bot.user.id) || config.allowbotusage) && data.guildData[msg.guild?.id]['channels'][msg.channel?.id]['read']) {
+            if (origcontent && ((!(msg.author.bot) && msg.author.id != bot.user.id) || config.allowbotusage) && data.guildData[msg.guild?.id].read.includes(msg.channel?.id)) {
                 var cleanMessage = Discord.Util.cleanContent(origcontent, msg).replace(/\@/g, '@‌')
 
                 if (
                     !(cleanMessage.match(vars.badFilter) || cleanMessage.match(vars.scamFilter) || cleanMessage.includes(prefix.toLowerCase())) &&
-                    !(data.guildData[msg.guild.id]['messages'].find(message => decrypt(message.content).toLowerCase() === cleanMessage.toLowerCase()))
+                    !(data.guildData[msg.guild.id].messages.find(message => decrypt(message.content).toLowerCase() === cleanMessage.toLowerCase()))
                 ) {
-                    var messages = [{
+                    data.guildData[msg.guild.id].messages.unshift({
+                        id: msg.id,
                         author: msg.author.id,
                         content: CryptoJS.AES.encrypt(cleanMessage, process.env.AUTH_TOKEN).toString(),
                         timestamp: Date.now()
-                    }].concat(data.guildData[msg.guild.id]['messages'])
-                    messages.splice(10000)
-                    data.guildData[msg.guild.id]['messages'] = messages
+                    })
+
+                    data.guildData[msg.guild.id].messages.splice(10000)
                 }
             }
 
             deleteMsgData(msg)
 
-            if (!msg.guild || !msg.channel || tempdata[msg.guild.id][msg.channel.id]['shut']) {
+            if (!msg.guild || !msg.channel || tempdata[msg.guild.id][msg.channel.id].shut || isRestricted) {
                 return
             }
 
@@ -1101,8 +1124,7 @@ class Poopy {
                 } else {
                     await msg.reply(content).catch(() => { })
                 }
-            }
-            else if (
+            } else if (
                 config.allowpingresponses &&
                 msg.mentions.members.find(member => member.user.id === bot.user.id) && (
                     (!msg.author.bot && msg.author.id != bot.user.id) ||
@@ -1215,25 +1237,25 @@ class Poopy {
                 ]
                 var ourEggPhrases = (process.env.HIVEMIND_ID && config.hivemind) ? eggPhrasesHivemind : eggPhrases
 
-                var lastMention = Date.now() - (tempdata[msg.author.id]['lastmention'] || Date.now())
-                if (lastMention > config.pingresponsecooldown) tempdata[msg.author.id]['mentions'] = 0
+                var lastMention = Date.now() - (tempdata[msg.author.id].lastmention || Date.now())
+                if (lastMention > config.pingresponsecooldown) tempdata[msg.author.id].mentions = 0
 
-                tempdata[msg.author.id]['lastmention'] = Date.now()
-                tempdata[msg.author.id]['mentions']++
+                tempdata[msg.author.id].lastmention = Date.now()
+                tempdata[msg.author.id].mentions++
 
-                if (config.pingresponselimit && tempdata[msg.author.id]['mentions'] >= config.pingresponselimit) {
-                    if (tempdata[msg.author.id]['mentions'] == config.pingresponselimit) await msg.reply("Don't RIZZ me. Don't come by OHIO. We're DONE.").catch(() => { })
+                if (config.pingresponselimit && tempdata[msg.author.id].mentions >= config.pingresponselimit) {
+                    if (tempdata[msg.author.id].mentions == config.pingresponselimit) await msg.reply("Don't RIZZ me. Don't come by OHIO. We're DONE.").catch(() => { })
                     return
                 }
 
                 // else if else if selselaesl seif sia esla fiwsa eaisf afis asifasfd
                 if (msg.reference) {
                     const channelData = tempdata[msg.channel.guild?.id]?.[msg.channel.id]
-                    
-                    var forceres = channelData?.['forceres']
+
+                    var forceres = channelData?.forceres
                     if (forceres && forceres.repliesonly) {
-                        delete channelData['forceres']
-        
+                        delete channelData.forceres
+
                         var res = await getKeywordsFor(forceres.res, msg, true, {
                             resetattempts: true,
                             extrakeys: {
@@ -1244,44 +1266,61 @@ class Poopy {
                                 }
                             }
                         }).catch(() => { }) ?? forceres.res
-            
-                        if (forceres.persist && !channelData['forceres']) channelData['forceres'] = forceres
+
+                        if (forceres.persist && !channelData.forceres) channelData.forceres = forceres
 
                         if (res) {
-                            await msg.reply(res).catch(() => { })
+                            await msg.reply({
+                                content: res,
+                                allowedMentions: {
+                                    parse: fetchPingPerms(msg)
+                                }
+                            }).catch(() => { })
                         }
                     } else {
-                        var resp = randomChoice(arrays.eightball)
+                        var resp = data.guildData[msg.guild.id]?.disabled.find(cmd => cmd.find(n => n === key.cmdconnected)) ?
+                            randomChoice(arrays.eightball) :
+                            await cleverbot(origcontent, msg.author.id).catch(() => { })
 
                         if (resp) {
-                            await msg.reply(resp).catch(() => { })
+                            await msg.reply({
+                                content: resp,
+                                allowedMentions: {
+                                    parse: fetchPingPerms(msg)
+                                }
+                            }).catch(() => { })
                         }
                     }
                 } else if (origcontent.includes('prefix') && origcontent.includes('reset')) {
                     var findCmd = findCommand('setprefix')
 
                     if (findCmd.cooldown) {
-                        data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] = (data.guildData[msg.guild.id]['members'][msg.author.id]['coolDown'] || Date.now()) + findCmd.cooldown
+                        data.guildData[msg.guild.id].members[msg.author.id].coolDown = (data.guildData[msg.guild.id].members[msg.author.id].coolDown || Date.now()) + findCmd.cooldown
                     }
 
                     await findCmd.execute.call(poopy, msg, ['setprefix', config.globalPrefix]).catch(async err => {
                         await msg.reply({
                             content: err.stack,
                             allowedMentions: {
-                                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                parse: fetchPingPerms(msg)
                             }
                         }).catch(() => { })
                         await msg.channel.sendTyping().catch(() => { })
                     })
                 } else if (origcontent.toLowerCase().includes('lore')) {
-                    await msg.reply(`Well... If you played a little bit with \`${config.globalPrefix}poop\`, I could give you some...`).catch(() => { })
+                    await msg.reply({
+                        content: `Well... If you played a little bit with \`${config.globalPrefix}poop\`, I could give you some...`,
+                        allowedMentions: {
+                            parse: fetchPingPerms(msg)
+                        }
+                    }).catch(() => { })
                 } else if ((origcontent.toLowerCase().includes('how') && origcontent.toLowerCase().includes('are') && origcontent.toLowerCase().includes('you')) || (origcontent.toLowerCase().includes('what') && origcontent.toLowerCase().includes('up')) || (origcontent.toLowerCase().includes('what') && origcontent.toLowerCase().includes('doing')) || origcontent.toLowerCase().includes('wassup') || (origcontent.toLowerCase().includes('how') && origcontent.toLowerCase().includes('it') && origcontent.toLowerCase().includes('going'))) {
                     var activity = bot.user.presence.activities[0]
                     if (activity) {
                         await msg.reply({
                             content: `Ya know, just ${DiscordTypes.ActivityType[activity.type].toLowerCase()} ${((activity.type === DiscordTypes.ActivityType.Competing && 'in ') || (activity.type === DiscordTypes.ActivityType.Listening && 'to ') || '')}${activity.name.replace(new RegExp(`${regexClean(` | ${config.globalPrefix}help`)}$`), '')}.`,
                             allowedMentions: {
-                                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                parse: fetchPingPerms(msg)
                             }
                         }).catch(() => { })
                     }
@@ -1298,20 +1337,59 @@ class Poopy {
                 } else if (origcontent.toLowerCase().includes('ye') || origcontent.toLowerCase().includes('yup')) {
                     await msg.reply(':)').catch(() => { })
                 } else {
-                    var eggPhrase = ourEggPhrases[tempdata[msg.author.id]['mentions']]
-                    if (eggPhrase) await msg.reply(eggPhrase).catch(() => { })
+                    var eggPhrase = ourEggPhrases[tempdata[msg.author.id].mentions]
+                    if (eggPhrase) await msg.reply({
+                        content: eggPhrase,
+                        allowedMentions: {
+                            parse: fetchPingPerms(msg)
+                        }
+                    }).catch(() => { })
                 }
+            }
+        }
+
+        callbacks.messageEditCallback = async (msg) => {
+            var messages = data.guildData[msg.guild?.id].messages
+            var prefix = data.guildData[msg.guild?.id]?.prefix ?? config.globalPrefix
+
+            if (!messages) return
+
+            var messageIndex = messages.findIndex(m => m.id == msg.id)
+            if (messageIndex > -1) {
+                var findMessage = messages[messageIndex]
+
+                var cleanMessage = Discord.Util.cleanContent(msg.content, msg).replace(/\@/g, '@‌')
+
+                if (
+                    !(cleanMessage.match(vars.badFilter) || cleanMessage.match(vars.scamFilter) || cleanMessage.includes(prefix.toLowerCase())) &&
+                    !(messages.find(message => decrypt(message.content).toLowerCase() === cleanMessage.toLowerCase()))
+                ) {
+                    findMessage.content = CryptoJS.AES.encrypt(cleanMessage, process.env.AUTH_TOKEN).toString()
+                } else {
+                    messages.splice(messageIndex, 1)
+                }
+            }
+        }
+
+        callbacks.messageDeleteCallback = async (msg) => {
+            var messages = data.guildData[msg.guild?.id].messages
+
+            if (!messages) return
+
+            var messageIndex = messages.findIndex(m => m.id == msg.id)
+            if (messageIndex > -1) {
+                messages.splice(messageIndex, 1)
             }
         }
 
         callbacks.guildCallback = async guild => {
             infoPost(`Joined a new server (${bot.guilds.cache.size} in total)`)
 
-            var channel = guild.systemChannel || guild.channels.cache.find(c => c.type === DiscordTypes.ChannelType.GuildText && (c.name == 'general' || c.name == 'main' || c.name == 'chat'))
+            var channel = guild.systemChannel || guild.channels.cache.find(c => c.type === Discord.ChannelType.GuildText && (c.name == 'general' || c.name == 'main' || c.name == 'chat'))
 
             if (!channel) {
                 guild.channels.cache.every(c => {
-                    if (c.type === DiscordTypes.ChannelType.GuildText || c.type === DiscordTypes.ChannelType.GuildNews) {
+                    if (c.type === Discord.ChannelType.GuildText || c.type === Discord.ChannelType.GuildNews) {
                         if (c.permissionsFor(c.guild.roles.everyone).has(DiscordTypes.PermissionFlagsBits.SendMessages)) {
                             channel = c
                             return false
@@ -1337,7 +1415,7 @@ class Poopy {
                     'I arrived.',
                     'I arrived.',
                     'I arrived.',
-                    `stop ${kickType} me${kickEntry ? ` ${kickEntry.executor.username.toLowerCase()}` : ''}`
+                    `stop ${kickType} me${kickEntry ? ` ${kickEntry.executor.displayName.toLowerCase()}` : ''}`
                 ]
 
                 if (!data.guildData) {
@@ -1348,22 +1426,22 @@ class Poopy {
                     data.guildData[guild.id] = {}
                 }
 
-                if (!data.guildData[guild.id]['lastuse']) {
-                    data.guildData[guild.id]['lastuse'] = Date.now()
+                if (!data.guildData[guild.id].lastuse) {
+                    data.guildData[guild.id].lastuse = Date.now()
                 }
 
-                if (!data.guildData[guild.id]['joins']) {
-                    data.guildData[guild.id]['joins'] = 0
+                if (!data.guildData[guild.id].joins) {
+                    data.guildData[guild.id].joins = 0
                 }
 
                 channel.send({
-                    content: joinPhrases[data.guildData[guild.id]['joins'] % joinPhrases.length],
+                    content: joinPhrases[data.guildData[guild.id].joins % joinPhrases.length],
                     allowedMentions: {
                         parse: ['users']
                     }
                 }).catch(() => { })
 
-                data.guildData[guild.id]['joins']++
+                data.guildData[guild.id].joins++
             }
         }
 
@@ -1448,7 +1526,7 @@ class Poopy {
 
                         var cmdargs = findCmd.args
 
-                        var prefix = data.guildData[interaction.guild?.id]?.['prefix'] ?? config.globalPrefix
+                        var prefix = data.guildData[interaction.guild?.id]?.prefix ?? config.globalPrefix
                         var argcontent = []
 
                         var extracontent = interaction.options.getString('extrapayload') ?? ''
@@ -1526,7 +1604,7 @@ class Poopy {
         let globaldata = poopy.globaldata
         let activeBots = poopy.activeBots
         let { fs } = poopy.modules
-        let { infoPost, toOrdinal, dataGather, saveData, saveQueue, changeStatus, updateHivemindStatus } = poopy.functions
+        let { infoPost, toOrdinal, dataGather, saveData, saveQueue, changeStatus, updateHivemindStatus, updateSlashCommands } = poopy.functions
         let callbacks = poopy.callbacks
 
         if (!TOKEN && !poopy.__TOKEN) {
@@ -1550,9 +1628,9 @@ class Poopy {
             }
 
             if (config.testing || !process.env.MONGOOSE_URL) {
-                console.log(`${bot.user.username}: gathering from json`)
+                console.log(`${bot.user.displayName}: gathering from json`)
                 if (fs.existsSync(`data/${config.database}.json`)) {
-                    data.data = JSON.parse(fs.readFileSync(`data/${config.database}.json`).toString())
+                    data.data = fs.readJSONSync(`data/${config.database}.json`)
                 } else {
                     data.data = {
                         botData: {},
@@ -1563,7 +1641,7 @@ class Poopy {
 
                 if (Object.keys(globaldata).length <= 0) {
                     if (fs.existsSync(`data/globaldata.json`)) {
-                        data.globaldata = JSON.parse(fs.readFileSync(`data/globaldata.json`).toString())
+                        data.globaldata = fs.readJSONSync(`data/globaldata.json`).toString()
                     } else {
                         data.globaldata = {}
                     }
@@ -1571,7 +1649,7 @@ class Poopy {
 
                 return data
             } else {
-                console.log(`${bot.user.username}: gathering from mongodb`)
+                console.log(`${bot.user.displayName}: gathering from mongodb`)
                 data.data.botData = await dataGather.botData(config.database)
                 if (Object.keys(globaldata).length <= 0) {
                     data.globaldata = await dataGather.globalData()
@@ -1581,8 +1659,9 @@ class Poopy {
             }
         }
 
-        console.log(`${bot.user.username} is online, RUN`)
-        await infoPost(`${bot.user.username} woke up to ash and dust`)
+        console.log(`${bot.user.displayName} is online, RUN`)
+        infoPost(`${bot.user.displayName} woke up to ash and dust`)
+
         bot.guilds.cache.get('834431435704107018')?.channels.cache.get('947167169718923341')?.send(!config.stfu ? 'i wake up to ash and dust' : '').catch(() => { })
         config.ownerids.push(bot.user.id)
 
@@ -1600,24 +1679,15 @@ class Poopy {
             })
         })
 
-        await infoPost(`Gathering data in \`${config.database}\``)
+        console.log(`${bot.user.displayName}: initialize data gathering`)
+        infoPost(`Gathering data in \`${config.database}\``)
+
         if (process.env.CLOUDAMQP_URL) vars.amqpconn = await require('amqplib').connect(process.env.CLOUDAMQP_URL)
         var gdata = await requestData()
 
         if (gdata) {
             for (var type in gdata.data) data[type] = gdata.data[type]
             if (Object.keys(globaldata).length <= 0 && gdata.globaldata) for (var type in gdata.globaldata) globaldata[type] = gdata.globaldata[type]
-        }
-
-        console.log(`${bot.user.username}: all data gathered!!!`)
-        await infoPost(`All data gathered`)
-
-        let dataGetters = require('./src/dataGetters')
-
-        var arrayList = await dataGetters.arrays().catch(() => { }) ?? {}
-        for (var key in arrayList) {
-            var array = arrayList[key]
-            arrays[key] = array
         }
 
         if (!data.botData) {
@@ -1632,104 +1702,107 @@ class Poopy {
             data.userData = {}
         }
 
-        if (!data.botData['messages']) {
-            data.botData['messages'] = 0
+        if (!data.botData.messages) {
+            data.botData.messages = 0
         }
 
-        if (!data.botData['commands']) {
-            data.botData['commands'] = 0
+        if (!data.botData.commands) {
+            data.botData.commands = 0
         }
 
-        if (!data.botData['filecount']) {
-            data.botData['filecount'] = 0
+        if (!data.botData.filecount) {
+            data.botData.filecount = 0
         }
 
-        if (data.botData['reboots'] === undefined) {
-            data.botData['reboots'] = 0
+        if (data.botData.reboots === undefined) {
+            data.botData.reboots = 0
         } else {
-            data.botData['reboots']++
+            data.botData.reboots++
         }
 
-        if (!data.botData['users']) {
-            data.botData['users'] = []
+        if (!data.botData.users) {
+            data.botData.users = []
         }
 
-        if (!data.botData['leaderboard']) {
-            data.botData['leaderboard'] = {}
+        if (!data.botData.leaderboard) {
+            data.botData.leaderboard = {}
         }
 
-        if (!globaldata['commandTemplates']) {
-            globaldata['commandTemplates'] = []
+        if (!globaldata.commandTemplates) {
+            globaldata.commandTemplates = []
         }
 
-        if (!globaldata['shit']) {
-            globaldata['shit'] = []
-        }
-        globaldata['shit'].forEach(id => {
-            if (config.ownerids.includes(id)) {
-                globaldata['shit'].splice(
-                    globaldata['shit'].indexOf(id), 1
-                )
-            }
-        })
-
-        if (!globaldata['psfiles']) {
-            globaldata['psfiles'] = arrays.psFiles
+        if (!globaldata.shit) {
+            globaldata.shit = []
         }
 
-        if (!globaldata['pspasta']) {
-            globaldata['pspasta'] = arrays.psPasta
+        globaldata.shit = globaldata.shit.filter(id => !config.ownerids.includes(id))
+
+        console.log(`${bot.user.displayName}: main data gathered!!!`)
+        infoPost(`Main data gathered, gathering extra data...`)
+
+        let dataGetters = require('./src/dataGetters')
+
+        console.log(`${bot.user.displayName}: gather some arrays`)
+
+        var arrayList = await dataGetters.arrays().catch(() => { }) ?? {}
+        for (var key in arrayList) {
+            var array = arrayList[key]
+            arrays[key] = array
         }
 
-        if (!globaldata['funnygif']) {
-            globaldata['funnygif'] = arrays.funnygifs
+        if (!globaldata.psfiles) {
+            globaldata.psfiles = arrays.psFiles
         }
 
-        if (!globaldata['poop']) {
-            globaldata['poop'] = arrays.poopPhrases
+        if (!globaldata.pspasta) {
+            globaldata.pspasta = arrays.psPasta
         }
 
-        if (!globaldata['dmphrases']) {
-            globaldata['dmphrases'] = arrays.dmPhrases
+        if (!globaldata.funnygif) {
+            globaldata.funnygif = arrays.funnygifs
         }
 
-        if (!globaldata['shitting']) {
-            globaldata['shitting'] = arrays.shitting
+        if (!globaldata.poop) {
+            globaldata.poop = arrays.poopPhrases
         }
 
-        arrays.psFiles = globaldata['psfiles']
-        arrays.psPasta = globaldata['pspasta']
-        arrays.funnygifs = globaldata['funnygif']
-        arrays.poopPhrases = globaldata['poop']
-        arrays.dmPhrases = globaldata['dmphrases']
-        arrays.shitting = globaldata['shitting']
+        if (!globaldata.dmphrases) {
+            globaldata.dmphrases = arrays.dmPhrases
+        }
 
-        vars.filecount = data.botData['filecount'] || 0
+        if (!globaldata.shitting) {
+            globaldata.shitting = arrays.shitting
+        }
+
+        arrays.psFiles = globaldata.psfiles
+        arrays.psPasta = globaldata.pspasta
+        arrays.funnygifs = globaldata.funnygif
+        arrays.poopPhrases = globaldata.poop
+        arrays.dmPhrases = globaldata.dmphrases
+        arrays.shitting = globaldata.shitting
+
+        vars.filecount = data.botData.filecount || 0
 
         if (config.testing || !process.env.MONGOOSE_URL) {
             if (!fs.existsSync('data')) {
                 fs.mkdirSync('data')
             }
-            fs.writeFileSync(`data/${config.database}.json`, JSON.stringify(data))
-            fs.writeFileSync(`data/globaldata.json`, JSON.stringify(globaldata))
+            fs.writeJSONSync(`data/${config.database}.json`, data)
+            fs.writeJSONSync(`data/globaldata.json`, globaldata)
         }
 
-        await infoPost(`Finishing extra steps...`);
-
-        /* var uberduck = await dataGetters.uberduck().catch(() => { }) ?? [[], []]
-        vars.ubervoices = uberduck[0]
-        vars.ubercategories = uberduck[1] */
-
+        console.log(`${bot.user.username}: gathering extra values`)
         vars.languages = await dataGetters.languages().catch(() => { }) ?? []
-
         vars.codelanguages = await dataGetters.codeLanguages().catch(() => { }) ?? []
 
+        console.log(`${bot.user.username}: gathering some jsons`)
         poopy.json = await dataGetters.jsons().catch(() => { }) ?? {}
 
-        console.log(`${bot.user.username}: some jsons`)
         //await updateSlashCommands()
-        console.log(`${bot.user.username}: all done, he's actually online now`)
-        await infoPost(`Reboot ${data.botData['reboots']} succeeded, he's up now`)
+        console.log(`${bot.user.username}: all done, it's actually online now`)
+        infoPost(`Reboot ${data.botData.reboots} succeeded, it's up now`)
+
         saveData()
         saveQueue()
         changeStatus()
@@ -1737,7 +1810,7 @@ class Poopy {
             changeStatus()
         }, 300000)
 
-        var wakecount = data.botData['reboots'] + 1
+        var wakecount = data.botData.reboots + 1
         bot.guilds.cache.get('834431435704107018')?.channels.cache.get('947167169718923341')?.send(!config.stfu ? (config.testing ? 'raleigh is testing' : `this is the ${toOrdinal(wakecount)} time this happens`) : '').catch(() => { })
 
         updateHivemindStatus()
@@ -1749,6 +1822,15 @@ class Poopy {
             bot.on('messageCreate', (msg) => {
                 callbacks.messageCallback(msg).catch((e) => console.log(e))
             })
+            bot.on('messageUpdate', (_, msg) => {
+                callbacks.messageEditCallback(msg).catch((e) => console.log(e))
+            })
+            bot.on('messageDelete', (msg) => {
+                callbacks.messageDeleteCallback(msg).catch((e) => console.log(e))
+            })
+            bot.on('messageDeleteBulk', (messages) => {
+                messages.forEach((msg) => callbacks.messageDeleteCallback(msg).catch((e) => console.log(e)))
+            })
             bot.on('guildCreate', (guild) => {
                 callbacks.guildCallback(guild).catch((e) => console.log(e))
             })
@@ -1758,6 +1840,7 @@ class Poopy {
             bot.on('interactionCreate', (interaction) => {
                 callbacks.interactionCallback(interaction).catch((e) => console.log(e))
             })
+            bot.on('error', (err) => console.log(err))
         }
 
         vars.started = true

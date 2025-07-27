@@ -1,7 +1,7 @@
 module.exports = {
   helpf: '(phrase | times | separator)',
   desc: "Repeats the phrase by the times specified. If the separator is specified, it'll separate each repetition with the separator.",
-  func: function (matches, msg) {
+  func: function (matches, msg, _, _, opts) {
     let poopy = this
     let { splitKeyFunc } = poopy.functions
     let tempdata = poopy.tempdata
@@ -15,8 +15,8 @@ module.exports = {
     var repeat = []
     for (var i = 0; i < times; i++) {
       repeat.push(phrase)
-      tempdata[msg.author.id][msg.id]['keyattempts']++
-      if (!opts.ownermode && tempdata[msg.author.id][msg.id]['keyattempts'] >= config.keyLimit) break
+      tempdata[msg.author.id][msg.id].keyattempts++
+      if (!opts.ownermode && tempdata[msg.author.id][msg.id].keyattempts >= config.keyLimit) break
     }
     return repeat.join(separator)
   },

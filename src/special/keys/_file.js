@@ -8,7 +8,7 @@ module.exports = {
     
     var validFile = new RegExp(`${vars.validUrl.source}\\.(png|jpe?g|bmp|webp|gif|apng|mp4|mov|wmv|webp|avi)`)
 
-    var messages = data.guildData[msg.guild.id]['messages'].filter(m => decrypt(m.content).match(validImage))
+    var messages = data.guildData[msg.guild.id].messages.filter(m => decrypt(m.content).match(validImage))
     var urlMessages = []
     
     for (var { ...m } of messages) {
@@ -29,7 +29,7 @@ module.exports = {
     
     var validFile = new RegExp(`${vars.validUrl.source}\\.(png|jpe?g|bmp|webp|gif|apng|mp4|mov|wmv|webp|avi)`)
 
-    var messages = data.guildData[msg.guild.id]['messages'].filter(m => decrypt(m.content).match(validImage))
+    var messages = data.guildData[msg.guild.id].messages.filter(m => decrypt(m.content).match(validImage))
     var urlMessages = []
     
     for (var { ...m } of messages) {

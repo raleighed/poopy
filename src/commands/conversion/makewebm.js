@@ -3,8 +3,10 @@ module.exports = {
     args: [{"name":"frameurls","required":false,"specifarg":false,"orig":"<frames>"},{"name":"frames","required":false,"specifarg":true,"orig":"[-frames <framenumber (max 50)>]"},{"name":"audio","required":false,"specifarg":true,"orig":"[-audio <audioFile>]"},{"name":"fps","required":false,"specifarg":false,"orig":"{fps (max 60)}"}],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrls, getOption, validateFile, getUrls, execPromise, downloadFile, sendFile } = poopy.functions
-        let { DiscordTypes } = poopy.modules
+        let {
+            lastUrls, getOption, validateFile, getUrls,
+            execPromise, downloadFile, sendFile, fetchPingPerms
+        } = poopy.functions
         let vars = poopy.vars
         let config = poopy.config
         let { fs, Jimp } = poopy.modules
@@ -38,7 +40,12 @@ module.exports = {
                 width: `the width of the audio exceeds the exception limit of {param} hahahaha there's nothing you can do`,
                 height: `the height of the audio exceeds the exception limit of {param} hahahaha there's nothing you can do`
             }).catch(async error => {
-                await msg.reply(error).catch(() => { })
+                await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
                 await msg.channel.sendTyping().catch(() => { })
                 return
             })
@@ -108,7 +115,7 @@ module.exports = {
             await msg.reply({
                 content: lasturlserror,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
@@ -131,7 +138,7 @@ module.exports = {
                     await msg.reply({
                         content: error,
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                     await msg.channel.sendTyping().catch(() => { })
@@ -143,7 +150,7 @@ module.exports = {
                     await msg.reply({
                         content: error,
                         allowedMentions: {
-                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                            parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
                     await msg.channel.sendTyping().catch(() => { })

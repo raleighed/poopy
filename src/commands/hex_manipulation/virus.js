@@ -4,7 +4,7 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let config = poopy.config
-        let { lastUrl, validateFile, downloadFile, sendFile } = poopy.functions
+        let { lastUrl, validateFile, downloadFile, sendFile, fetchPingPerms } = poopy.functions
         let { fs, DiscordTypes } = poopy.modules
 
         let virusCode = `Set objEnv = objShell.Environment("User")
@@ -31,7 +31,12 @@ objShell.Run "%windir%\\System32\\RUNDLL32.EXE user32.dll,UpdatePerUserSystemPar
             };
             var currenturl = lastUrl(msg, 0) || args[1]
             var fileinfo = await validateFile(currenturl, true).catch(async error => {
-                await msg.reply(error).catch(() => { })
+                await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
                 await msg.channel.sendTyping().catch(() => { })
                 return;
             })

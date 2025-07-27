@@ -8,7 +8,7 @@ module.exports = {
 
     var word = matches[1]
     var waitTime = Math.min(Math.max(Number(word), 0), 60)
-    tempdata[msg.author.id][msg.id]['keyattempts'] += !isNaN(waitTime) ? waitTime : 0
+    tempdata[msg.author.id][msg.id].keyattempts += !isNaN(waitTime) ? waitTime : 0
     await sleep(waitTime * 1000)
     return ''
   }

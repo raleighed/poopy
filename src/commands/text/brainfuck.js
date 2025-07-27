@@ -3,8 +3,7 @@ module.exports = {
   args: [{ "name": "code", "required": true, "specifarg": false, "orig": "<code>" }],
   execute: async function (msg, args) {
     let poopy = this
-    let { brainfuck } = poopy.functions
-    let { DiscordTypes } = poopy.modules
+    let { brainfuck, fetchPingPerms } = poopy.functions
 
     await msg.channel.sendTyping().catch(() => { })
     var saidMessage = args.slice(1).join(' ')
@@ -17,7 +16,7 @@ module.exports = {
     if (!msg.nosend) await msg.reply({
       content: compiled || '​',
       allowedMentions: {
-        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+        parse: fetchPingPerms(msg)
       }
     }).catch(() => { })
     return compiled || '​'

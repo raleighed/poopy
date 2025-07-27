@@ -3,8 +3,8 @@ module.exports = {
     args: [{"name":"message","required":true,"specifarg":false,"orig":"<message>"},{"name":"temperature","required":false,"specifarg":true,"orig":"[-temperature <number (from 0 to 1)]"},{"name":"maxtokens","required":false,"specifarg":true,"orig":"[-maxtokens <number (max 512)>]"},{"name":"prespenalty","required":false,"specifarg":true,"orig":"[-(pres/count/freq)penalty <number (from 0 to 5/1/500)>]"},{"name":"countpenalty","required":false,"specifarg":true,"orig":"[-(pres/count/freq)penalty <number (from 0 to 5/1/500)>]"},{"name":"freqpenalty","required":false,"specifarg":true,"orig":"[-(pres/count/freq)penalty <number (from 0 to 5/1/500)>]"}],
     execute: async function (msg, args) {
         let poopy = this
-        let { getOption, parseNumber, userToken } = poopy.functions
-        let { axios, fs, Discord, DiscordTypes } = poopy.modules
+        let { getOption, parseNumber, userToken, fetchPingPerms } = poopy.functions
+        let { axios, fs, Discord } = poopy.modules
         let vars = poopy.vars
         let config = poopy.config
 
@@ -70,7 +70,7 @@ module.exports = {
                 if (!msg.nosend) await msg.reply({
                     content: `${saidMessage}${resp.data.completions[0].data.text}`,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(async () => {
                     var currentcount = vars.filecount

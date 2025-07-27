@@ -13,10 +13,10 @@ module.exports = {
     var clone = split[1] ?? '0'
     var phrase = string.replace(new RegExp(`${regexClean(fullword)}\\s*`, 'i'), '')
 
-    var array = tempdata[msg.author.id]['arrays'][name]
+    var array = tempdata[msg.author.id].arrays[name]
     if (!array) return ''
 
-    tempdata[msg.author.id]['arrays'][clone] = array || []
+    tempdata[msg.author.id].arrays[clone] = array || []
 
     return [phrase, true]
   },

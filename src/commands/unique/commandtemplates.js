@@ -97,7 +97,7 @@ module.exports = {
         "description": "Allows you to edit the command with the respective ID in the database, if it exists and you made it.",
         "autocomplete": function (interaction) {
             let poopy = this
-            return poopy.globaldata['commandTemplates'].filter(cmd => cmd.creator == interaction.user.id).map(cmd => {
+            return poopy.globaldata.commandTemplates.filter(cmd => cmd.creator == interaction.user.id).map(cmd => {
                 return { name: `${cmd.name} (${cmd.id})`, value: cmd.id }
             })
         }
@@ -113,14 +113,14 @@ module.exports = {
         "description": "Permanently deletes the command from the database with the respective ID, if it exists and YOU made it.",
         "autocomplete": function (interaction) {
             let poopy = this
-            return poopy.globaldata['commandTemplates'].filter(cmd => cmd.creator == interaction.user.id).map(cmd => {
+            return poopy.globaldata.commandTemplates.filter(cmd => cmd.creator == interaction.user.id).map(cmd => {
                 return { name: `${cmd.name} (${cmd.id})`, value: cmd.id }
             })
         }
     }],
     execute: async function (msg, args) {
         let poopy = this
-        let { generateId, navigateEmbed, similarity } = poopy.functions
+        let { generateId, navigateEmbed, similarity, fetchPingPerms } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let globaldata = poopy.globaldata
         let vars = poopy.vars
@@ -141,7 +141,7 @@ module.exports = {
             }
 
             var name = args[1].toLowerCase()
-            var id = generateId(globaldata['commandTemplates'].map(c => c.id))
+            var id = generateId(globaldata.commandTemplates.map(c => c.id))
             var creator = msg.author.id
             var date = Math.floor(Date.now() / 1000)
 
@@ -181,19 +181,18 @@ module.exports = {
 
             params.phrase = saidMessage
 
-            var findCommand = globaldata['commandTemplates'].find(cmd => cmd.name === name && cmd.creator === msg.author.id)
+            var findCommand = globaldata.commandTemplates.find(cmd => cmd.name === name && cmd.creator === msg.author.id)
 
             if (findCommand) {
                 await msg.reply(`You've already created a command with that name! (ID: \`${findCommand.id}\`)`).catch(() => { })
                 return
             } else {
-                var commands = [params].concat(globaldata['commandTemplates'])
-                globaldata['commandTemplates'] = commands
+                globaldata.commandTemplates.unshift(params)
 
                 if (!msg.nosend) await msg.reply({
                     content: `✅ \`${name}\` was successfully registered to the command template database! (ID: \`${id}\`)`,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
                 return `✅ \`${name}\` was successfully registered to the command template database! (ID: \`${id}\`)`
@@ -202,7 +201,7 @@ module.exports = {
 
         var options = {
             list: async (msg) => {
-                var dcmdTemplates = globaldata['commandTemplates']
+                var dcmdTemplates = globaldata.commandTemplates
 
                 if (dcmdTemplates.length <= 0) {
                     if (!msg.nosend) {
@@ -216,7 +215,7 @@ module.exports = {
                                     "icon_url": bot.user.displayAvatarURL({
                                         dynamic: true, size: 1024, extension: 'png'
                                     }),
-                                    "text": bot.user.username
+                                    "text": bot.user.displayName
                                 },
                             }]
                         }).catch(() => { })
@@ -301,7 +300,7 @@ module.exports = {
                                 if (findCommandTemplate) {
                                     var name = findCommandTemplate.name
 
-                                    var findCommand = commands.find(cmd => cmd.name.find(n => n === name)) || data.guildData[msg.guild.id]['localcmds'].find(cmd => cmd.name === name)
+                                    var findCommand = commands.find(cmd => cmd.name.find(n => n === name)) || data.guildData[msg.guild.id].localcmds.find(cmd => cmd.name === name)
 
                                     if (findCommand) {
                                         if (config.useReactions) msg.reply(`The name of that command was already taken!`).catch(() => { })
@@ -312,7 +311,7 @@ module.exports = {
                                         return
                                     }
 
-                                    data.guildData[msg.guild.id]['localcmds'].push({
+                                    data.guildData[msg.guild.id].localcmds.push({
                                         name: name,
                                         phrase: findCommandTemplate.phrase,
                                         description: findCommandTemplate.description,
@@ -322,7 +321,7 @@ module.exports = {
                                     await msg.reply({
                                         content: `✅ Imported \`${name}\` command from the database.`,
                                         allowedMentions: {
-                                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                            parse: fetchPingPerms(msg)
                                         }
                                     }).catch(() => { })
                                 } else {
@@ -359,7 +358,7 @@ module.exports = {
 
                 var saidMessage = args.join('').substring(args[0].length + 1).toLowerCase()
 
-                var ddcmdTemplates = globaldata['commandTemplates']
+                var ddcmdTemplates = globaldata.commandTemplates
                 var none = {
                     "title": `there is nothing`,
                     "description": 'wow',
@@ -368,7 +367,7 @@ module.exports = {
                         "icon_url": bot.user.displayAvatarURL({
                             dynamic: true, size: 1024, extension: 'png'
                         }),
-                        "text": bot.user.username
+                        "text": bot.user.displayName
                     },
                 }
 
@@ -463,7 +462,7 @@ module.exports = {
                                 if (findCommandTemplate) {
                                     var name = findCommandTemplate.name
 
-                                    var findCommand = commands.find(cmd => cmd.name.find(n => n === name)) || data.guildData[msg.guild.id]['localcmds'].find(cmd => cmd.name === name)
+                                    var findCommand = commands.find(cmd => cmd.name.find(n => n === name)) || data.guildData[msg.guild.id].localcmds.find(cmd => cmd.name === name)
 
                                     if (findCommand) {
                                         if (config.useReactions) msg.reply(`The name of that command was already taken!`).catch(() => { })
@@ -474,7 +473,7 @@ module.exports = {
                                         return
                                     }
 
-                                    data.guildData[msg.guild.id]['localcmds'].push({
+                                    data.guildData[msg.guild.id].localcmds.push({
                                         name: name,
                                         phrase: findCommandTemplate.phrase,
                                         description: findCommandTemplate.description,
@@ -484,7 +483,7 @@ module.exports = {
                                     await msg.reply({
                                         content: `✅ Imported \`${name}\` command from the database.`,
                                         allowedMentions: {
-                                            parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                                            parse: fetchPingPerms(msg)
                                         }
                                     }).catch(() => { })
                                 } else {
@@ -532,8 +531,8 @@ module.exports = {
                 }
 
                 var id = args[1].replace(/#/g, '')
-                var command = globaldata['commandTemplates'].find(cmd => cmd.id === id)
-                var commandIndex = globaldata['commandTemplates'].findIndex(cmd => cmd.id === id)
+                var command = globaldata.commandTemplates.find(cmd => cmd.id === id)
+                var commandIndex = globaldata.commandTemplates.findIndex(cmd => cmd.id === id)
 
                 if (command && commandIndex > -1) {
                     if (command.creator !== msg.author.id) {
@@ -577,7 +576,7 @@ module.exports = {
                     args = args.reverse()
 
                     if (params.name) {
-                        var findCommand = globaldata['commandTemplates'].find(cmd => cmd.name === params.name && cmd.creator === msg.author.id)
+                        var findCommand = globaldata.commandTemplates.find(cmd => cmd.name === params.name && cmd.creator === msg.author.id)
 
                         if (findCommand) {
                             await msg.reply(`You've already created a command with that name! (ID: \`${findCommand.id}\`)`).catch(() => { })
@@ -586,7 +585,7 @@ module.exports = {
                     }
 
                     for (var param in params) {
-                        globaldata['commandTemplates'][commandIndex][param] = params[param]
+                        globaldata.commandTemplates[commandIndex][param] = params[param]
                     }
 
                     if (!msg.nosend) await msg.reply(`✅ Command successfully updated.`).catch(() => { })
@@ -603,8 +602,8 @@ module.exports = {
                 }
 
                 var id = args[1].replace(/#/g, '')
-                var command = globaldata['commandTemplates'].find(cmd => cmd.id === id)
-                var commandIndex = globaldata['commandTemplates'].findIndex(cmd => cmd.id === id)
+                var command = globaldata.commandTemplates.find(cmd => cmd.id === id)
+                var commandIndex = globaldata.commandTemplates.findIndex(cmd => cmd.id === id)
 
                 if (command && commandIndex > -1) {
                     if (command.creator !== msg.author.id) {
@@ -612,7 +611,7 @@ module.exports = {
                         return
                     }
 
-                    globaldata['commandTemplates'].splice(commandIndex, 1)
+                    globaldata.commandTemplates.splice(commandIndex, 1)
 
                     if (!msg.nosend) await msg.reply(`✅ Command successfully deleted.`).catch(() => { })
                     return `✅ Command successfully deleted.`
@@ -635,7 +634,7 @@ module.exports = {
                             "icon_url": bot.user.displayAvatarURL({
                                 dynamic: true, size: 1024, extension: 'png'
                             }),
-                            "text": bot.user.username
+                            "text": bot.user.displayName
                         },
                     }]
                 }).catch(() => { })

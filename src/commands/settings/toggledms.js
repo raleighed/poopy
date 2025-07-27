@@ -4,16 +4,16 @@ module.exports = {
     execute: async function (msg) {
         let poopy = this
         let data = poopy.data
-        let { DiscordTypes } = poopy.modules
+        let { fetchPingPerms } = poopy.functions
 
-        data.userData[msg.author.id]['dms'] = !data.userData[msg.author.id]['dms']
+        data.userData[msg.author.id].dms = !data.userData[msg.author.id].dms
         if (!msg.nosend) await msg.reply({
-            content: `Unrelated DMs from \`dm\` will **${!data.userData[msg.author.id]['dms'] ? 'not ' : ''}be sent** to you now.`,
+            content: `Unrelated DMs from \`dm\` will **${!data.userData[msg.author.id].dms ? 'not ' : ''}be sent** to you now.`,
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             }
         }).catch(() => { })
-        return `Unrelated DMs from \`dm\` will **${!data.userData[msg.author.id]['dms'] ? 'not ' : ''}be sent** to you now.`
+        return `Unrelated DMs from \`dm\` will **${!data.userData[msg.author.id].dms ? 'not ' : ''}be sent** to you now.`
     },
     help: {
         name: 'toggledms/tdms',

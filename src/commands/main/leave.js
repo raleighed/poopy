@@ -4,10 +4,10 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let config = poopy.config
-        let { yesno } = poopy.functions
-        let { DiscordTypes } = poopy.modules
+        let { yesno, fetchPingPerms } = poopy.functions
+        let { DiscordTypes, Discord } = poopy.modules
 
-        if (msg.channel.type == DiscordTypes.ChannelType.DM) {
+        if (msg.channel.type == Discord.ChannelType.DM) {
             await msg.reply(`You can't get rid of me.`).catch(() => { })
             return
         }
@@ -33,7 +33,7 @@ module.exports = {
                 'stop',
                 'chance of meatballs',
                 'the poopy boss has spawned',
-                `you had one shot ${(msg.member.nickname || msg.author.username).toLowerCase()}`,
+                `you had one shot ${(msg.member.nickname || msg.author.displayName).toLowerCase()}`,
                 'this is my undertale',
                 'i hate the antichrist',
                 'not the minors',
@@ -56,9 +56,14 @@ module.exports = {
 
             if (confirm) {
                 var phrase = phrases[Math.floor(Math.random() * phrases.length)]
-                if (!msg.nosend) await msg.reply(phrase).catch(() => { })
-                
-                if (msg.channel.type == DiscordTypes.ChannelType.GroupDM) msg.channel.delete().catch(() => { })
+                if (!msg.nosend) await msg.reply({
+                    content: phrase,
+                    allowedMentions: {
+                        parse: fetchPingPerms(msg)
+                    }
+                }).catch(() => { })
+
+                if (msg.channel.type == Discord.ChannelType.GroupDM) msg.channel.delete().catch(() => { })
                 else {
                     var left = await msg.guild.leave().catch(() => { })
                     if (!msg.nosend) await msg.channel?.send(left).catch(() => { })

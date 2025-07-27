@@ -2,10 +2,16 @@ module.exports = {
     name: ['userinfo', 'whois'],
     args: [{
         "name": "user", "required": true, "specifarg": false, "orig": "<user>",
-        "autocomplete": function (interaction) {
+        "autocomplete": async function (interaction) {
             let poopy = this
+            let { data, config } = poopy
+            let { dataGather } = poopy.functions
 
-            var memberData = poopy.data.guildData[interaction.guild.id]['allMembers']
+            if (!data.guildData[interaction.guild.id]) {
+                data.guildData[interaction.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
+            }
+
+            var memberData = data.guildData[interaction.guild.id].allMembers ?? {}
             var memberKeys = Object.keys(memberData).sort((a, b) => memberData[b].messages - memberData[a].messages)
 
             return memberKeys.map(id => {
@@ -21,8 +27,8 @@ module.exports = {
 
         args[1] = args[1] ?? ' '
 
-        var member = await msg.guild.members.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => { }) ??
-            await bot.users.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => { }) ??
+        var member = await msg.guild.members.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => { }) ??
+            await bot.users.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => { }) ??
             msg.member
 
         var user = await (member.user ?? member).fetch(true)
@@ -35,7 +41,7 @@ module.exports = {
 
         var infoEmbed = {
             author: {
-                name: `${member.nickname ?? user.username} (${user.tag})`,
+                name: `${member.nickname ?? user.displayName} (${user.tag})`,
                 icon_url: avatar
             },
             description: urls.join(' '),
@@ -45,7 +51,7 @@ module.exports = {
             },
             footer: {
                 icon_url: bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                text: bot.user.username
+                text: bot.user.displayName
             },
             fields: []
         }

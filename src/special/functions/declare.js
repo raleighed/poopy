@@ -13,10 +13,10 @@ module.exports = {
         name = regexClean(name)
         var value = await getKeywordsFor(split[1] ?? '', msg, isBot, opts).catch(() => { }) ?? ''
         var phrase = string.replace(new RegExp(`${regexClean(fullword)}\\s*`, 'i'), '')
-        tempdata[msg.author.id]['declared'][`{${name}}`] = value.replace(new RegExp(`\\{${name}\\}`, 'ig'), tempdata[msg.author.id]['declared'][`{${name}}`] || '')
-        tempdata[msg.author.id]['keydeclared'][`{${name}}`] = {
+        tempdata[msg.author.id].declared[`{${name}}`] = value.replace(new RegExp(`\\{${name}\\}`, 'ig'), tempdata[msg.author.id].declared[`{${name}}`] || '')
+        tempdata[msg.author.id].keydeclared[`{${name}}`] = {
             func: async function (msg)  {
-                return value.replace(new RegExp(`\\{${name}\\}`, 'ig'), tempdata[msg.author.id]['declared'][`{${name}}`] || '')
+                return value.replace(new RegExp(`\\{${name}\\}`, 'ig'), tempdata[msg.author.id].declared[`{${name}}`] || '')
             }
         }
         return [phrase, true]

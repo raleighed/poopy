@@ -7,16 +7,20 @@ module.exports = {
         "required": false,
         "specifarg": false,
         "orig": "[user]",
-        "autocomplete": function (interaction) {
+        "autocomplete": async function (interaction) {
             let poopy = this
+            let { data, config } = poopy
+            let { dataGather } = poopy.functions
 
-            var memberData = poopy.data.guildData[interaction.guild.id]['allMembers']
+            if (!data.guildData[interaction.guild.id]) {
+                data.guildData[interaction.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
+            }
+
+            var memberData = data.guildData[interaction.guild.id].allMembers ?? {}
             var memberKeys = Object.keys(memberData).sort((a, b) => memberData[b].messages - memberData[a].messages)
 
             return memberKeys.map(id => {
-                return {
-                    name: memberData[id].username, value: id
-                }
+                return { name: memberData[id].username, value: id }
             })
         }
     },
@@ -37,32 +41,32 @@ module.exports = {
         let config = poopy.config
         let vars = poopy.vars
         let data = poopy.data
-        let { axios, fileType, DiscordTypes } = poopy.modules
-        let { dataGather } = poopy.functions
+        let { DiscordTypes } = poopy.modules
+        let { dataGather, fetchPingPerms } = poopy.functions
 
         args[1] = args[1] ?? ' '
 
-        var member = await msg.guild.members.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => { }) ?? msg.member
+        var member = await msg.guild.members.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => { }) ?? msg.member
 
         if (!member) {
             await msg.reply({
                 content: `Invalid user ID: **${args[1]}**`,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             return
         }
 
-        if (!data.guildData[msg.guild.id]['members'][member.id]) {
-            data.guildData[msg.guild.id]['members'][member.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch(() => { }) || {}
+        if (!data.guildData[msg.guild.id].members[member.id]) {
+            data.guildData[msg.guild.id].members[member.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch(() => { }) || {}
         }
 
-        if (!data.guildData[msg.guild.id]['members'][member.id]['custom']) {
-            data.guildData[msg.guild.id]['members'][member.id]['custom'] = false
+        if (!data.guildData[msg.guild.id].members[member.id].custom) {
+            data.guildData[msg.guild.id].members[member.id].custom = false
         }
 
-        if (data.guildData[msg.guild.id]['members'][member.id]['custom'] === false) {
+        if (data.guildData[msg.guild.id].members[member.id].custom === false) {
             if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageWebhooks) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id)) {
                 var saidMessage = args.slice(1).join(' ')
                 var symbolReplacedMessage
@@ -94,49 +98,32 @@ module.exports = {
                     await msg.reply('Invalid name.').catch(() => { })
                     return
                 }
-                var fetchAvatar = await axios({
-                    url: args[args.length - 1],
-                    responseType: 'stream'
-                }).catch(() => { })
-                if (!fetchAvatar) {
-                    await msg.reply('Invalid avatar.').catch(() => { })
-                    return
-                }
-                var avatarFiletype = await fileType.fromStream(fetchAvatar.data).catch(() => { })
-                if (!avatarFiletype) {
-                    await msg.reply('Invalid avatar.').catch(() => { })
-                    return
-                }
-                if (!(avatarFiletype.mime.startsWith('image'))) {
-                    await msg.reply('Invalid avatar.').catch(() => { })
-                    return
-                }
                 var avatar = args[args.length - 1]
 
-                data.guildData[msg.guild.id]['members'][member.id]['custom'] = {
+                data.guildData[msg.guild.id].members[member.id].custom = {
                     name: allBlank ? '⠀' : name,
                     avatar: avatar
                 }
                 if (!msg.nosend) await msg.reply({
-                    content: member.user.username + ` is now ${name}.`,
+                    content: member.displayName + ` is now ${name}.`,
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
-                return member.user.username + ` is now ${name}.`
+                return member.displayName + ` is now ${name}.`
             } else {
                 await msg.reply('You need to have the manage webhooks/messages permission to execute that!').catch(() => { })
                 return;
             }
         } else {
             if (!msg.nosend) await msg.reply({
-                content: member.user.username + ` is not ${data.guildData[msg.guild.id]['members'][member.id]['custom']['name']}.`,
+                content: member.displayName + ` is not ${data.guildData[msg.guild.id].members[member.id].custom.name}.`,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
-            data.guildData[msg.guild.id]['members'][member.id]['custom'] = false
-            return member.user.username + ` is not ${data.guildData[msg.guild.id]['members'][member.id]['custom']['name']}.`
+            data.guildData[msg.guild.id].members[member.id].custom = false
+            return member.displayName + ` is not ${data.guildData[msg.guild.id].members[member.id].custom.name}.`
         }
     },
     help: {

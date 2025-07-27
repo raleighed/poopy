@@ -4,16 +4,16 @@ module.exports = {
         "name": "source", "required": false, "specifarg": true, "orig": "[-source <language>]",
         "autocomplete": function () {
             let poopy = this
-            return poopy.vars.languages.map(lang => {
-                return { name: lang.name, value: lang.language }
+            return Object.entries(poopy.vars.languages).map(language => {
+                return { name: language[1], value: language[0] }
             })
         }
     }, {
         "name": "target", "required": false, "specifarg": true, "orig": "[-target <language>]",
         "autocomplete": function () {
             let poopy = this
-            return poopy.vars.languages.map(lang => {
-                return { name: lang.name, value: lang.language }
+            return Object.entries(poopy.vars.languages).map(language => {
+                return { name: language[1], value: language[0] }
             })
         }
     }, { "name": "languages", "required": false, "specifarg": true, "orig": "[-languages <number (max 25)>]" },
@@ -21,8 +21,8 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let vars = poopy.vars
-        let { getOption } = poopy.functions
-        let { axios, DiscordTypes } = poopy.modules
+        let { getOption, fetchPingPerms } = poopy.functions
+        let { axios } = poopy.modules
 
         await msg.channel.sendTyping().catch(() => { })
         var details = getOption(args, 'details', { n: 0, splice: true, dft: false })
@@ -69,7 +69,12 @@ module.exports = {
         var lastlanguage = source
         var currentlanguage = Object.keys(vars.languages)[Math.floor(Math.random() * Object.keys(vars.languages).length)]
 
-        var lmessage = !msg.nosend && details && await msg.reply(`Translating from ${vars.languages[lastlanguage]} to ${vars.languages[currentlanguage]}. (${output})`).catch(() => { })
+        var lmessage = !msg.nosend && details && await msg.reply({
+            content: `Translating from ${vars.languages[lastlanguage]} to ${vars.languages[currentlanguage]}. (${output})`,
+            allowedMentions: {
+                parse: fetchPingPerms(msg)
+            }
+        }).catch(() => { })
 
         for (var i = 0; i < repeat; i++) {
             var options = {
@@ -112,7 +117,7 @@ module.exports = {
         if (!msg.nosend) await msg.reply({
             content: output,
             allowedMentions: {
-                parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                parse: fetchPingPerms(msg)
             }
         }).catch(() => { })
         return output

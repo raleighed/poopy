@@ -7,16 +7,20 @@ module.exports = {
         "required": false,
         "specifarg": false,
         "orig": "[user]",
-        "autocomplete": function (interaction) {
+        "autocomplete": async function (interaction) {
             let poopy = this
+            let { data, config } = poopy
+            let { dataGather } = poopy.functions
 
-            var memberData = poopy.data.guildData[interaction.guild.id]['allMembers']
+            if (!data.guildData[interaction.guild.id]) {
+                data.guildData[interaction.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
+            }
+
+            var memberData = data.guildData[interaction.guild.id].allMembers ?? {}
             var memberKeys = Object.keys(memberData).sort((a, b) => memberData[b].messages - memberData[a].messages)
 
             return memberKeys.map(id => {
-                return {
-                    name: memberData[id].username, value: id
-                }
+                return { name: memberData[id].username, value: id }
             })
         }
     }],
@@ -24,54 +28,54 @@ module.exports = {
         let poopy = this
         let data = poopy.data
         let config = poopy.config
-        let { dataGather } = poopy.functions
+        let { dataGather, fetchPingPerms } = poopy.functions
         let { DiscordTypes } = poopy.modules
 
         args[1] = args[1] ?? ' '
 
-        var member = await msg.guild.members.fetch((args[1].match(/\d+/) ?? [args[1]])[0]).catch(() => {}) ?? msg.member
+        var member = await msg.guild.members.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => {}) ?? msg.member
 
         if (!member) {
             await msg.reply({
                 content: `Invalid user ID: **${args[1]}**`,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => {})
             return
         }
 
-        if (!data.guildData[msg.guild.id]['members'][member.id]) {
-            data.guildData[msg.guild.id]['members'][member.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch(() => { }) || {}
+        if (!data.guildData[msg.guild.id].members[member.id]) {
+            data.guildData[msg.guild.id].members[member.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch(() => { }) || {}
         }
 
-        if (!data.guildData[msg.guild.id]['members'][member.id]['impostor']) {
-            data.guildData[msg.guild.id]['members'][member.id]['impostor'] = false
+        if (!data.guildData[msg.guild.id].members[member.id].impostor) {
+            data.guildData[msg.guild.id].members[member.id].impostor = false
         }
 
-        if (data.guildData[msg.guild.id]['members'][member.id]['impostor'] === false) {
-            if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageWebhooks) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id)) {
-                data.guildData[msg.guild.id]['members'][member.id]['impostor'] = true
+        if (data.guildData[msg.guild.id].members[member.id].impostor === false) {
+            if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageWebhooks) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id)) {
+                data.guildData[msg.guild.id].members[member.id].impostor = true
                 if (!msg.nosend) await msg.reply({
-                    content: member.user.username + ' is now the Impostor.',
+                    content: member.displayName + ' is now the Impostor.',
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     }
                 }).catch(() => {})
-                return member.user.username + ' is now the Impostor.'
+                return member.displayName + ' is now the Impostor.'
             } else {
                 await msg.reply('You need to have the manage webhooks/messages permission to execute that!').catch(() => {})
                 return;
             };
         } else {
-            data.guildData[msg.guild.id]['members'][member.id]['impostor'] = false
+            data.guildData[msg.guild.id].members[member.id].impostor = false
             if (!msg.nosend) await msg.reply({
-                content: member.user.username + ' is not the Impostor.',
+                content: member.user.displayName + ' is not the Impostor.',
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => {})
-            return member.user.username + ' is not the Impostor.'
+            return member.user.displayName + ' is not the Impostor.'
         }
     },
     help: {

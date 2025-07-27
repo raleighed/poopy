@@ -6,6 +6,6 @@ module.exports = {
     let tempdata = poopy.tempdata
 
     var word = matches[1]
-    return (tempdata[msg.author.id]['arrays'][word] ?? []).length
+    return (tempdata[msg.author.id].arrays[word] ?? []).length
   }
 }

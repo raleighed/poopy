@@ -7,8 +7,8 @@ module.exports = {
 
     var word = matches[1]
 
-    var message = await msg.channel.messages.fetch(word || ' ')
-    if (message.catch) message.catch(() => { })
+    var message = msg.channel.messages.fetch(word || ' ')
+    if (message.catch) message = await message.catch(() => { })
     if (!message) return ''
 
     return await getKeywordsFor(message.content ?? '', msg, isBot, opts).catch(() => { }) ?? ''

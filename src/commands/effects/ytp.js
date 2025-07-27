@@ -1,9 +1,12 @@
 module.exports = {
     name: ['ytp'],
-    args: [{"name":"file","required":false,"specifarg":false,"orig":"{file}"},{"name":"clips","required":false,"specifarg":true,"orig":"[-clips <number (max 200)>]"},{"name":"repetitions","required":false,"specifarg":true,"orig":"[-repetitions <number (max 10)>]"},{"name":"norandomize","required":false,"specifarg":true,"orig":"[-norandomize]"}],
+    args: [{ "name": "file", "required": false, "specifarg": false, "orig": "{file}" }, { "name": "clips", "required": false, "specifarg": true, "orig": "[-clips <number (max 200)>]" }, { "name": "repetitions", "required": false, "specifarg": true, "orig": "[-repetitions <number (max 10)>]" }, { "name": "norandomize", "required": false, "specifarg": true, "orig": "[-norandomize]" }, { "name": "nodistort", "required": false, "specifarg": true, "orig": "[-nodistort]" }],
     execute: async function (msg, args) {
         let poopy = this
-        let { lastUrl, validateFile, downloadFile, execPromise, findpreset, sendFile } = poopy.functions
+        let {
+            lastUrl, validateFile, downloadFile, execPromise,
+            findpreset, sendFile, fetchPingPerms
+        } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let { fs } = poopy.modules
         let vars = poopy.vars
@@ -43,13 +46,19 @@ module.exports = {
                 `[a]aresample=44100,asetrate=44100*2,aresample=44100,atempo=0.5[2a]`,
                 `[a]atempo=2[2a]`,
                 `[a]atempo=0.5[2a]`,
-                `[a]acrusher=.1:1:64:0:log[2a]`,
                 `[a][1:a]afir=dry=10:wet=10[2a]`,
-                `[a]aecho=1:1:1000:1[2a]`,
-                `[a]aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1[2a]`,
-                `[a]aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1[2a]`
+                `[a]aecho=1:1:1000:1[2a]`
             ],
         }
+
+        if (!args.includes('-nodistort')) {
+            filterslist.audio.push(
+                `[a]acrusher=.1:1:64:0:log[2a]`,
+                `[a]aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1,aecho=1:1:1000:1[2a]`,
+                `[a]aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1,aecho=1:1:1:1[2a]`
+            )
+        }
+
         var clips = 10
         var clipsindex = args.indexOf('-clips')
         if (clipsindex > -1) {
@@ -69,7 +78,12 @@ module.exports = {
 
         var currenturl = lastUrl(msg, 0) || args[1]
         var fileinfo = await validateFile(currenturl).catch(async error => {
-            await msg.reply(error).catch(() => { })
+            await msg.reply({
+                content: error,
+                allowedMentions: {
+                    parse: fetchPingPerms(msg)
+                }
+            }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
             return;
         })
@@ -79,7 +93,8 @@ module.exports = {
 
         if (type.mime.startsWith('video')) {
             var filepath = await downloadFile(currenturl, `input.mp4`, {
-                fileinfo            })
+                fileinfo
+            })
             var filename = `input.mp4`
             fs.mkdirSync(`${filepath}/clips`)
             var audio = fileinfo.info.audio
@@ -311,7 +326,8 @@ module.exports = {
             return await sendFile(msg, filepath, `output.gif`)
         } else if (type.mime.startsWith('audio')) {
             var filepath = await downloadFile(currenturl, `input.mp3`, {
-                fileinfo            })
+                fileinfo
+            })
             var filename = `input.mp3`
             fs.mkdirSync(`${filepath}/clips`)
             var duration = Number(fileinfo.info.duration)
@@ -366,7 +382,7 @@ module.exports = {
             await msg.reply({
                 content: `Unsupported file: \`${currenturl}\``,
                 allowedMentions: {
-                    parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                    parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             await msg.channel.sendTyping().catch(() => { })
@@ -374,7 +390,7 @@ module.exports = {
         }
     },
     help: {
-        name: 'ytp {file} [-clips <number (max 200)>] [-repetitions <number (max 10)>] [-norandomize]',
+        name: 'ytp {file} [-clips <number (max 200)>] [-repetitions <number (max 10)>] [-norandomize] [-nodistort]',
         value: 'Turns the file into a YTP. Default clips is 10 and repetitions is 1.'
     },
     cooldown: 2500,

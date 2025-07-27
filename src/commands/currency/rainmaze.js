@@ -15,7 +15,7 @@ module.exports = {
     await msg.channel.sendTyping().catch(() => { })
     if (msg.nosend) return new Rainmaze(w, h).draw().description
 
-    var rainstring = await rainmaze(msg.channel, msg.member, msg, w, h).catch(() => { })
+    var rainstring = await rainmaze(msg.channel, msg.member, msg, w, h).catch((e) => console.log(e))
     return rainstring
   },
   help: {

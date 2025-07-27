@@ -5,8 +5,12 @@ module.exports = {
         let poopy = this;
         let vars = poopy.vars;
         let { sendFile } = poopy.functions
-        let { DiscordTypes } = poopy.modules;
         let { fs, puppeteer } = poopy.modules;
+
+        if (!puppeteer) {
+            await msg.reply("This function isn't available at the moment.").catch(() => { })
+            return "This function isn't available at the moment."
+        }
 
         const site = args.slice(1).join(' ').trim();
 
@@ -26,7 +30,7 @@ module.exports = {
 
         if (
             ipBlacklisted.find(element => site.toLowerCase().includes(element)) ||
-            blacklisted.find(element => site.toLowerCase().includes(element)) && !msg.channel.nsfw
+            (blacklisted.find(element => site.toLowerCase().includes(element)) && !msg.channel.nsfw)
         ) {
             msg.reply("the body will not be found").catch(() => { });
             return;
@@ -34,7 +38,7 @@ module.exports = {
 
         let success = true;
         await page.goto(site).catch(async (Error) => {
-            await msg.reply("Invalid URL (or other error)!");
+            await msg.reply("Invalid URL (or other error)!").catch(() => { });
             console.error(Error);
             success = false;
         })

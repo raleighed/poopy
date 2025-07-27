@@ -3,7 +3,7 @@ module.exports = {
     desc: 'Edits a message sent by Poopy.',
     func: async function (matches, msg, isBot) {
         let poopy = this
-        let { splitKeyFunc } = poopy.functions
+        let { splitKeyFunc, fetchPingPerms } = poopy.functions
         let { DiscordTypes } = poopy.modules
         let config = poopy.config
         let bot = poopy.bot
@@ -14,8 +14,8 @@ module.exports = {
         var phrase = split[1] ?? ''
 
         if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.roles.cache.find(role => role.name.match(/mod|dev|admin|owner|creator|founder|staff/ig)) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id) || isBot) {
-            var messageToEdit = await msg.channel.messages.fetch(id)
-            if (messageToEdit.catch) messageToEdit.catch(() => { })
+            var messageToEdit = msg.channel.messages.fetch(id)
+            if (messageToEdit.catch) messageToEdit = await messageToEdit.catch(() => { })
 
             if (messageToEdit) {
                 if (messageToEdit.author.id !== bot.user.id) {
@@ -24,7 +24,7 @@ module.exports = {
 
                 await messageToEdit.edit({
                     allowedMentions: {
-                        parse: ((!msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) && !msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) && msg.author.id !== msg.guild.ownerID) && ['users']) || ['users', 'everyone', 'roles']
+                        parse: fetchPingPerms(msg)
                     },
                     content: phrase
                 }).catch(() => { })

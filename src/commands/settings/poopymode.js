@@ -8,7 +8,7 @@ module.exports = {
     let { getTotalHivemindStatus } = poopy.functions
     let { DiscordTypes } = poopy.modules
 
-    var hivemindState = data.guildData[msg.guild.id]['poopymode']
+    var hivemindState = data.guildData[msg.guild.id].poopymode
     var hivemindStatus = await getTotalHivemindStatus()
 
     var acceptableOnKeywords = ['all', 'everyone', 'everybody', 'true', 't', '1', 'on', 'enable', 'yes', 'y', '+']
@@ -21,8 +21,8 @@ module.exports = {
       return text
     } else {
       if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id)) {
-        data.guildData[msg.guild.id]['poopymode'] = newState
-        if (data.guildData[msg.guild.id]['poopymode']) {
+        data.guildData[msg.guild.id].poopymode = newState
+        if (data.guildData[msg.guild.id].poopymode) {
           var text = `Using the power of **all poopies in the hivemind** now, which is **${hivemindStatus.length}**.`
           if (!msg.nosend) await msg.reply(text).catch(() => { })
           return text

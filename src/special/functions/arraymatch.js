@@ -14,7 +14,7 @@ module.exports = {
     var regexp = new RegExp(reg, 'ig')
     var fullword = `${matches[0]}(${matches[1]})`
     var phrase = string.replace(new RegExp(`${regexClean(fullword)}\\s*`, 'i'), '')
-    tempdata[msg.author.id]['arrays'][name] = phr.match(regexp)
+    tempdata[msg.author.id].arrays[name] = phr.match(regexp)
     return [phrase, true]
   },
   attemptvalue: 5
