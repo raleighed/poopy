@@ -305,14 +305,6 @@ class Poopy {
             })
         })
 
-        if (config.testing) fs.readdirSync('src/soon').forEach(name => {
-            var cmd = name.replace(/\.js$/, '')
-            var cmdData = require(`./src/soon/${name}`)
-            if (!(config.poosonia && config.poosoniablacklist.find(cmdname => cmdname == cmd)) && envsExist(cmdData.envRequired ?? []) && configFlagsEnabled(cmdData.configRequired ?? []) && !(cmdData.configBlacklist && configFlagsEnabled(cmdData.configBlacklist))) {
-                commands.push(cmdData)
-            }
-        })
-
         commands.sort((a, b) => {
             if (a.name[0] > b.name[0]) {
                 return 1
@@ -663,12 +655,6 @@ class Poopy {
                     sendObject.avatarURL = 'https://cdn.discordapp.com/attachments/760223418968047629/835923486668750888/imposter.jpg'
                 }
 
-                if (data.guildData[msg.guild.id].members[msg.author.id].custom) {
-                    turnInto = data.guildData[msg.guild.id].members[msg.author.id].custom.name
-                    sendObject.username = data.guildData[msg.guild.id].members[msg.author.id].custom.name.substring(0, 32)
-                    sendObject.avatarURL = data.guildData[msg.guild.id].members[msg.author.id].custom.avatar
-                }
-
                 if (data.guildData[msg.guild.id].channels[msg.channel.id].battling) {
                     var type = data.guildData[msg.guild.id].channels[msg.channel.id].battling == 2 ?
                         "enemies" : "battlers"
@@ -681,6 +667,12 @@ class Poopy {
                     turnInto = battler.name
                     sendObject.username = battler.name
                     sendObject.avatarURL = battler.image
+                }
+
+                if (data.guildData[msg.guild.id].members[msg.author.id].custom) {
+                    turnInto = data.guildData[msg.guild.id].members[msg.author.id].custom.name
+                    sendObject.username = data.guildData[msg.guild.id].members[msg.author.id].custom.name.substring(0, 32)
+                    sendObject.avatarURL = data.guildData[msg.guild.id].members[msg.author.id].custom.avatar
                 }
 
                 var webhooks = tempdata[msg.guild.id][msg.channel.id].webhooks ?? await msg.channel.fetchWebhooks().catch(() => { })
@@ -1853,17 +1845,22 @@ class Poopy {
         let config = poopy.config
         let globaldata = poopy.globaldata
         let activeBots = poopy.activeBots
+        let { saveData } = poopy.functions
 
         clearInterval(vars.statusInterval)
         delete vars.statusInterval
+
         clearInterval(vars.saveInterval)
         delete vars.saveInterval
+
         clearInterval(vars.hivemindStatusInterval)
         delete vars.hivemindStatusInterval
 
         vars.started = false
         delete activeBots[config.database]
         bot.destroy()
+
+        await saveData()
 
         if (deldata) {
             delete poopy.data

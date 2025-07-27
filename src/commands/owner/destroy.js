@@ -17,7 +17,8 @@ module.exports = {
 
         if (!msg.nosend) await msg.reply('The salami lid').catch(() => { })
         await poopy.destroy(true)
-        if (config.quitOnDestroy) process.exit()
+        
+        throw new Error("Poopy has been successfully destroyed. Absolutely phenomenal!")
     },
     help: { name: 'destroy/shutdown/die', value: 'Causes Poopy to shutdown.' },
     type: 'Owner'

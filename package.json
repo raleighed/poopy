@@ -1,6 +1,6 @@
 {
   "name": "poopy",
-  "version": "1.12.0",
+  "version": "1.12.1",
   "description": "Poopies for you.",
   "main": "server.js",
   "scripts": {
@@ -25,6 +25,7 @@
     "discord-api-types": "^0.38.15",
     "discord.js": "^14.14.1",
     "discord.js-selfbot-v13": "^3.6.1",
+    "dotenv": "^17.2.1",
     "emoji-regex": "^10.0.0",
     "express": "^4.18.0",
     "file-type": "^16.5.3",

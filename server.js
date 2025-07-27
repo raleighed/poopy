@@ -1,22 +1,7 @@
 #!/usr/bin/env -S /bin/node server.js --test
 
 const throng = require('throng')
-const fs = require('fs-extra')
-
-function updateEnvironment() {
-    if (!fs.existsSync('.env')) return
-
-    const env = fs.readFileSync('.env').toString()
-
-    for (const line of env.split('\n')) {
-        if (!line || !line.includes("=") || line.startsWith("#")) continue
-
-        let [key, value] = line.split("=", 2)
-        if (!key || !value || process.env[key]) continue
-
-        process.env[key.trim()] = value.trim()
-    }
-}
+const dotenv = require('dotenv')
 
 async function start() {
     let poopyStarted = false
@@ -150,7 +135,7 @@ async function start() {
             res.status(404).sendFile(`${__dirname}/html/errorpages/404.html`)
         })
 
-        app.listen(PORT, () => console.log('web is up'))
+        app.listen(PORT, () => console.log(`Web is up: http${process.env.BOT_WEBSITE == "localhost" ? "" : "s"}://${process.env.BOT_WEBSITE}:${PORT}`))
 
         setInterval(function () {
             axios.get(process.env.BOT_WEBSITE).catch(() => { })
@@ -295,5 +280,6 @@ async function start() {
     }
 }
 
-updateEnvironment()
+dotenv.config({ quiet: true })
+
 throng({ workers: 1, start }) // My poopy will never die
