@@ -1757,6 +1757,10 @@
         {
             "name": "Thief King",
             "image": "https://cdn.discordapp.com/attachments/1050863721238515772/1399145121466941471/Render_Enemy_ThiefKing.png"
+        },
+        {
+            "name": "WhatsApp Hammer",
+            "image": "https://cdn.discordapp.com/attachments/1050863721238515772/1398707813030821921/Render_WhatsappHammer.png"
         }
     ]
 }
