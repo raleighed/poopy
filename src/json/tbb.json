@@ -683,6 +683,10 @@
         {
             "name": "Deinx94",
             "image": "https://cdn.discordapp.com/attachments/1050863721238515772/1399092400994914354/Render_Secret_Deinx94.png"
+        },
+        {
+            "name": "WhatsApp Hammer",
+            "image": "https://cdn.discordapp.com/attachments/1050863721238515772/1398707813030821921/Render_WhatsappHammer.png"
         }
     ],
     "enemies": [
@@ -1757,10 +1761,6 @@
         {
             "name": "Thief King",
             "image": "https://cdn.discordapp.com/attachments/1050863721238515772/1399145121466941471/Render_Enemy_ThiefKing.png"
-        },
-        {
-            "name": "WhatsApp Hammer",
-            "image": "https://cdn.discordapp.com/attachments/1050863721238515772/1398707813030821921/Render_WhatsappHammer.png"
         }
     ]
 }
