@@ -23,7 +23,7 @@ module.exports = {
                 saidMessage = saidMessage.replace(new RegExp(target, 'ig'), symbolReplacement.replacement)
             })
         })
-        var dft = ['""', `"${msg.member.nickname || msg.author.displayName}"`, `"${msg.author.displayName}"`]
+        var dft = ['""', `"${msg.member.displayName}"`, `"${msg.author.tag}"`]
         var matchedTextes = saidMessage.match(/"([\s\S]*?)"/g)
         if (!matchedTextes) {
             matchedTextes = dft

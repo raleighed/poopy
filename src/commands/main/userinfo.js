@@ -41,7 +41,7 @@ module.exports = {
 
         var infoEmbed = {
             author: {
-                name: `${member.nickname ?? user.displayName} (${user.tag})`,
+                name: `${member.displayName.replace(/\@/g, '@‌')} (${user.tag})`,
                 icon_url: avatar
             },
             description: urls.join(' '),

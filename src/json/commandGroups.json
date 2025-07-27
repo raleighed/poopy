@@ -66,6 +66,7 @@
     {
         "name": "battle",
         "cmds": [
+            "block",
             "chainpunch",
             "punch",
             "slam",
@@ -205,6 +206,7 @@
             "generatetext",
             "inferkit",
             "newimage",
+            "peptalk",
             "spectrogram",
             "stablediffusion",
             "uberduck"
@@ -227,6 +229,7 @@
         "name": "inside-joke",
         "cmds": [
             "babis",
+            "balance",
             "coin",
             "emotegame",
             "flip",
@@ -374,7 +377,8 @@
             "setprefix",
             "togglecmds",
             "restrictchannels",
-            "toggledms"
+            "toggledms",
+            "webhookattachments"
         ],
         "description": "Manage a server's Poopy settings, or your own Poopy settings."
     },

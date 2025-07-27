@@ -33,7 +33,7 @@ module.exports = {
                 'stop',
                 'chance of meatballs',
                 'the poopy boss has spawned',
-                `you had one shot ${(msg.member.nickname || msg.author.displayName).toLowerCase()}`,
+                `you had one shot ${(msg.member.displayName).toLowerCase().replace(/\@/g, '@‌')}`,
                 'this is my undertale',
                 'i hate the antichrist',
                 'not the minors',

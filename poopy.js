@@ -632,7 +632,7 @@ class Poopy {
                     .map(sticker => new Discord.AttachmentBuilder(`https://media.discordapp.net/stickers/${sticker.id}.${sticker.format == 4 ? "gif" : "png"}?size=160`))
 
                 var sendObject = {
-                    username: msg.member.nickname || msg.author.displayName,
+                    username: msg.member.displayName,
                     files: data.guildData[msg.guild.id].webhookAttachments ? attachments.concat(stickers) : [],
                     embeds: embeds,
                     allowedMentions: {
@@ -645,7 +645,7 @@ class Poopy {
                 }
 
                 if (msg.reference) {
-                    sendObject.content = `> -# Reply to: https://discord.com/channels/${msg.reference.guildId}/${msg.reference.channelId}/${msg.reference.messageId}\n${sendObject.content}`
+                    sendObject.content = `> -# Reply to: https://discord.com/channels/${msg.reference.guildId}/${msg.reference.channelId}/${msg.reference.messageId}\n${sendObject.content ?? ""}`
                 }
 
                 var turnInto = "a webhook"
@@ -1184,7 +1184,7 @@ class Poopy {
                     `\`${prefix}\``,
                     `it's \`${prefix}\``,
                     `IT'S \`${prefix}\`!!!!!!!!`,
-                    `\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\`\`${prefix}\``,
+                    `\`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\` \`${prefix}\``,
                     'are you serious',
                     'a',
                     'please stop',
@@ -1784,19 +1784,20 @@ class Poopy {
             fs.writeJSONSync(`data/globaldata.json`, globaldata)
         }
 
-        console.log(`${bot.user.username}: gathering extra values`)
+        console.log(`${bot.user.displayName}: gathering extra values`)
         vars.languages = await dataGetters.languages().catch(() => { }) ?? []
         vars.codelanguages = await dataGetters.codeLanguages().catch(() => { }) ?? []
 
-        console.log(`${bot.user.username}: gathering some jsons`)
+        console.log(`${bot.user.displayName}: gathering some jsons`)
         poopy.json = await dataGetters.jsons().catch(() => { }) ?? {}
 
-        //await updateSlashCommands()
-        console.log(`${bot.user.username}: all done, it's actually online now`)
+        console.log(`${bot.user.displayName}: all done, it's actually online now`)
         infoPost(`Reboot ${data.botData.reboots} succeeded, it's up now`)
 
         saveData()
         saveQueue()
+        updateSlashCommands()
+
         changeStatus()
         vars.statusInterval = setInterval(function () {
             changeStatus()

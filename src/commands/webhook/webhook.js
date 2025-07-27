@@ -105,25 +105,25 @@ module.exports = {
                     avatar: avatar
                 }
                 if (!msg.nosend) await msg.reply({
-                    content: member.displayName + ` is now ${name}.`,
+                    content: member.displayName.replace(/\@/g, '@‌') + ` is now ${name}.`,
                     allowedMentions: {
                         parse: fetchPingPerms(msg)
                     }
                 }).catch(() => { })
-                return member.displayName + ` is now ${name}.`
+                return member.displayName.replace(/\@/g, '@‌') + ` is now ${name}.`
             } else {
                 await msg.reply('You need to have the manage webhooks/messages permission to execute that!').catch(() => { })
                 return;
             }
         } else {
             if (!msg.nosend) await msg.reply({
-                content: member.displayName + ` is not ${data.guildData[msg.guild.id].members[member.id].custom.name}.`,
+                content: member.displayName.replace(/\@/g, '@‌') + ` is not ${data.guildData[msg.guild.id].members[member.id].custom.name}.`,
                 allowedMentions: {
                     parse: fetchPingPerms(msg)
                 }
             }).catch(() => { })
             data.guildData[msg.guild.id].members[member.id].custom = false
-            return member.displayName + ` is not ${data.guildData[msg.guild.id].members[member.id].custom.name}.`
+            return member.displayName.replace(/\@/g, '@‌') + ` is not ${data.guildData[msg.guild.id].members[member.id].custom.name}.`
         }
     },
     help: {

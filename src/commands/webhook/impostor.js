@@ -57,12 +57,12 @@ module.exports = {
             if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageWebhooks) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id)) {
                 data.guildData[msg.guild.id].members[member.id].impostor = true
                 if (!msg.nosend) await msg.reply({
-                    content: member.displayName + ' is now the Impostor.',
+                    content: member.displayName.replace(/\@/g, '@‌') + ' is now the Impostor.',
                     allowedMentions: {
                         parse: fetchPingPerms(msg)
                     }
                 }).catch(() => {})
-                return member.displayName + ' is now the Impostor.'
+                return member.displayName.replace(/\@/g, '@‌') + ' is now the Impostor.'
             } else {
                 await msg.reply('You need to have the manage webhooks/messages permission to execute that!').catch(() => {})
                 return;
@@ -70,12 +70,12 @@ module.exports = {
         } else {
             data.guildData[msg.guild.id].members[member.id].impostor = false
             if (!msg.nosend) await msg.reply({
-                content: member.user.displayName + ' is not the Impostor.',
+                content: member.user.displayName.replace(/\@/g, '@‌') + ' is not the Impostor.',
                 allowedMentions: {
                     parse: fetchPingPerms(msg)
                 }
             }).catch(() => {})
-            return member.user.displayName + ' is not the Impostor.'
+            return member.user.displayName.replace(/\@/g, '@‌') + ' is not the Impostor.'
         }
     },
     help: {

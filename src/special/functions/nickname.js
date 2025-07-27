@@ -9,6 +9,6 @@ module.exports = {
 
     var user = await msg.guild.members.fetch(word).catch(() => { }) ?? await bot.users.fetch(word).catch(() => { })
 
-    return user ? (user.nickname ?? user.displayName).replace(/\@/g, '@‌') : ''
+    return user ? user.displayName.replace(/\@/g, '@‌') : ''
   }
 }

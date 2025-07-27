@@ -17,7 +17,7 @@ module.exports = {
                 if (randomFactor === 8) {
                     dict = 1
                     conn = 1
-                    arabArray.push(msg.member.nickname || msg.author.displayName + ((Math.floor(Math.random() * 5) === 4 && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''))
+                    arabArray.push(msg.member.displayName + ((Math.floor(Math.random() * 5) === 4 && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''))
                 } else {
                     function chooseWord() {
                         if (Math.floor(Math.random() * dict) + 1 === (dict === 3 ? 0 : 1)) {
@@ -49,7 +49,7 @@ module.exports = {
             if (Math.floor(Math.random() * 4) === 3) {
                 var randomFactor = Math.floor(Math.random() * 8)
                 if (randomFactor === 7) {
-                    arabArray2.push({ word: msg.member.nickname || msg.author.displayName + ((Math.floor(Math.random() * 7) === 4 && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''), randomness: Math.random() })
+                    arabArray2.push({ word: msg.member.displayName + ((Math.floor(Math.random() * 7) === 4 && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''), randomness: Math.random() })
                 } else if (randomFactor >= 0 && randomFactor <= 3) {
                     arabArray2.push({ word: json.arabJSON.words[Math.floor(Math.random() * json.arabJSON.words.length)] + ((Math.floor(Math.random() * 7) === 4 && vars.punctuation[Math.floor(Math.random() * vars.punctuation.length)]) || ''), randomness: Math.random() })
                 } else {

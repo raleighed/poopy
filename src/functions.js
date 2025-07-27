@@ -736,13 +736,13 @@ functions.gatherData = async function (msg) {
         var roleOrder = msg.member.roles?.cache ? Math.max(...msg.member.roles.cache.map(r => r.rawPosition)) : 0
 
         data.guildData[msg.guild.id].members[msg.author.id].messages++
-        data.guildData[msg.guild.id].members[msg.author.id].username = msg.author.displayName
+        data.guildData[msg.guild.id].members[msg.author.id].username = msg.member.displayName
         data.guildData[msg.guild.id].members[msg.author.id].lastmessage = now
         data.guildData[msg.guild.id].members[msg.author.id].highestroleorder = roleOrder
         data.guildData[msg.guild.id].members[msg.author.id].bot = msg.author.bot
 
         data.guildData[msg.guild.id].allMembers[msg.author.id].messages++
-        data.guildData[msg.guild.id].allMembers[msg.author.id].username = msg.author.displayName
+        data.guildData[msg.guild.id].allMembers[msg.author.id].username = msg.member.displayName
         data.guildData[msg.guild.id].allMembers[msg.author.id].lastmessage = now
         data.guildData[msg.guild.id].allMembers[msg.author.id].highestroleorder = roleOrder
         data.guildData[msg.guild.id].allMembers[msg.author.id].bot = msg.author.bot
