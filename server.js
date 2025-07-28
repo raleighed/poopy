@@ -282,4 +282,4 @@ async function start() {
 
 dotenv.config({ quiet: true })
 
-throng({ workers: 1, start }) // My poopy will never die
+throng({ workers: 1, grace: 0, start }) // My poopy will never die

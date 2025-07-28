@@ -3111,6 +3111,36 @@ functions.addLastUrl = function (msg, url) {
     data.guildData[msg.guild.id].channels[msg.channel.id].lastUrls = lasturls
 }
 
+functions.createWebhook = async function (msg) {
+    let poopy = this
+    let bot = poopy.bot
+    let tempdata = poopy.tempdata
+
+    var webhooks = tempdata[msg.guild.id][msg.channel.id].webhooks ?? await msg.channel.fetchWebhooks().catch(() => { })
+    tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks
+
+    var findWebhooks = []
+    var created = false
+
+    if (webhooks?.size) findWebhooks = [...webhooks.filter(webhook => bot.user === webhook.owner).values()]
+
+    for (var i = findWebhooks.length; i < 5; i++) {
+        var createdWebhook = await msg.channel.createWebhook({
+            name: `Poopyhook ${i + 1}`,
+            avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png'
+        }).catch((e) => console.log(e))
+        if (!createdWebhook) return
+
+        created = true
+        findWebhooks.push(createdWebhook)
+    }
+
+    if (created)
+        msg.channel.fetchWebhooks().then(webhooks => tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks).catch(() => { })
+    
+    return findWebhooks[Number(BigInt(msg.author.id) % BigInt(findWebhooks.length))]
+}
+
 functions.rateLimit = async function (msg) {
     let poopy = this
     let config = poopy.config

@@ -3,7 +3,7 @@ module.exports = {
     desc: 'Creates a webhook with the name and avatar specified that will send the desired message.',
     func: async function (matches, msg, isBot, _, opts) {
         let poopy = this
-        let { splitKeyFunc, fetchPingPerms } = poopy.functions
+        let { splitKeyFunc, fetchPingPerms, createWebhook } = poopy.functions
         let globaldata = poopy.globaldata
         let tempdata = poopy.tempdata
         let data = poopy.data
@@ -68,36 +68,30 @@ module.exports = {
             }
         }
 
-        if (keepAttachments && data.guildData[msg.guild.id].webhookAttachments) {
+        if (keepAttachments) {
             var attachments = msg.attachments.map(attachment => new Discord.AttachmentBuilder(attachment.url, attachment.name))
             var embeds = msg.embeds.filter(embed => embed.data.type === 'rich')
             var stickers = msg.stickers
                 .filter(sticker => sticker.format != 3)
                 .map(sticker => new Discord.AttachmentBuilder(`https://media.discordapp.net/stickers/${sticker.id}.${sticker.format == 4 ? "gif" : "png"}?size=160`))
 
-            payload.files = attachments.concat(stickers)
+            var attachmentsAndStickers = attachments.concat(stickers)
+
+            if (data.guildData[msg.guild.id].webhookAttachments) payload.files = attachmentsAndStickers
+            else payload.content += `\n${attachmentsAndStickers.map(attachment => attachment.attachment).join(" ")}`
+
             payload.embeds = embeds
         }
 
+        payload.content = payload.content.trim().substring(0, 2000)
+
         if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageWebhooks) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id) || isBot) {
-            var webhooks = tempdata[msg.guild.id][msg.channel.id].webhooks ?? await msg.channel.fetchWebhooks().catch(() => { })
-            tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks
-
-            if (webhooks?.size) {
-                var findWebhook = webhooks.find(webhook => bot.user === webhook.owner)
-                if (findWebhook) {
-                    await findWebhook.send(payload).catch(() => { })
-                    return ''
-                }
-            }
-
-            var createdWebhook = await msg.channel.createWebhook({ name: 'Poopyhook', avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png' }).catch(() => { })
-            if (!createdWebhook) {
+            var webhook = await createWebhook(msg).catch(() => { })
+            if (!webhook) {
                 return 'I need the manage webhooks permission for this command!'
-            } else {
-                msg.channel.fetchWebhooks().then(webhooks => tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks).catch(() => { })
-                await createdWebhook.send(payload).catch(() => { })
             }
+
+            await webhook.send(payload).catch(() => { })
         } else {
             return 'You need to have the manage webhooks/messages permission to execute that!'
         }

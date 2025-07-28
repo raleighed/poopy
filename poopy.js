@@ -186,7 +186,7 @@ class Poopy {
         let { Discord, DiscordTypes, Collection, fs, CryptoJS } = modules
         let { envsExist, configFlagsEnabled,
             chunkArray, chunkObject, requireJSON, findCommand, fetchPingPerms,
-            dmSupport, sleep, gatherData, deleteMsgData, infoPost,
+            dmSupport, sleep, gatherData, deleteMsgData, infoPost, createWebhook,
             getKeywordsFor, getUrls, randomChoice, similarity, yesno,
             cleverbot, regexClean, decrypt, getOption, getTotalHivemindStatus } = functions
 
@@ -631,22 +631,27 @@ class Poopy {
                     .filter(sticker => sticker.format != 3)
                     .map(sticker => new Discord.AttachmentBuilder(`https://media.discordapp.net/stickers/${sticker.id}.${sticker.format == 4 ? "gif" : "png"}?size=160`))
 
+                var attachmentsAndStickers = attachments.concat(stickers)
+
                 var sendObject = {
                     username: msg.member.displayName,
-                    files: data.guildData[msg.guild.id].webhookAttachments ? attachments.concat(stickers) : [],
+                    content: origcontent || "",
+                    files: data.guildData[msg.guild.id].webhookAttachments ? attachmentsAndStickers : [],
                     embeds: embeds,
                     allowedMentions: {
                         parse: fetchPingPerms(msg)
                     }
                 }
 
-                if (origcontent) {
-                    sendObject.content = origcontent
-                }
-
                 if (msg.reference) {
                     sendObject.content = `> -# Reply to: https://discord.com/channels/${msg.reference.guildId}/${msg.reference.channelId}/${msg.reference.messageId}\n\n${sendObject.content ?? ""}`
                 }
+
+                if (!data.guildData[msg.guild.id].webhookAttachments) {
+                    sendObject.content += `\n${attachmentsAndStickers.map(attachment => attachment.attachment).join(" ")}`
+                }
+
+                sendObject.content = sendObject.content.trim().substring(0, 2000)
 
                 var turnInto = "a webhook"
 
@@ -675,31 +680,11 @@ class Poopy {
                     sendObject.avatarURL = data.guildData[msg.guild.id].members[msg.author.id].custom.avatar
                 }
 
-                var webhooks = tempdata[msg.guild.id][msg.channel.id].webhooks ?? await msg.channel.fetchWebhooks().catch(() => { })
-                tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks
+                var webhook = await createWebhook(msg).catch(() => { })
+                if (!webhook) return
 
-                if (webhooks?.size) {
-                    var findWebhook = webhooks.find(webhook => bot.user === webhook.owner)
-                    if (findWebhook) {
-                        await findWebhook.send(sendObject).catch((e) => console.log(e))
-                        msg.delete().catch(() => { })
-                        return
-                    }
-                }
-
-                var createdWebhook = await msg.channel.createWebhook({ name: 'Poopyhook', avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png' }).catch(() => { })
-                if (!createdWebhook) {
-                    await msg.reply({
-                        content: `I need the manage webhooks permission to turn you into ${turnInto}.`,
-                        allowedMentions: {
-                            parse: fetchPingPerms(msg)
-                        }
-                    }).catch((e) => console.log(e))
-                } else {
-                    msg.channel.fetchWebhooks().then(webhooks => tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks).catch(() => { })
-                    await createdWebhook.send(sendObject).catch((e) => console.log(e))
-                    msg.delete().catch(() => { })
-                }
+                await webhook.send(sendObject).catch((e) => console.log(e))
+                msg.delete().catch(() => { })
             }
 
             async function executeCommand() {

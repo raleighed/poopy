@@ -4,12 +4,13 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let bot = poopy.bot
-        let tempdata = poopy.tempdata
-        let { generateSayori, fetchPingPerms } = poopy.functions
+        let { generateSayori, fetchPingPerms, createWebhook } = poopy.functions
 
         var fixedchoice = args[1];
 
-        var sayori = await bot.users.fetch('758638862590803968').catch(() => { })
+        var sayori = bot.users.fetch('758638862590803968')
+        if (sayori?.catch) sayori = await sayori.catch(() => { })
+
         if (!sayori) {
             await msg.channel.send("She was not found.").catch(() => { })
             return
@@ -27,29 +28,9 @@ module.exports = {
 
         var botmsg
 
-        var webhooks = tempdata[msg.guild.id][msg.channel.id].webhooks ?? await msg.channel.fetchWebhooks().catch(() => { })
-        tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks
-
-        var findWebhook
-
-        if (webhooks?.size) {
-            findWebhook = webhooks.find(webhook => bot.user === webhook.owner)
-            if (findWebhook) {
-                botmsg = await findWebhook.send({
-                    content: optiontext,
-                    username: sayori.displayName,
-                    avatarURL: sayori.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                    allowedMentions: {
-                        parse: fetchPingPerms(msg)
-                    }
-                }).catch(() => { })
-            }
-        }
-
-        findWebhook = await msg.channel.createWebhook({ name: 'Poopyhook', avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png' }).catch(() => { })
-        if (findWebhook) {
-            msg.channel.fetchWebhooks().then(webhooks => tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks).catch(() => { })
-            botmsg = await findWebhook.send({
+        var webhook = await createWebhook(msg).catch(() => { })
+        if (webhook) {
+            botmsg = await webhook.send({
                 content: optiontext,
                 username: sayori.displayName,
                 avatarURL: sayori.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
@@ -64,7 +45,7 @@ module.exports = {
                 var editTimeout = setTimeout(() => {
                     if (option.pings === true) {
                         botmsg.delete().catch(() => { })
-                        findWebhook.send({
+                        webhook.send({
                             content: '<@' + msg.author.id + '> ' + option.edit + ' ⁽ᵉᵈᶦᵗᵉᵈ⁾',
                             username: sayori.displayName,
                             avatarURL: sayori.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
@@ -74,7 +55,7 @@ module.exports = {
                         }).catch(() => { })
                     } else {
                         botmsg.delete().catch(() => { })
-                        findWebhook.send({
+                        webhook.send({
                             content: option.edit + ' ⁽ᵉᵈᶦᵗᵉᵈ⁾',
                             username: sayori.displayName,
                             avatarURL: sayori.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
