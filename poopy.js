@@ -645,7 +645,7 @@ class Poopy {
                 }
 
                 if (msg.reference) {
-                    sendObject.content = `> -# Reply to: https://discord.com/channels/${msg.reference.guildId}/${msg.reference.channelId}/${msg.reference.messageId}\n${sendObject.content ?? ""}`
+                    sendObject.content = `> -# Reply to: https://discord.com/channels/${msg.reference.guildId}/${msg.reference.channelId}/${msg.reference.messageId}\n\n${sendObject.content ?? ""}`
                 }
 
                 var turnInto = "a webhook"

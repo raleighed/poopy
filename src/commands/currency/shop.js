@@ -5,7 +5,7 @@ module.exports = {
     let poopy = this
     let config = poopy.config
     let bot = poopy.bot
-    let { displayShop, fetchPingPerms } = poopy.modules
+    let { displayShop, fetchPingPerms } = poopy.functions
 
     let types = ['upgrades', 'buffs', 'items']
 
