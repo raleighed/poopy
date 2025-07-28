@@ -6,9 +6,9 @@ module.exports = {
     let bot = poopy.bot
 
     await msg.channel.sendTyping().catch(() => { })
-    var invite = process.env.BOT_WEBSITE ?
-      `Bot invite link: <${process.env.BOT_WEBSITE}/invite>\nDiscord server link: <${process.env.BOT_WEBSITE}/discord>` :
-      `Bot invite link: <https://discord.com/oauth2/authorize?client_id=${bot.user.id}&scope=bot%20applications.commands&permissions=275415166152>`
+    var invite = `Wanna invite this bot? **[Click here.](<https://discord.com/oauth2/authorize?client_id=${bot.user.id}&scope=bot%20applications.commands&permissions=275415166152>)**`
+      + (process.env.BOT_WEBSITE ? `\nWanna find out more about it? **[Check out the website.](<${process.env.BOT_WEBSITE}>)**` : "")
+
     if (!msg.nosend) await msg.reply(invite).catch(() => { })
     return invite
   },

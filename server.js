@@ -7,7 +7,7 @@ async function start() {
     let poopyStarted = false
     let poopy
     let { APIMessage } = require('./src/modules')
-    let { sleep, escapeHTML } = require('./src/functions')
+    let { sleep } = require('./src/functions')
 
     if (process.env.RAILWAY_STATIC_URL && !process.env.BOT_WEBSITE) process.env.BOT_WEBSITE = `https://${process.env.RAILWAY_STATIC_URL}`
 
@@ -135,7 +135,7 @@ async function start() {
             res.status(404).sendFile(`${__dirname}/html/errorpages/404.html`)
         })
 
-        app.listen(PORT, () => console.log(`Web is up: http${process.env.BOT_WEBSITE == "localhost" ? "" : "s"}://${process.env.BOT_WEBSITE}:${PORT}`))
+        app.listen(PORT, () => console.log(`Web is up: ${process.env.BOT_WEBSITE}`))
 
         setInterval(function () {
             axios.get(process.env.BOT_WEBSITE).catch(() => { })
