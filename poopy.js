@@ -1473,7 +1473,7 @@ class Poopy {
                             }).slice(0, 25)
 
                         await interaction.respond(
-                            choices.map(choice => ({ name: (choice.name ?? choice).replace(/\n|\r/g, ' ').substring(0, 100) || '(blank)', value: choice.value ?? choice }))
+                            choices.map(choice => ({ name: (choice.name ?? choice ?? '(blank)').replace(/\n|\r/g, ' ').substring(0, 100) || '(blank)', value: choice.value ?? choice }))
                         )
                     }
                 },
