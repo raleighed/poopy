@@ -3124,7 +3124,7 @@ functions.createWebhook = async function (msg) {
 
     if (webhooks?.size) findWebhooks = [...webhooks.filter(webhook => bot.user === webhook.owner).values()]
 
-    for (var i = findWebhooks.length; i < 5; i++) {
+    if (findWebhooks.length <= 0) {
         var createdWebhook = await msg.channel.createWebhook({
             name: `Poopyhook ${i + 1}`,
             avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png'
