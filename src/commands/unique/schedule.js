@@ -261,7 +261,7 @@ module.exports = {
                         guildId: msg.guild.id,
                         channelId: channel.id,
                         cron: cronPhrase,
-                        phrase
+                        phrase: phrase.replace(/\\<?@/g, (c) => c.slice(1))
                     }
 
                     data.botData.crons.push(newTimer)
@@ -334,7 +334,7 @@ module.exports = {
                     }
 
                     if (saidMessage) {
-                        timer.phrase = saidMessage
+                        timer.phrase = saidMessage.replace(/\\<?@/g, (c) => c.slice(1))
                         updated = true
                         updates.push(`message to \`${saidMessage}\``)
                     }
