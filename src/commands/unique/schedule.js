@@ -247,7 +247,7 @@ module.exports = {
                         return
                     }
 
-                    var phrase = saidMessage.replace(matchedTextes[0], "").trim()
+                    var phrase = saidMessage.replace(matchedTextes[0], "").trim().replace(/`<?@[!&]?[a-z0-9]+>?`/g, (c) => c.slice(1, -1))
 
                     if (!phrase) {
                         await msg.reply('You gotta specify the message to send!').catch(() => { })
@@ -261,7 +261,7 @@ module.exports = {
                         guildId: msg.guild.id,
                         channelId: channel.id,
                         cron: cronPhrase,
-                        phrase: phrase.replace(/\\<?@/g, (c) => c.slice(1))
+                        phrase
                     }
 
                     data.botData.crons.push(newTimer)
@@ -271,12 +271,12 @@ module.exports = {
                     })
 
                     if (!msg.nosend) await msg.reply({
-                        content: `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase}\` in <#${channel.id}>`,
+                        content: `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>`,
                         allowedMentions: {
                             parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
-                    return `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase}\` in <#${channel.id}>`
+                    return `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>`
                 } else {
                     await msg.reply('You need to be a moderator to execute that!').catch(() => { })
                     return;
@@ -334,9 +334,9 @@ module.exports = {
                     }
 
                     if (saidMessage) {
-                        timer.phrase = saidMessage.replace(/\\<?@/g, (c) => c.slice(1))
+                        timer.phrase = saidMessage.replace(/`<?@[!&]?[a-z0-9]+>?`/g, (c) => c.slice(1, -1))
                         updated = true
-                        updates.push(`message to \`${saidMessage}\``)
+                        updates.push(`message to \`${saidMessage.replace(/`/g, "")}\``)
                     }
 
                     if (!updated) {
@@ -345,7 +345,7 @@ module.exports = {
                     }
 
                     if (tempdata.crons[timerId]) {
-                        await tempdata.crons[timerId].destroy()
+                        await tempdata.crons[timerId].destroy().catch(() => {})
                     }
 
                     var channel = msg.guild.channels.cache.get(timer.channelId)
@@ -379,7 +379,7 @@ module.exports = {
                     if (timerIndex > -1) {
                         var removed = data.botData.crons.splice(timerIndex, 1)[0]
                         if (tempdata.crons[timerId]) {
-                            await tempdata.crons[timerId].destroy()
+                            await tempdata.crons[timerId].destroy().catch(() => {})
                             delete tempdata.crons[timerId]
                         }
 
