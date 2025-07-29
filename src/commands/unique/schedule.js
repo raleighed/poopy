@@ -345,7 +345,7 @@ module.exports = {
                     }
 
                     if (tempdata.crons[timerId]) {
-                        await tempdata.crons[timerId].destroy().catch(() => {})
+                        await tempdata.crons[timerId].destroy()
                     }
 
                     var channel = msg.guild.channels.cache.get(timer.channelId)
@@ -379,7 +379,7 @@ module.exports = {
                     if (timerIndex > -1) {
                         var removed = data.botData.crons.splice(timerIndex, 1)[0]
                         if (tempdata.crons[timerId]) {
-                            await tempdata.crons[timerId].destroy().catch(() => {})
+                            await tempdata.crons[timerId].destroy()
                             delete tempdata.crons[timerId]
                         }
 
