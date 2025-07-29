@@ -104,7 +104,9 @@ module.exports = {
 
                 for (var i in serverTimers) {
                     var timer = serverTimers[i]
-                    timersArray.push(`- **ID:** ${timer.id} | **Channel:** <#${timer.channelId}> | **Schedule:** \`${timer.cron}\``)
+                    var nextTime = tempdata.crons[timer.id].getNextRun()
+                    var timestamp = Math.floor(nextTime.getTime() / 1000)
+                    timersArray.push(`- **ID:** ${timer.id} | **Channel:** <#${timer.channelId}> | **Schedule:** \`${timer.cron}\` (Next: <t:${timestamp}:F>)`)
                 }
 
                 if (timersArray.length <= 0) {
@@ -165,11 +167,14 @@ module.exports = {
                 var timerId = args[1]
                 var timer = data.botData.crons.find(t => t.id === timerId && t.guildId === msg.guild.id)
 
+                var nextTime = tempdata.crons[timerId].getNextRun()
+                var timestamp = Math.floor(nextTime.getTime() / 1000)
+
                 if (timer) {
                     if (!msg.nosend) {
                         if (config.textEmbeds) {
                             await msg.reply({
-                                content: `**Channel:** <#${timer.channelId}>\n**Schedule:** \`${timer.cron}\`\n**Message:**\n${timer.phrase}`,
+                                content: `**Channel:** <#${timer.channelId}>\n**Schedule:** \`${timer.cron}\` (Next: <t:${timestamp}:F>)\n**Message:**\n${timer.phrase}`,
                                 allowedMentions: {
                                     parse: fetchPingPerms(msg)
                                 }
@@ -178,7 +183,7 @@ module.exports = {
                             await msg.reply({
                                 embeds: [{
                                     "title": `Timer Info (ID: ${timer.id})`,
-                                    "description": `**Channel:** <#${timer.channelId}>\n**Schedule:** \`${timer.cron}\`\n**Message:**\n${timer.phrase}`,
+                                    "description": `**Channel:** <#${timer.channelId}>\n**Schedule:** \`${timer.cron}\` (Next: <t:${timestamp}:F>)\n**Message:**\n${timer.phrase}`,
                                     "color": 0x472604,
                                     "footer": {
                                         "icon_url": bot.user.displayAvatarURL({
@@ -209,7 +214,7 @@ module.exports = {
 
                     var channel = msg.channel
 
-                    var channelMatch = args[1].match(/^<#(\d+)>$|^(\d+)$/);
+                    var channelMatch = args[1].match(/^<#(\d+)>$|^(\d+)$/)
                     if (channelMatch) {
                         channel = msg.guild.channels.cache.get(channelMatch[1])
                         if (!channel || channel.type == DiscordTypes.ChannelType.GuildCategory) {
@@ -270,17 +275,20 @@ module.exports = {
                         await channel.send(phrase).catch(() => { })
                     })
 
+                    var nextTime = tempdata.crons[timerId].getNextRun()
+                    var timestamp = Math.floor(nextTime.getTime() / 1000)
+
                     if (!msg.nosend) await msg.reply({
-                        content: `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>`,
+                        content: `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` (Next: <t:${timestamp}:F>) with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>`,
                         allowedMentions: {
                             parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
-                    return `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>`
+                    return `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` (Next: <t:${timestamp}:F>) with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>`
                 } else {
                     await msg.reply('You need to be a moderator to execute that!').catch(() => { })
-                    return;
-                };
+                    return
+                }
             },
 
             edit: async (msg, args) => {
@@ -353,17 +361,20 @@ module.exports = {
                         await channel.send(timer.phrase).catch(() => { })
                     })
 
+                    var nextTime = tempdata.crons[timerId].getNextRun()
+                    var timestamp = Math.floor(nextTime.getTime() / 1000)
+
                     if (!msg.nosend) await msg.reply({
-                        content: `✅ Updated timer \`${timerId}\` (${updates.join(' and ')})`,
+                        content: `✅ Updated timer \`${timerId}\` (${updates.join(' and ')}). Next execution: <t:${timestamp}:F>`,
                         allowedMentions: {
                             parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
-                    return `✅ Updated timer \`${timerId}\` (${updates.join(' and ')})`
+                    return `✅ Updated timer \`${timerId}\` (${updates.join(' and ')}). Next execution: <t:${timestamp}:F>`
                 } else {
                     await msg.reply('You need to be a moderator to execute that!').catch(() => { })
-                    return;
-                };
+                    return
+                }
             },
 
             delete: async (msg, args) => {
@@ -396,8 +407,8 @@ module.exports = {
                     }
                 } else {
                     await msg.reply('You need to be a moderator to execute that!').catch(() => { })
-                    return;
-                };
+                    return
+                }
             },
         }
 
