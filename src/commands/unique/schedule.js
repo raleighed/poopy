@@ -279,12 +279,12 @@ module.exports = {
                     var timestamp = Math.floor(nextTime.getTime() / 1000)
 
                     if (!msg.nosend) await msg.reply({
-                        content: `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` (Next: <t:${timestamp}:F>) with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>`,
+                        content: `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>.\n-# Next execution: <t:${timestamp}:F>`,
                         allowedMentions: {
                             parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
-                    return `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` (Next: <t:${timestamp}:F>) with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>`
+                    return `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>.\n-# Next execution: <t:${timestamp}:F>`
                 } else {
                     await msg.reply('You need to be a moderator to execute that!').catch(() => { })
                     return
@@ -365,12 +365,12 @@ module.exports = {
                     var timestamp = Math.floor(nextTime.getTime() / 1000)
 
                     if (!msg.nosend) await msg.reply({
-                        content: `✅ Updated timer \`${timerId}\` (${updates.join(' and ')}). Next execution: <t:${timestamp}:F>`,
+                        content: `✅ Updated timer \`${timerId}\` (${updates.join(' and ')}).\n-# Next execution: <t:${timestamp}:F>`,
                         allowedMentions: {
                             parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
-                    return `✅ Updated timer \`${timerId}\` (${updates.join(' and ')}). Next execution: <t:${timestamp}:F>`
+                    return `✅ Updated timer \`${timerId}\` (${updates.join(' and ')}).\n -# Next execution: <t:${timestamp}:F>`
                 } else {
                     await msg.reply('You need to be a moderator to execute that!').catch(() => { })
                     return
