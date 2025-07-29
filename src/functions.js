@@ -3116,29 +3116,56 @@ functions.createWebhook = async function (msg) {
     let bot = poopy.bot
     let tempdata = poopy.tempdata
 
-    var webhooks = tempdata[msg.guild.id][msg.channel.id].webhooks ?? await msg.channel.fetchWebhooks().catch(() => { })
+    var webhooks = tempdata[msg.guild.id][msg.channel.id].webhooks ?? await msg.channel.fetchWebhooks().then(w => [...w.values()]).catch(() => [])
     tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks
 
     var findWebhooks = []
     var created = false
 
-    if (webhooks?.size) findWebhooks = [...webhooks.filter(webhook => bot.user === webhook.owner).values()]
+    if (webhooks?.length) findWebhooks = webhooks.filter(webhook => bot.user === webhook.owner)
 
-    if (findWebhooks.length <= 0) {
+    while (findWebhooks.length < Math.min(15 - webhooks.length, 5)) {
         var createdWebhook = await msg.channel.createWebhook({
-            name: `Poopyhook ${i + 1}`,
+            name: `Poopyhook`,
             avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png'
         }).catch((e) => console.log(e))
+
         if (!createdWebhook) return
 
         created = true
-        findWebhooks.push(createdWebhook)
+
+        webhooks.push(createdWebhook)
+        findWebhooks = webhooks.filter(webhook => bot.user === webhook.owner)
     }
 
+    if (!findWebhooks.length) return
+
     if (created)
-        msg.channel.fetchWebhooks().then(webhooks => tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks).catch(() => { })
-    
+        msg.channel.fetchWebhooks()
+            .then(webhooks => tempdata[msg.guild.id][msg.channel.id].webhooks = [...webhooks.values()]).catch(() => { })
+
     return findWebhooks[Number(BigInt(msg.author.id) % BigInt(findWebhooks.length))]
+}
+
+functions.sendWebhook = async function (msg, payload) {
+    let poopy = this
+    let tempdata = poopy.tempdata
+    let { createWebhook } = poopy.functions
+
+    var err
+
+    var webhook = await createWebhook(msg).catch(() => { })
+    if (!webhook) return
+
+    var webhookMsg = await webhook.send(payload).catch((e) => err = e)
+    if (err && err.message == "Unknown Webhook") {
+        tempdata[msg.guild.id][msg.channel.id].webhooks = await msg.channel.fetchWebhooks().then(w => [...w.values()]).catch(() => [])
+        
+        webhook = await createWebhook(msg).catch(() => { })
+        if (webhook) webhookMsg = await webhook.send(payload).catch(() => { })
+    }
+
+    return webhookMsg
 }
 
 functions.rateLimit = async function (msg) {

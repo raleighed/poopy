@@ -186,7 +186,7 @@ class Poopy {
         let { Discord, DiscordTypes, Collection, fs, CryptoJS } = modules
         let { envsExist, configFlagsEnabled,
             chunkArray, chunkObject, requireJSON, findCommand, fetchPingPerms,
-            dmSupport, sleep, gatherData, deleteMsgData, infoPost, createWebhook,
+            dmSupport, sleep, gatherData, deleteMsgData, infoPost, sendWebhook,
             getKeywordsFor, getUrls, randomChoice, similarity, yesno,
             cleverbot, regexClean, decrypt, getOption, getTotalHivemindStatus } = functions
 
@@ -679,11 +679,7 @@ class Poopy {
                     sendObject.username = data.guildData[msg.guild.id].members[msg.author.id].custom.name.substring(0, 32)
                     sendObject.avatarURL = data.guildData[msg.guild.id].members[msg.author.id].custom.avatar
                 }
-
-                var webhook = await createWebhook(msg).catch(() => { })
-                if (!webhook) return
-
-                await webhook.send(sendObject).catch((e) => console.log(e))
+                await sendWebhook(msg, sendObject).catch((e) => console.log(e))
                 msg.delete().catch(() => { })
             }
 
@@ -1579,9 +1575,10 @@ class Poopy {
         let rest = poopy.rest
         let config = poopy.config
         let data = poopy.data
+        let tempdata = poopy.tempdata
         let globaldata = poopy.globaldata
         let activeBots = poopy.activeBots
-        let { fs } = poopy.modules
+        let { fs, cron } = poopy.modules
         let { infoPost, toOrdinal, dataGather, saveData, saveQueue, changeStatus, updateHivemindStatus, updateSlashCommands } = poopy.functions
         let callbacks = poopy.callbacks
 
@@ -1706,6 +1703,10 @@ class Poopy {
             data.botData.leaderboard = {}
         }
 
+        if (!data.botData.crons) {
+            data.botData.crons = []
+        }
+
         if (!globaldata.commandTemplates) {
             globaldata.commandTemplates = []
         }
@@ -1715,6 +1716,10 @@ class Poopy {
         }
 
         globaldata.shit = globaldata.shit.filter(id => !config.ownerids.includes(id))
+
+        if (!tempdata.crons) {
+            tempdata.crons = []
+        }
 
         console.log(`${bot.user.displayName}: main data gathered!!!`)
         infoPost(`Main data gathered, gathering extra data...`)
@@ -1779,6 +1784,15 @@ class Poopy {
 
         console.log(`${bot.user.displayName}: all done, it's actually online now`)
         infoPost(`Reboot ${data.botData.reboots} succeeded, it's up now`)
+
+        for (var cronData of data.botData.crons) {
+            var guild = bot.guilds.cache.get(cronData.guildId)
+            var channel = guild.channels.cache.get(cronData.channelId)
+
+            tempdata.crons[cronData.id] = cron.schedule(cronData.cron, async () => {
+                await channel.send(cronData.phrase).catch(() => { })
+            })
+        }
 
         saveData()
         saveQueue()

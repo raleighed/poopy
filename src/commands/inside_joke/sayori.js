@@ -4,7 +4,7 @@ module.exports = {
     execute: async function (msg, args) {
         let poopy = this
         let bot = poopy.bot
-        let { generateSayori, fetchPingPerms, createWebhook } = poopy.functions
+        let { generateSayori, fetchPingPerms, sendWebhook } = poopy.functions
 
         var fixedchoice = args[1];
 
@@ -26,19 +26,14 @@ module.exports = {
 
         if (msg.nosend) return optiontext
 
-        var botmsg
-
-        var webhook = await createWebhook(msg).catch(() => { })
-        if (webhook) {
-            botmsg = await webhook.send({
-                content: optiontext,
-                username: sayori.displayName,
-                avatarURL: sayori.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                allowedMentions: {
-                    parse: fetchPingPerms(msg)
-                }
-            }).catch(() => { })
-        }
+        var botmsg = await sendWebhook(msg, {
+            content: optiontext,
+            username: sayori.displayName,
+            avatarURL: sayori.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
+            allowedMentions: {
+                parse: fetchPingPerms(msg)
+            }
+        }).catch(() => { })
 
         if (botmsg) {
             if (option.edit) {

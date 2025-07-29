@@ -4,7 +4,7 @@ module.exports = {
     execute: async function (msg) {
         let poopy = this
         let bot = poopy.bot
-        let { Discord } = poopy.modules
+        let { DiscordTypes } = poopy.modules
         let config = poopy.config
 
         var icon = msg.guild.iconURL({ dynamic: true, size: 1024, extension: 'png' })
@@ -59,17 +59,17 @@ module.exports = {
                 },
                 {
                     name: 'Categories',
-                    value: msg.guild.channels.cache.filter(c => c.type == Discord.ChannelType.GuildCategory).size.toString(),
+                    value: msg.guild.channels.cache.filter(c => c.type == DiscordTypes.ChannelType.GuildCategory).size.toString(),
                     inline: true
                 },
                 {
                     name: 'Text Channels',
-                    value: msg.guild.channels.cache.filter(c => c.type == Discord.ChannelType.GuildText || c.type == Discord.ChannelType.GuildNews || c.type == Discord.ChannelType.GuildForum).size.toString(),
+                    value: msg.guild.channels.cache.filter(c => c.type == DiscordTypes.ChannelType.GuildText || c.type == DiscordTypes.ChannelType.GuildNews || c.type == DiscordTypes.ChannelType.GuildForum).size.toString(),
                     inline: true
                 },
                 {
                     name: 'Voice Channels',
-                    value: msg.guild.channels.cache.filter(c => c.type == Discord.ChannelType.GuildVoice || c.type == Discord.ChannelType.GuildStageVoice).size.toString(),
+                    value: msg.guild.channels.cache.filter(c => c.type == DiscordTypes.ChannelType.GuildVoice || c.type == DiscordTypes.ChannelType.GuildStageVoice).size.toString(),
                     inline: true
                 },
                 {
@@ -111,7 +111,7 @@ module.exports = {
         })
         infoEmbed.fields.push({
             name: 'Verification Level',
-            value: Discord.GuildVerificationLevel[msg.guild.verificationLevel].split(/(?=[A-Z])/).join(' '),
+            value: DiscordTypes.GuildVerificationLevel[msg.guild.verificationLevel].split(/(?=[A-Z])/).join(' '),
             inline: true
         })
 

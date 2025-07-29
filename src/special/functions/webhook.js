@@ -3,7 +3,7 @@ module.exports = {
     desc: 'Creates a webhook with the name and avatar specified that will send the desired message.',
     func: async function (matches, msg, isBot, _, opts) {
         let poopy = this
-        let { splitKeyFunc, fetchPingPerms, createWebhook } = poopy.functions
+        let { splitKeyFunc, fetchPingPerms, sendWebhook } = poopy.functions
         let globaldata = poopy.globaldata
         let tempdata = poopy.tempdata
         let data = poopy.data
@@ -86,12 +86,7 @@ module.exports = {
         payload.content = payload.content.trim().substring(0, 2000)
 
         if (msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageWebhooks) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) || msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) || msg.author.id === msg.guild.ownerID || config.ownerids.find(id => id == msg.author.id) || isBot) {
-            var webhook = await createWebhook(msg).catch(() => { })
-            if (!webhook) {
-                return 'I need the manage webhooks permission for this command!'
-            }
-
-            await webhook.send(payload).catch(() => { })
+            await sendWebhook(msg, payload).catch(() => { })
         } else {
             return 'You need to have the manage webhooks/messages permission to execute that!'
         }

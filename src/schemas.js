@@ -35,6 +35,11 @@ module.exports = {
         leaderboard: {
             type: Object,
             required: false
+        },
+
+        crons: {
+            type: Array,
+            required: false
         }
     })),
 
