@@ -3182,7 +3182,7 @@ functions.createCronJob = async function (cronData) {
     var cronPhrase = cronData.cron
     var phrase = cronData.phrase
 
-    tempdata.crons[timerId] = cron.schedule(cronPhrase, async () => {
+    var task = cron.schedule(cronPhrase, async () => {
         console.log(`Running cron ${timerId}, ${cronPhrase}.`)
 
         var cronMessage
@@ -3205,6 +3205,13 @@ functions.createCronJob = async function (cronData) {
 
             cronMessage = await channel.send(phrase).catch((e) => console.log(`Cron Error (${timerId}, ${cronPhrase}):`, e))
         }
+    })
+
+    tempdata.crons[timerId] = task
+
+    task.on("execution:missed", () => {
+        console.log(`Missed execution for cron ${timerId}, ${cronPhrase}.`)
+        task.execute()
     })
 }
 
