@@ -69,27 +69,27 @@ module.exports = {
             },
             {
                 name: "Attack",
-                value: data.userData[member.id].attack,
+                value: String(data.userData[member.id].attack),
                 inline: true
             },
             {
                 name: "Defense",
-                value: data.userData[member.id].defense,
+                value: String(data.userData[member.id].defense),
                 inline: true
             },
             {
                 name: "Accuracy",
-                value: data.userData[member.id].accuracy,
+                value: String(data.userData[member.id].accuracy),
                 inline: true
             },
             {
                 name: "Loot",
-                value: data.userData[member.id].loot,
+                value: String(data.userData[member.id].loot),
                 inline: true
             },
             {
                 name: "Level",
-                value: levelData.level,
+                value: String(levelData.level),
                 inline: true
             },
             {
