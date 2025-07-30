@@ -837,10 +837,14 @@ functions.cleverbot = async function (stim, id) {
     let vars = poopy.vars
     let arrays = poopy.arrays
     let { axios, CryptoJS } = poopy.modules
-    let { userToken, randomChoice } = poopy.functions
+    let { randomChoice } = poopy.functions
 
-    var context = vars.clevercontexts[bot.id + id] || (vars.clevercontexts[bot.id + id] = [])
-    if (context.length > 10) context.splice(0, context.length - 10)
+    var context = vars.cleverContexts[bot.id + id] || (vars.cleverContexts[bot.id + id] = {
+        history: []
+    })
+
+    var history = context.history
+    if (history.length > 10) history.splice(0, history.length - 10)
 
     async function clever() {
         function encodeForSending(a) {
@@ -863,81 +867,89 @@ functions.cleverbot = async function (stim, id) {
             return escape(f)
         }
 
-        var UA = 'Mozilla/5.0 (X11; U; Linux i686; it; rv:1.9.2.3) Gecko/20100406 Firefox/3.6.3 (Swiftfox)'
+        var UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:141.0) Gecko/20100101 Firefox/141.0'
 
         if (!vars.cleverbotJar) vars.cleverbotJar = await axios.get("https://www.cleverbot.com/extras/conversation-social-min.js", {
             headers: {
                 "User-Agent": UA
             }
-        }).then(res => res.headers['set-cookie'][0].split(";")[0]).catch(() => { })
+        }).then(res => res.headers['set-cookie'][0].split(";")[0].split("=")[1]).catch(() => { })
         var jar = vars.cleverbotJar
 
-        var payload = `stimulus=${encodeForSending(stim)}`
-        var l = context.length - 1
+        var stimEncoded = encodeForSending(stim)
+        var payload = `stimulus=${stimEncoded}`
+        var l = history.length - 1
         for (var i = 0; i <= l; i++) {
-            payload += `&vText${i + 2}=${encodeForSending(context[l - i])}`
+            payload += `&vText${i + 2}=${encodeForSending(history[l - i])}`
         }
         payload += `&cb_settings_language=en&cb_settings_scripting=no&islearning=1&icognoid=wsf&icognocheck=`
         payload += CryptoJS.MD5(payload.substring(7, 33)).toString()
+
+        var url = "https://www.cleverbot.com/webservicemin?uc=UseOfficialCleverbotAPI&ncf=V2&ncf=V2&="
+        var cookie = `note=1;XVIS=${jar};_cbsid=-1`
+
+        function getLoggingParameters() {
+            var historyState = context.history.map(m => encodeURIComponent(m)).join("&")
+
+            url += `&out=${encodeURIComponent(history[l] ?? "")}&in=${encodeURIComponent(stim)}&bot=c` +
+                `&cbsid=${context.cbsid ?? ""}&xai=${context.xai ?? ""},${context.rowidandref}` +
+                `&ns=${context.history.length / 2 + 1}&al=&dl=&flag=&user=&mode=1&alt=0&reac=&emo=&sou=website&xed=&=`
+
+            cookie += `XAI=${context.xai};CBALT=1~${encodeURIComponent(context.history[l])};` +
+                `CBSID=${context.cbsid};CBSTATE=&&0&&0&${context.history.length / 2}&${historyState}).`
+        }
+
+        if (context.cbsid) getLoggingParameters()
+
         var res = await axios({
             method: "POST",
-            url: "https://www.cleverbot.com/webservicemin?uc=UseOfficialCleverbotAPI&ncf=V2&",
+            url,
             data: payload,
             headers: {
                 "Content-Type": "text/plain",
-                Cookie: jar,
+                "Cookie": cookie,
                 "User-Agent": UA
             }
         })
-            .then(a => a.data.split("\r")[0])
-            .catch(() => '')
-        return res
-    }
+            .then(a => ({
+                xai: a.headers['set-cookie'][0].split(";")[0].split("=")[1],
+                data: a.data.split("\r")
+            }))
+            .catch((e) => console.log(e))
 
-    async function gamer() {
-        var options = {
-            method: 'GET',
-            url: 'https://random-stuff-api.p.rapidapi.com/ai',
-            params: {
-                msg: stim,
-                bot_name: bot.user.displayName,
-                bot_gender: 'male',
-                bot_master: 'raleigh',
-                bot_age: String(new Date(Date.now() - 1031690078000).getUTCFullYear() - 1970),
-                bot_company: 'poopy\'s lounge',
-                bot_location: 'Nigeria',
-                bot_email: 'poopystinkystinky@gmail.com',
-                bot_build: 'private',
-                bot_birth_year: '2002',
-                bot_birth_date: '10th September, 2002',
-                bot_birth_place: 'Nigeria',
-                bot_favorite_color: 'yellow',
-                bot_favorite_book: 'Diary of a Wimpy Kid',
-                bot_favorite_band: 'Radiohead',
-                bot_favorite_artist: 'Kanye West',
-                bot_favorite_actress: 'nonexistent',
-                bot_favorite_actor: 'MoistCr1TiKaL',
-                id: id
-            },
-            headers: {
-                authorization: userToken(id, 'RANDOMSTUFF_KEY'),
-                'x-rapidapi-host': 'random-stuff-api.p.rapidapi.com',
-                'x-rapidapi-key': userToken(id, 'RAPIDAPI_KEY')
-            }
+        if (!res) return ""
+
+        var response = res.data[0]
+
+        context.xai = res.xai
+        context.cbsid = res.data[1]
+        context.rowidandref = res.data[2]
+
+        if (!context.sessionStarted) {
+            context.sessionStarted = true
+
+            getLoggingParameters()
+
+            await axios({
+                method: "GET",
+                url,
+                headers: {
+                    "Content-Type": "text/plain",
+                    "Cookie": `note=1;XVIS=${jar};_cbsid=-1;CBALT=1~${encodeURIComponent(res)}`,
+                    "User-Agent": UA
+                }
+            })
         }
 
-        var res = await axios(options).catch(() => { }) ?? { data: { AIResponse: '' } }
-
-        return res.data.AIResponse
+        return response
     }
 
     var response = await clever().catch(() => { })
-    if (!response && process.env.RANDOMSTUFF_KEY) response = await gamer().catch(() => { })
     if (!response) response = randomChoice(arrays.eightball)
 
     if (id != undefined && response) {
-        context.push(stim)
-        context.push(response)
+        history.push(stim)
+        history.push(response)
     }
 
     return response

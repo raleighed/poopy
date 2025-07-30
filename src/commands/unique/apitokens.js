@@ -33,7 +33,6 @@ module.exports = {
                 'DALLE2_SESSION',
                 //'DEEPAI_KEY',
                 //'GOOGLE_KEY',
-                'RANDOMSTUFF_KEY',
                 'RAPIDAPI_KEY',
                 'REMOVEBG_KEY'
             ]
@@ -58,7 +57,6 @@ module.exports = {
                 'DALLE2_SESSION',
                 //'DEEPAI_KEY',
                 //'GOOGLE_KEY',
-                'RANDOMSTUFF_KEY',
                 'RAPIDAPI_KEY',
                 'REMOVEBG_KEY'
             ]
@@ -94,11 +92,6 @@ module.exports = {
                 method: "Go to Google Cloud console (https://console.cloud.google.com/welcome), then click the top left button and click \"NEW PROJECT\" (if you haven't created one yet). Activate the YouTube Data API (https://console.cloud.google.com/apis/library/youtube.googleapis.com) and create an API key for it (https://console.cloud.google.com/apis/credentials)",
                 example: 'AIzaSyKxWTcB1l0rAHL62eP96pfnQJ5bBCtkW_r'
             },*/
-            RANDOMSTUFF_KEY: {
-                uses: '`cleverbot`?',
-                method: 'Make an account at https://api-info.pgamerx.com/, manage your keys (https://api-info.pgamerx.com/manage-key), generate a new one and copy it',
-                example: '98ZrLnaah7i9'
-            },
             RAPIDAPI_KEY: {
                 uses: '`ocr`, `translate`, `badtranslate`, `bing`, `speechtotext`, `cleverbot`?',
                 method: "Create a RapidAPI account (https://rapidapi.com/auth/register) and go to your apps (https://rapidapi.com/developer/dashboard). Click the default-application then click Settings, show the Application Key and copy it. For this to fully work, you'll also need to subscribe to the APIs: `Microsoft Computer Vision`, `Microsoft Translator Text`, `Bing Web Search`, `Speech Recognition English`, `Shazam - song recognizer` and `random-stuff-api`",

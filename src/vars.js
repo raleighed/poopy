@@ -62,6 +62,6 @@ vars.battleStats = {
     exp: 150,
     bucks: 20
 }
-vars.clevercontexts = {}
+vars.cleverContexts = {}
 
 module.exports = vars

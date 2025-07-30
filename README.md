@@ -64,7 +64,6 @@ Here's a list of tokens you can set up in system variables to bring more functio
   - `AI21_KEY` (key generated when you sign up in ai21 for generating text, accessed at https://studio.ai21.com/account/account)
   - `GOOGLE_KEY` (key from google cloud for accessing the youtube api, generated at https://console.cloud.google.com/apis/credentials?project=`PROJECT-ID`)
   - `MAKESWEET_KEY` (key from makesweet for generating heartlocket gifs, dm @mkswt on twitter asking for one)
-  - `RANDOMSTUFF_KEY` (key used for a cleverbot alternative when it breaks, generated at https://api-info.pgamerx.com/manage-key)
   - `RAPIDAPI_KEY` (key from rapid api when you sign up, accessed at https://rapidapi.com/developer/security/`APP-NAME`)
 
     you'll also need to subscribe to all of these apis:

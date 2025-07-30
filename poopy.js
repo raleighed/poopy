@@ -24,6 +24,7 @@ class Poopy {
             allowbotusage: false,
             allowbottriggers: false,
             allowpresence: true,
+            allowcleverbot: false,
             database: 'poopydata',
             globalPrefix: 'p:',
             stfu: false,
@@ -1252,9 +1253,10 @@ class Poopy {
                             }).catch(() => { })
                         }
                     } else {
-                        var resp = data.guildData[msg.guild.id]?.disabled.find(cmd => cmd.find(n => n === key.cmdconnected)) ?
-                            randomChoice(arrays.eightball) :
-                            await cleverbot(origcontent, msg.author.id).catch(() => { })
+                        var resp = !config.allowcleverbot || data.guildData[msg.guild.id]?.disabled
+                            .find(cmd => cmd.find(n => n === "cleverbot")) ?
+                                randomChoice(arrays.eightball) :
+                                await cleverbot(origcontent, msg.author.id).catch(() => { })
 
                         if (resp) {
                             await msg.reply({
