@@ -59,12 +59,12 @@ module.exports = {
         var battleStats = [
             {
                 name: "Health",
-                value: `${data.userData[member.id].health} HP`,
+                value: `${data.userData[member.id].health.toFixed(1).replace(/\.0+$/, "")} HP`,
                 inline: true
             },
             {
                 name: "Max Health",
-                value: `${data.userData[member.id].maxHealth} HP`,
+                value: `${data.userData[member.id].maxHealth.toFixed(1).replace(/\.0+$/, "")} HP`,
                 inline: true
             },
             {
@@ -94,12 +94,12 @@ module.exports = {
             },
             {
                 name: "Experience",
-                value: `${levelData.exp}/${levelData.required} XP`,
+                value: `${levelData.exp.toFixed(1).replace(/\.0+$/, "")}/${levelData.required} XP`,
                 inline: true
             },
             {
                 name: "Total Experience",
-                value: `${data.userData[member.id].exp} XP`,
+                value: `${data.userData[member.id].exp.toFixed(1).replace(/\.0+$/, "")} XP`,
                 inline: true
             },
             {

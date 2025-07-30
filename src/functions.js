@@ -3707,12 +3707,12 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     if ((member && subjData) || (fakeSubj && fakeSubjData)) {
         stats.push({
             name: `${isPoopy ? bot.user.displayName : msg.author.displayName}'s Health`,
-            value: `${yourData.health.toFixed(1)} HP`,
+            value: `${yourData.health.toFixed(1).replace(/\.0+$/, "")} HP`,
             inline: true
         })
         if ((member ? member.id != msg.author.id : fakeSubj) || isPoopy) stats.push({
             name: `${subjData ? member.displayName : subject}'s Health`,
-            value: `${(subjData ? subjData : fakeSubjData).health.toFixed(1)} HP`,
+            value: `${(subjData ? subjData : fakeSubjData).health.toFixed(1).replace(/\.0+$/, "")} HP`,
             inline: true
         })
     }
@@ -3720,7 +3720,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     if (exp) {
         stats.push({
             name: "Experience",
-            value: `+${exp.toFixed(1)} XP`,
+            value: `+${exp.toFixed(1).replace(/\.0+$/, "")} XP`,
             inline: true
         })
     }
