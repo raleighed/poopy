@@ -3128,7 +3128,7 @@ functions.createWebhook = async function (msg) {
         var createdWebhook = await msg.channel.createWebhook({
             name: `Poopyhook`,
             avatar: 'https://cdn.discordapp.com/attachments/760223418968047629/835923489834664056/poopy2.png'
-        }).catch((e) => console.log(e))
+        }).catch(() => { })
 
         if (!createdWebhook) return
 
@@ -3160,12 +3160,37 @@ functions.sendWebhook = async function (msg, payload) {
     var webhookMsg = await webhook.send(payload).catch((e) => err = e)
     if (err && err.message == "Unknown Webhook") {
         tempdata[msg.guild.id][msg.channel.id].webhooks = await msg.channel.fetchWebhooks().then(w => [...w.values()]).catch(() => [])
-        
+
         webhook = await createWebhook(msg).catch(() => { })
         if (webhook) webhookMsg = await webhook.send(payload).catch(() => { })
     }
 
     return webhookMsg
+}
+
+functions.createCronJob = async function (cronData) {
+    let poopy = this
+    let bot = poopy.bot
+    let tempdata = poopy.tempdata
+    let { cron } = poopy.modules
+
+    var timerId = cronData.id
+
+    var guildId = cronData.guildId
+    var channelId = cronData.channelId
+
+    var cronPhrase = cronData.cron
+    var phrase = cronData.phrase
+
+    tempdata.crons[timerId] = cron.schedule(cronPhrase, async () => {
+        var guild = bot.guilds.cache.get(guildId) ?? await bot.guilds.fetch(guildId).catch(() => { })
+        if (!guild) return
+
+        var channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId).catch(() => { })
+        if (!channel) return
+
+        await channel.send(phrase).catch((e) => console.log("Cron Error:", e))
+    })
 }
 
 functions.rateLimit = async function (msg) {

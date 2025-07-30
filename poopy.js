@@ -1578,8 +1578,12 @@ class Poopy {
         let tempdata = poopy.tempdata
         let globaldata = poopy.globaldata
         let activeBots = poopy.activeBots
-        let { fs, cron } = poopy.modules
-        let { infoPost, toOrdinal, dataGather, saveData, saveQueue, changeStatus, updateHivemindStatus, updateSlashCommands } = poopy.functions
+        let { fs } = poopy.modules
+        let {
+            infoPost, toOrdinal, dataGather, saveData,
+            saveQueue, changeStatus, updateHivemindStatus,
+            updateSlashCommands, createCronJob
+        } = poopy.functions
         let callbacks = poopy.callbacks
 
         if (!TOKEN && !poopy.__TOKEN) {
@@ -1786,12 +1790,7 @@ class Poopy {
         infoPost(`Reboot ${data.botData.reboots} succeeded, it's up now`)
 
         for (var cronData of data.botData.crons) {
-            var guild = bot.guilds.cache.get(cronData.guildId)
-            var channel = guild.channels.cache.get(cronData.channelId)
-
-            tempdata.crons[cronData.id] = cron.schedule(cronData.cron, async () => {
-                await channel.send(cronData.phrase).catch(() => { })
-            })
+            createCronJob(cronData)
         }
 
         saveData()

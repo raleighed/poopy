@@ -94,8 +94,8 @@ module.exports = {
         var config = poopy.config
         var vars = poopy.vars
         var bot = poopy.bot
-        var { chunkArray, navigateEmbed, generateId, fetchPingPerms } = poopy.functions
-        var { DiscordTypes, cron, cronValidator } = poopy.modules
+        var { chunkArray, navigateEmbed, generateId, fetchPingPerms, createCronJob } = poopy.functions
+        var { DiscordTypes, cron } = poopy.modules
 
         var options = {
             list: async (msg) => {
@@ -241,13 +241,7 @@ module.exports = {
                     }
 
                     var cronPhrase = matchedTextes[0].substring(1, matchedTextes[0].length - 1)
-                    if (!cronValidator.isValidCron(cronPhrase, {
-                        seconds: true,
-                        alias: true,
-                        allowBlankDay: true,
-                        allowNthWeekdayOfMonth: true,
-                        allowSevenAsSunday: true
-                    })) {
+                    if (!cron.validate(cronPhrase)) {
                         await msg.reply('Invalid cron.').catch(() => { })
                         return
                     }
@@ -270,10 +264,7 @@ module.exports = {
                     }
 
                     data.botData.crons.push(newTimer)
-
-                    tempdata.crons[timerId] = cron.schedule(cronPhrase, async () => {
-                        await channel.send(phrase).catch(() => { })
-                    })
+                    createCronJob(newTimer)
 
                     var nextTime = tempdata.crons[timerId].getNextRun()
                     var timestamp = Math.floor(nextTime.getTime() / 1000)
@@ -325,13 +316,7 @@ module.exports = {
                         saidMessage = saidMessage.replace(matchedTextes[0], "").trim()
 
                         var newCron = matchedTextes[0].substring(1, matchedTextes[0].length - 1)
-                        if (!cronValidator.isValidCron(newCron, {
-                            seconds: true,
-                            alias: true,
-                            allowBlankDay: true,
-                            allowNthWeekdayOfMonth: true,
-                            allowSevenAsSunday: true
-                        })) {
+                        if (!cron.validate(newCron)) {
                             await msg.reply('Invalid cron.').catch(() => { })
                             return
                         }
@@ -356,10 +341,7 @@ module.exports = {
                         await tempdata.crons[timerId].destroy()
                     }
 
-                    var channel = msg.guild.channels.cache.get(timer.channelId)
-                    tempdata.crons[timerId] = cron.schedule(timer.cron, async () => {
-                        await channel.send(timer.phrase).catch(() => { })
-                    })
+                    createCronJob(timer)
 
                     var nextTime = tempdata.crons[timerId].getNextRun()
                     var timestamp = Math.floor(nextTime.getTime() / 1000)
