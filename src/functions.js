@@ -3183,13 +3183,21 @@ functions.createCronJob = async function (cronData) {
     var phrase = cronData.phrase
 
     tempdata.crons[timerId] = cron.schedule(cronPhrase, async () => {
+        console.log(`Running cron ${timerId}, ${cronPhrase}.`)
+
         var guild = bot.guilds.cache.get(guildId) ?? await bot.guilds.fetch(guildId).catch(() => { })
-        if (!guild) return
+        if (!guild) {
+            console.log(`No guild for cron ${timerId}, ${cronPhrase}.`)
+            return
+        }
 
         var channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId).catch(() => { })
-        if (!channel) return
+        if (!channel) {
+            console.log(`No channel for cron ${timerId}, ${cronPhrase}.`)
+            return
+        }
 
-        await channel.send(phrase).catch((e) => console.log("Cron Error:", e))
+        await channel.send(phrase).catch((e) => console.log(`Cron Error (${timerId}, ${cronPhrase}):`, e))
     })
 }
 

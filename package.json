@@ -21,7 +21,6 @@
     "catbox.moe": "^1.0.2",
     "cheerio": "^1.0.0-rc.10",
     "cors": "^2.8.5",
-    "cron-validator": "^1.4.0",
     "crypto-js": "^4.1.1",
     "discord-api-types": "^0.38.15",
     "discord.js": "^14.14.1",
