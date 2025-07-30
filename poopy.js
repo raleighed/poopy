@@ -1812,25 +1812,25 @@ class Poopy {
 
         if (!config.apiMode) {
             bot.on('messageCreate', (msg) => {
-                callbacks.messageCallback(msg).catch((e) => console.log(e))
+                callbacks.messageCallback(msg).catch(() => { })
             })
             bot.on('messageUpdate', (_, msg) => {
-                callbacks.messageEditCallback(msg).catch((e) => console.log(e))
+                callbacks.messageEditCallback(msg).catch(() => { })
             })
             bot.on('messageDelete', (msg) => {
-                callbacks.messageDeleteCallback(msg).catch((e) => console.log(e))
+                callbacks.messageDeleteCallback(msg).catch(() => { })
             })
             bot.on('messageDeleteBulk', (messages) => {
-                messages.forEach((msg) => callbacks.messageDeleteCallback(msg).catch((e) => console.log(e)))
+                messages.forEach((msg) => callbacks.messageDeleteCallback(msg).catch(() => { }))
             })
             bot.on('guildCreate', (guild) => {
-                callbacks.guildCallback(guild).catch((e) => console.log(e))
+                callbacks.guildCallback(guild).catch(() => { })
             })
             bot.on('guildDelete', (guild) => {
-                callbacks.guildDeleteCallback(guild).catch((e) => console.log(e))
+                callbacks.guildDeleteCallback(guild).catch(() => { })
             })
             bot.on('interactionCreate', (interaction) => {
-                callbacks.interactionCallback(interaction).catch((e) => console.log(e))
+                callbacks.interactionCallback(interaction).catch(() => { })
             })
             bot.on('error', (err) => console.log(err))
         }

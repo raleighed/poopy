@@ -3185,19 +3185,26 @@ functions.createCronJob = async function (cronData) {
     tempdata.crons[timerId] = cron.schedule(cronPhrase, async () => {
         console.log(`Running cron ${timerId}, ${cronPhrase}.`)
 
-        var guild = bot.guilds.cache.get(guildId) ?? await bot.guilds.fetch(guildId).catch(() => { })
-        if (!guild) {
-            console.log(`No guild for cron ${timerId}, ${cronPhrase}.`)
-            return
-        }
+        var cronMessage
+        var tries = 0
 
-        var channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId).catch(() => { })
-        if (!channel) {
-            console.log(`No channel for cron ${timerId}, ${cronPhrase}.`)
-            return
-        }
+        while (!cronMessage && tries < 5) {
+            tries++
 
-        await channel.send(phrase).catch((e) => console.log(`Cron Error (${timerId}, ${cronPhrase}):`, e))
+            var guild = bot.guilds.cache.get(guildId) ?? await bot.guilds.fetch(guildId).catch(() => { })
+            if (!guild) {
+                console.log(`No guild for cron ${timerId}, ${cronPhrase}.`)
+                return
+            }
+
+            var channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId).catch(() => { })
+            if (!channel) {
+                console.log(`No channel for cron ${timerId}, ${cronPhrase}.`)
+                return
+            }
+
+            cronMessage = await channel.send(phrase).catch((e) => console.log(`Cron Error (${timerId}, ${cronPhrase}):`, e))
+        }
     })
 }
 
