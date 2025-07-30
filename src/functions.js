@@ -3173,6 +3173,7 @@ functions.createCronJob = async function (cronData) {
     let bot = poopy.bot
     let tempdata = poopy.tempdata
     let { cron } = poopy.modules
+    let { sleep } = poopy.functions
 
     var timerId = cronData.id
 
@@ -3183,34 +3184,29 @@ functions.createCronJob = async function (cronData) {
     var phrase = cronData.phrase
 
     var task = cron.schedule(cronPhrase, async () => {
-        console.log(`Running cron ${timerId}, ${cronPhrase}.`)
-
         var cronMessage
-        var tries = 0
+        var abort = false
 
-        while (!cronMessage && tries < 5) {
-            tries++
-
+        while (true) {
             var guild = bot.guilds.cache.get(guildId) ?? await bot.guilds.fetch(guildId).catch(() => { })
-            if (!guild) {
-                console.log(`No guild for cron ${timerId}, ${cronPhrase}.`)
-                return
-            }
+            if (!guild) break
 
             var channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId).catch(() => { })
-            if (!channel) {
-                console.log(`No channel for cron ${timerId}, ${cronPhrase}.`)
-                return
-            }
+            if (!channel) break
 
-            cronMessage = await channel.send(phrase).catch((e) => console.log(`Cron Error (${timerId}, ${cronPhrase}):`, e))
+            cronMessage = await channel.send(phrase).catch((err) => {
+                if (!err.message.includes("discord.com")) abort = true
+            })
+
+            if (cronMessage || abort) break
+
+            await sleep(5000)
         }
     })
 
     tempdata.crons[timerId] = task
 
     task.on("execution:missed", () => {
-        console.log(`Missed execution for cron ${timerId}, ${cronPhrase}.`)
         task.execute()
     })
 }
