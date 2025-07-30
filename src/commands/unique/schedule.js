@@ -395,13 +395,49 @@ module.exports = {
         }
 
         if (!args[1]) {
-            var instruction = "**list** - Gets a list of timers set up in the server.\n**info** <timerId> - Displays the info of the timer that has been set up with the respective ID.\n**add** [channel] \"<cron>\" <phrase> (moderator only) - Sets up a new scheduled timer with the specified phrase and cron syntax. How to use cron syntax: https://nodecron.com/cron-syntax.html\n**edit** <timerId> \"[cron]\" <phrase> (moderator only) - Edits the scheduled timer with the specified ID, if it exists.\n**delete** <timerId> (moderator only) - Deletes the timer from the server, if it exists."
+            var syntaxOverview = "```\n" +
+                                "┌────────────── second (optional)\n" +
+                                "│ ┌──────────── minute\n" +
+                                "│ │ ┌────────── hour\n" +
+                                "│ │ │ ┌──────── day of month\n" +
+                                "│ │ │ │ ┌────── month\n" +
+                                "│ │ │ │ │ ┌──── day of week\n" +
+                                "│ │ │ │ │ │\n" +
+                                "* * * * * *\n" +
+                                "```\n" +
+                                "\n" +
+                                "**Allowed values per field**\n" +
+                                "`second`: `0-59 (optional)`\n" +
+                                "`minute`: `0-59`\n" +
+                                "`hour`: `0-23`\n" +
+                                "`day of month`: `1-31`\n" +
+                                "`month`: `1-12 (or names, e.g., Jan, Sep)`\n" +
+                                "`day of week`: `0-7 (or names, 0 or 7 are Sunday)`\n" +
+                                "\n" +
+                                "Learn more at https://nodecron.com/cron-syntax.html"
+
+            var instruction = "**list** - Gets a list of timers set up in the server.\n" +
+                            "**info** <timerId> - Displays the info of the timer that has been set up with the respective ID.\n" +
+                            "**add** [channel] \"<cron>\" <phrase> (moderator only) - Sets up a new scheduled timer with the specified phrase and cron syntax. Cron syntax overview is listed below.\n" +
+                            "**edit** <timerId> \"[cron]\" <phrase> (moderator only) - Edits the scheduled timer with the specified ID, if it exists.\n" +
+                            "**delete** <timerId> (moderator only) - Deletes the timer from the server, if it exists."
             if (!msg.nosend) {
-                if (config.textEmbeds) msg.reply(instruction).catch(() => { })
+                if (config.textEmbeds) msg.reply(instruction + "\n\n" + "**Cron Syntax Overview**\n" + syntaxOverview).catch(() => { })
                 else msg.reply({
                     embeds: [{
                         "title": "Available Options",
                         "description": instruction,
+                        "color": 0x472604,
+                        "footer": {
+                            "icon_url": bot.user.displayAvatarURL({
+                                dynamic: true, size: 1024, extension: 'png'
+                            }),
+                            "text": bot.user.displayName
+                        },
+                    },
+                    {
+                        "title": "Cron Syntax Overview",
+                        "description": syntaxOverview,
                         "color": 0x472604,
                         "footer": {
                             "icon_url": bot.user.displayAvatarURL({
