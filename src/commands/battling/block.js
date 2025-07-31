@@ -127,7 +127,8 @@ module.exports = {
         }
 
         if (!options[args[1].toLowerCase()]) {
-            await msg.reply('Not a valid option.').catch(() => { })
+            args.push(1, 0, "")
+            await options.toggle(msg, args)
             return
         }
 
