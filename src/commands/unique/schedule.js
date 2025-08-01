@@ -104,8 +104,8 @@ module.exports = {
 
                 for (var i in serverTimers) {
                     var timer = serverTimers[i]
-                    var nextTime = tempdata.crons[timer.id].getNextRun()
-                    var timestamp = Math.floor(nextTime.getTime() / 1000)
+                    var nextTime = tempdata.crons[timer.id].nextDate()
+                    var timestamp = Math.floor(nextTime.ts / 1000)
                     timersArray.push(`- **ID:** ${timer.id} | **Channel:** <#${timer.channelId}> | **Schedule:** \`${timer.cron}\` (Next: <t:${timestamp}:F>)`)
                 }
 
@@ -167,8 +167,8 @@ module.exports = {
                 var timerId = args[1]
                 var timer = data.botData.crons.find(t => t.id === timerId && t.guildId === msg.guild.id)
 
-                var nextTime = tempdata.crons[timerId].getNextRun()
-                var timestamp = Math.floor(nextTime.getTime() / 1000)
+                var nextTime = tempdata.crons[timerId].nextDate()
+                var timestamp = Math.floor(nextTime.ts / 1000)
 
                 if (timer) {
                     if (!msg.nosend) {
@@ -240,8 +240,8 @@ module.exports = {
                         matchedTextes[i] = matchedTextes[i].replace(/\\(?=")/g, "")
                     }
 
-                    var cronPhrase = matchedTextes[0].substring(1, matchedTextes[0].length - 1)
-                    if (!cron.validate(cronPhrase)) {
+                    var cronTime = matchedTextes[0].substring(1, matchedTextes[0].length - 1)
+                    if (!cron.validateCronExpression(cronTime)) {
                         await msg.reply('Invalid cron.').catch(() => { })
                         return
                     }
@@ -259,23 +259,23 @@ module.exports = {
                         id: timerId,
                         guildId: msg.guild.id,
                         channelId: channel.id,
-                        cron: cronPhrase,
+                        cron: cronTime,
                         phrase
                     }
 
                     data.botData.crons.push(newTimer)
                     createCronJob(newTimer)
 
-                    var nextTime = tempdata.crons[timerId].getNextRun()
-                    var timestamp = Math.floor(nextTime.getTime() / 1000)
+                    var nextTime = tempdata.crons[timerId].nextDate()
+                    var timestamp = Math.floor(nextTime.ts / 1000)
 
                     if (!msg.nosend) await msg.reply({
-                        content: `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>.\n-# Next execution: <t:${timestamp}:F>`,
+                        content: `✅ Added new timer with ID \`${timerId}\` that will run \`${cronTime}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>.\n-# Next execution: <t:${timestamp}:F>`,
                         allowedMentions: {
                             parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
-                    return `✅ Added new timer with ID \`${timerId}\` that will run \`${cronPhrase}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>.\n-# Next execution: <t:${timestamp}:F>`
+                    return `✅ Added new timer with ID \`${timerId}\` that will run \`${cronTime}\` with message \`${phrase.replace(/`/g, "")}\` in <#${channel.id}>.\n-# Next execution: <t:${timestamp}:F>`
                 } else {
                     await msg.reply('You need to be a moderator to execute that!').catch(() => { })
                     return
@@ -316,7 +316,7 @@ module.exports = {
                         saidMessage = saidMessage.replace(matchedTextes[0], "").trim()
 
                         var newCron = matchedTextes[0].substring(1, matchedTextes[0].length - 1)
-                        if (!cron.validate(newCron)) {
+                        if (!cron.validateCronExpression(newCron)) {
                             await msg.reply('Invalid cron.').catch(() => { })
                             return
                         }
@@ -337,14 +337,12 @@ module.exports = {
                         return
                     }
 
-                    if (tempdata.crons[timerId]) {
-                        await tempdata.crons[timerId].destroy()
-                    }
+                    if (tempdata.crons[timerId]) tempdata.crons[timerId].stop()
 
                     createCronJob(timer)
 
-                    var nextTime = tempdata.crons[timerId].getNextRun()
-                    var timestamp = Math.floor(nextTime.getTime() / 1000)
+                    var nextTime = tempdata.crons[timerId].nextDate()
+                    var timestamp = Math.floor(nextTime.ts / 1000)
 
                     if (!msg.nosend) await msg.reply({
                         content: `✅ Updated timer \`${timerId}\` (${updates.join(' and ')}).\n-# Next execution: <t:${timestamp}:F>`,
@@ -372,7 +370,7 @@ module.exports = {
                     if (timerIndex > -1) {
                         var removed = data.botData.crons.splice(timerIndex, 1)[0]
                         if (tempdata.crons[timerId]) {
-                            await tempdata.crons[timerId].destroy()
+                            tempdata.crons[timerId].stop()
                             delete tempdata.crons[timerId]
                         }
 

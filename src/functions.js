@@ -3187,7 +3187,7 @@ functions.createCronJob = async function (cronData) {
     var guildId = cronData.guildId
     var channelId = cronData.channelId
 
-    var cronPhrase = cronData.cron
+    var cronTime = cronData.cron
     var phrase = cronData.phrase
 
     var execute = async () => {
@@ -3211,10 +3211,14 @@ functions.createCronJob = async function (cronData) {
         }
     }
 
-    var task = cron.schedule(cronPhrase, execute)
-    task.on("execution:missed", execute)
+    var job = cron.CronJob.from({
+        cronTime,
+        onTick: execute,
+        start: true,
+        timeZone: "Etc/UTC"
+    })
 
-    tempdata.crons[timerId] = task
+    tempdata.crons[timerId] = job
 }
 
 functions.rateLimit = async function (msg) {
