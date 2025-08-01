@@ -839,7 +839,7 @@ functions.cleverbot = async function (stim, id) {
     let { axios, CryptoJS } = poopy.modules
     let { randomChoice } = poopy.functions
 
-    var context = vars.cleverContexts[bot.id + id] || (vars.cleverContexts[bot.id + id] = {
+    var context = vars.cleverContexts[bot.user.id + id] || (vars.cleverContexts[bot.user.id + id] = {
         history: [],
         processing: false
     })
