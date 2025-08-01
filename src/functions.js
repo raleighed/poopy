@@ -840,8 +840,12 @@ functions.cleverbot = async function (stim, id) {
     let { randomChoice } = poopy.functions
 
     var context = vars.cleverContexts[bot.id + id] || (vars.cleverContexts[bot.id + id] = {
-        history: []
+        history: [],
+        processing: false
     })
+
+    if (context.processing) return randomChoice(arrays.eightball)
+    context.processing = true
 
     var history = context.history
     if (history.length > 10) history.splice(0, history.length - 10)
@@ -945,12 +949,13 @@ functions.cleverbot = async function (stim, id) {
     }
 
     var response = await clever().catch(() => { })
-    if (!response) response = randomChoice(arrays.eightball)
-
+    
     if (id != undefined && response) {
         history.push(stim)
         history.push(response)
-    }
+    } else response = randomChoice(arrays.eightball)
+
+    context.processing = false
 
     return response
 }
