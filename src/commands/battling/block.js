@@ -127,9 +127,8 @@ module.exports = {
         }
 
         if (!options[args[1].toLowerCase()]) {
-            args.push(1, 0, "")
-            await options.toggle(msg, args)
-            return
+            args.splice(1, 0, "")
+            return await options.toggle(msg, args)
         }
 
         return await options[args[1].toLowerCase()](msg, args)

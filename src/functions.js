@@ -3132,7 +3132,6 @@ functions.createWebhook = async function (msg) {
     tempdata[msg.guild.id][msg.channel.id].webhooks = webhooks
 
     var findWebhooks = []
-    var created = false
 
     if (webhooks?.length) findWebhooks = webhooks.filter(webhook => bot.user === webhook.owner)
 
@@ -3151,10 +3150,6 @@ functions.createWebhook = async function (msg) {
     }
 
     if (!findWebhooks.length) return
-
-    if (created)
-        msg.channel.fetchWebhooks()
-            .then(webhooks => tempdata[msg.guild.id][msg.channel.id].webhooks = [...webhooks.values()]).catch(() => { })
 
     return findWebhooks[Number(BigInt(msg.author.id) % BigInt(findWebhooks.length))]
 }
@@ -3195,7 +3190,7 @@ functions.createCronJob = async function (cronData) {
     var cronPhrase = cronData.cron
     var phrase = cronData.phrase
 
-    var task = cron.schedule(cronPhrase, async () => {
+    var execute = async () => {
         var cronMessage
         var abort = false
 
@@ -3214,13 +3209,12 @@ functions.createCronJob = async function (cronData) {
 
             await sleep(5000)
         }
-    })
+    }
+
+    var task = cron.schedule(cronPhrase, execute)
+    task.on("execution:missed", execute)
 
     tempdata.crons[timerId] = task
-
-    task.on("execution:missed", () => {
-        task.execute()
-    })
 }
 
 functions.rateLimit = async function (msg) {
