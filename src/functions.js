@@ -950,9 +950,11 @@ functions.cleverbot = async function (stim, id) {
 
     var response = await clever().catch(() => { })
     
-    if (id != undefined && response) {
-        history.push(stim)
-        history.push(response)
+    if (response) {
+        if (id != undefined) {
+            history.push(stim)
+            history.push(response)
+        }
     } else response = randomChoice(arrays.eightball)
 
     context.processing = false
