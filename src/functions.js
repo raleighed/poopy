@@ -627,6 +627,50 @@ functions.execPromise = function (code) {
     })
 }
 
+functions.substituteIdPropertyWithActualId = function (key, msg) {
+    switch (key) {
+        case "userId":
+            return msg.author.id
+        
+        case "guildId":
+            return msg.guild.id
+        
+        case "channelId":
+            return msg.channel.id
+        
+        case "messageId":
+            return msg.id
+    }
+
+    return key
+}
+
+functions.reconcileDataWithTemplate = async function(data, template, msg, ignoreList = []) {
+    let poopy = this
+
+    let { reconcileDataWithTemplate,
+        substituteIdPropertyWithActualId } = poopy.functions
+
+    for (property in template) {
+        if (ignoreList.includes(property))
+            continue
+
+        var dataProperty = substituteIdPropertyWithActualId(property, msg)
+
+        if (data[dataProperty] === undefined) {
+            if (typeof template[property] == "object" && !Array.isArray(template[property])) {
+                data[dataProperty] = {}
+            }
+            else {
+                data[dataProperty] = template[property]
+            }
+        }
+
+        if ((typeof data[dataProperty]) == "object" && (typeof template[property]) == "object")
+            reconcileDataWithTemplate(data[dataProperty], template[property], msg)
+    }
+}
+
 functions.gatherData = async function (msg) {
     let poopy = this
     let config = poopy.config
@@ -634,7 +678,7 @@ functions.gatherData = async function (msg) {
     let tempdata = poopy.tempdata
     let vars = poopy.vars
 
-    let { dataGather } = poopy.functions
+    let { dataGather, reconcileDataWithTemplate } = poopy.functions
 
     var now = Date.now()
     var webhook = msg.webhookId || (msg.author.bot && !msg.author.flags)
@@ -649,22 +693,7 @@ functions.gatherData = async function (msg) {
         }
 
         data.userData[msg.author.id].username = msg.author.displayName
-        for (var stat in vars.battleStats) {
-            if (data.userData[msg.author.id][stat] === undefined) {
-                data.userData[msg.author.id][stat] = vars.battleStats[stat]
-            }
-        }
-
-        if (!data.userData[msg.author.id].tokens) {
-            data.userData[msg.author.id].tokens = {}
-        }
-        if (!data.userData[msg.author.id].battleSprites) {
-            data.userData[msg.author.id].battleSprites = {}
-        }
-
-        if (!data.userData[msg.author.id].blocked) {
-            data.userData[msg.author.id].blocked = []
-        }
+        reconcileDataWithTemplate(data.userData, vars.dataTemplate.userData, msg)
 
         data.botData.leaderboard[msg.author.id] = {
             tag: msg.author.tag,
@@ -674,18 +703,6 @@ functions.gatherData = async function (msg) {
 
     if (!data.guildData[msg.guild.id]) {
         data.guildData[msg.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, msg.guild.id).catch((e) => console.log(e)) || {}
-    }
-
-    if (data.guildData[msg.guild.id].chaincommands == undefined) {
-        data.guildData[msg.guild.id].chaincommands = true
-    }
-
-    if (data.guildData[msg.guild.id].keyexec == undefined) {
-        data.guildData[msg.guild.id].keyexec = 1
-    }
-
-    if (data.guildData[msg.guild.id].webhookAttachments == undefined) {
-        data.guildData[msg.guild.id].webhookAttachments = true
     }
 
     if (data.guildData[msg.guild.id].prefix === undefined) {
@@ -700,9 +717,7 @@ functions.gatherData = async function (msg) {
         data.guildData[msg.guild.id].channels[msg.channel.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.channelData(config.database, msg.guild.id, msg.channel.id).catch((e) => console.log(e)) || {}
     }
 
-    if (!data.guildData[msg.guild.id].channels[msg.channel.id].lastUrls) {
-        data.guildData[msg.guild.id].channels[msg.channel.id].lastUrls = []
-    }
+    reconcileDataWithTemplate(data.guildData[msg.guild.id].channels, vars.dataTemplate.guildData.guildId.channels, msg)
 
     if (!webhook) {
         if (!data.guildData[msg.guild.id].members) {
@@ -713,13 +728,7 @@ functions.gatherData = async function (msg) {
             data.guildData[msg.guild.id].members[msg.author.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch((e) => console.log(e)) || {}
         }
 
-        if (!data.guildData[msg.guild.id].members[msg.author.id].messages) {
-            data.guildData[msg.guild.id].members[msg.author.id].messages = 0
-        }
-
-        if (!data.guildData[msg.guild.id].members[msg.author.id].coolDown) {
-            data.guildData[msg.guild.id].members[msg.author.id].coolDown = false
-        }
+        reconcileDataWithTemplate(data.guildData[msg.guild.id].members, vars.dataTemplate.guildData.guildId.members, msg)
 
         if (!data.guildData[msg.guild.id].allMembers) {
             data.guildData[msg.guild.id].allMembers = {}
@@ -729,9 +738,7 @@ functions.gatherData = async function (msg) {
             data.guildData[msg.guild.id].allMembers[msg.author.id] = {}
         }
 
-        if (!data.guildData[msg.guild.id].allMembers[msg.author.id].messages) {
-            data.guildData[msg.guild.id].allMembers[msg.author.id].messages = 0
-        }
+        reconcileDataWithTemplate(data.guildData[msg.guild.id].allMembers, vars.dataTemplate.guildData.guildId.allMembers, msg)
 
         var roleOrder = msg.member.roles?.cache ? Math.max(...msg.member.roles.cache.map(r => r.rawPosition)) : 0
 
@@ -751,22 +758,8 @@ functions.gatherData = async function (msg) {
     if (!data.guildData[msg.guild.id].disabled) {
         data.guildData[msg.guild.id].disabled = config.defaultDisabled
     }
-
-    if (!data.guildData[msg.guild.id].read || typeof data.guildData[msg.guild.id].read != "object") {
-        data.guildData[msg.guild.id].read = []
-    }
-
-    if (!data.guildData[msg.guild.id].restricted) {
-        data.guildData[msg.guild.id].restricted = []
-    }
-
-    if (!data.guildData[msg.guild.id].localcmds) {
-        data.guildData[msg.guild.id].localcmds = []
-    }
-
-    if (!data.guildData[msg.guild.id].messages) {
-        data.guildData[msg.guild.id].messages = []
-    }
+    
+    reconcileDataWithTemplate(data.guildData, vars.dataTemplate.guildData, msg, ["channels", "members", "allMembers"])
 
     if (data.guildData[msg.guild.id].messages.some(m => now - m.timestamp < 1000 * 60 * 60 * 24 * 30)) {
         data.guildData[msg.guild.id].messages = data.guildData[msg.guild.id].messages.filter(m => now - m.timestamp < 1000 * 60 * 60 * 24 * 30)
@@ -785,48 +778,10 @@ functions.gatherData = async function (msg) {
             tempdata[msg.guild.id][msg.channel.id][msg.author.id] = {}
         }
 
-        if (!tempdata[msg.guild.id][msg.author.id]) {
-            tempdata[msg.guild.id][msg.author.id] = {}
-        }
-
-        if (!tempdata[msg.guild.id][msg.author.id].promises) {
-            tempdata[msg.guild.id][msg.author.id].promises = []
-        }
-
-        if (!tempdata[msg.author.id]) {
-            tempdata[msg.author.id] = {}
-        }
-
-        if (!tempdata[msg.author.id][msg.id]) {
-            tempdata[msg.author.id][msg.id] = {}
-        }
-
-        if (!tempdata[msg.author.id][msg.id].execCount) {
-            tempdata[msg.author.id][msg.id].execCount = 0
-        }
+        reconcileDataWithTemplate(tempdata, vars.tempdataTemplate, msg)
 
         if (!tempdata[msg.author.id].cooler) {
             tempdata[msg.author.id].cooler = msg.id
-        }
-
-        if (!tempdata[msg.author.id].arrays) {
-            tempdata[msg.author.id].arrays = {}
-        }
-
-        if (!tempdata[msg.author.id].declared) {
-            tempdata[msg.author.id].declared = {}
-        }
-
-        if (!tempdata[msg.author.id].promises) {
-            tempdata[msg.author.id].promises = []
-        }
-
-        if (!tempdata[msg.author.id].lastmention) {
-            tempdata[msg.author.id].lastmention = 0
-        }
-
-        if (!tempdata[msg.author.id].mentions) {
-            tempdata[msg.author.id].mentions = 0
         }
     }
 }

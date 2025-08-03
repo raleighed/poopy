@@ -63,5 +63,65 @@ vars.battleStats = {
     bucks: 20
 }
 vars.cleverContexts = {}
+vars.dataTemplate = {
+    userData: {
+        userId: {
+            tokens: {},
+            battleSprites: {},
+            blocked: []
+        }
+    },
+    guildData: {
+        guildId: {
+            chaincommands: true,
+            keyexec: 1,
+            webhookAttachments: true,
+            channels: {
+                channelId: {
+                    lastUrls: []
+                }
+            },
+            members: {
+                userId: {
+                    messages: 0,
+                    coolDown: false
+                }
+            },
+            allMembers: {
+                userId: {
+                    messages: 0
+                }
+            },
+            read: [],
+            restricted: [],
+            localcmds: [],
+            messages: []
+        }
+    }
+}
+vars.tempdataTemplate = {
+    guildId: {
+        channelId: {
+            userId: {}
+        },
+        userId: {
+            promises: []
+        }
+    },
+    userId: {
+        messageId: {
+            execCount: 0,
+            arrays: {},
+            declared: {},
+            promises: [],
+            lastmention: 0,
+            mentions: 0
+        }
+    }
+}
+
+for (var stat in vars.battleStats) {
+    vars.dataTemplate.userData.userId[stat] = vars.battleStats[stat]
+}
 
 module.exports = vars
