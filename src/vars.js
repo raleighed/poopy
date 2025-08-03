@@ -60,7 +60,9 @@ vars.battleStats = {
     accuracy: 0,
     loot: 0,
     exp: 150,
-    bucks: 20
+    bucks: 20,
+    deaths: 0,
+    kills: 0
 }
 vars.cleverContexts = {}
 vars.dataTemplate = {

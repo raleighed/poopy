@@ -2081,12 +2081,15 @@ functions.displayShop = async function (channel, who, reply, type) {
         /*{
             health: 100,
             maxHealth: 100,
+            heal: 0,
             defense: 0,
             attack: 0,
             accuracy: 0,
             loot: 0,
             exp: 150,
-            bucks: 20
+            bucks: 20,
+            deaths: 0,
+            kills: 0
         },*/
 
         {
@@ -3636,11 +3639,14 @@ functions.battle = async function (msg, subject, action, damage, chance) {
             if (subjData.health <= 0) {
                 subjData.health = 0
                 subjData.death = Date.now() + 30_000
+                subjData.deaths++
                 if (!isPoopy && member.id != msg.author.id && guildMember) {
                     exp *= 50
                     reward = Math.floor(exp / 75 * power * (yourData.loot / 10 + 1))
                 }
                 died = true
+
+                yourData.kills++
             }
 
             yourData.exp += exp

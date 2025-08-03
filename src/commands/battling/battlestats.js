@@ -68,26 +68,6 @@ module.exports = {
                 inline: true
             },
             {
-                name: "Attack",
-                value: String(data.userData[member.id].attack),
-                inline: true
-            },
-            {
-                name: "Defense",
-                value: String(data.userData[member.id].defense),
-                inline: true
-            },
-            {
-                name: "Accuracy",
-                value: String(data.userData[member.id].accuracy),
-                inline: true
-            },
-            {
-                name: "Loot",
-                value: String(data.userData[member.id].loot),
-                inline: true
-            },
-            {
                 name: "Level",
                 value: String(levelData.level),
                 inline: true
@@ -105,6 +85,36 @@ module.exports = {
             {
                 name: "Pobucks",
                 value: `${data.userData[member.id].bucks} P$`,
+                inline: true
+            },
+            {
+                name: "Kills",
+                value: String(data.userData[member.id].kills),
+                inline: true
+            },
+            {
+                name: "Deaths",
+                value: String(data.userData[member.id].deaths),
+                inline: true
+            },
+            {
+                name: "Attack",
+                value: String(data.userData[member.id].attack),
+                inline: true
+            },
+            {
+                name: "Defense",
+                value: String(data.userData[member.id].defense),
+                inline: true
+            },
+            {
+                name: "Accuracy",
+                value: String(data.userData[member.id].accuracy),
+                inline: true
+            },
+            {
+                name: "Loot",
+                value: String(data.userData[member.id].loot),
                 inline: true
             },
         ]
