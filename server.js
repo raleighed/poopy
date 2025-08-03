@@ -1,4 +1,4 @@
-#!/usr/bin/env -S /bin/node server.js --test
+#!/usr/bin/env -S /bin/node server.js
 
 const throng = require('throng')
 const dotenv = require('dotenv')
@@ -233,8 +233,7 @@ async function start() {
                 {
                     TOKEN: process.env.DEFAULT_TOKEN,
                     config: {
-                        globalPrefix: 'p:',
-                        public: true
+                        globalPrefix: 'p:'
                     }
                 },
             ]
