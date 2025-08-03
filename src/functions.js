@@ -835,8 +835,7 @@ functions.cleverbot = async function (stim, id) {
         }).then(res => res.headers['set-cookie'][0].split(";")[0].split("=")[1]).catch(() => { })
         var jar = vars.cleverbotJar
 
-        var stimEncoded = encodeForSending(stim)
-        var payload = `stimulus=${stimEncoded}`
+        var payload = `stimulus=${encodeForSending(stim)}`
         var l = history.length - 1
         for (var i = 0; i <= l; i++) {
             payload += `&vText${i + 2}=${encodeForSending(history[l - i])}`
@@ -894,7 +893,7 @@ functions.cleverbot = async function (stim, id) {
                 url,
                 headers: {
                     "Content-Type": "text/plain",
-                    "Cookie": `note=1;XVIS=${jar};_cbsid=-1;CBALT=1~${encodeURIComponent(res)}`,
+                    "Cookie": `note=1;XVIS=${jar};_cbsid=-1;CBALT=1~${encodeURIComponent(response)}`,
                     "User-Agent": UA
                 }
             })
