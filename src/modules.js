@@ -70,20 +70,6 @@ modules.DMGuild = class DMGuild {
 }
 
 for (var Discord of modules.Discord) {
-    const Guild = Discord.Guild
-    const guildLeave = Guild.prototype.leave
-
-    Guild.prototype.leave = async function leave() {
-        let guild = this
-        let client = guild.client
-        let poopy = activeBots[client.database]
-        let config = poopy.config
-
-        if (config.public) return 'nvm'
-
-        return guildLeave.call(guild)
-    }
-
     const Channel = Discord.BaseGuildTextChannel
     const channelSend = Channel.prototype.send
 
