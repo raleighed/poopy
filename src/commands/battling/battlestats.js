@@ -25,7 +25,8 @@ module.exports = {
         let data = poopy.data
         let vars = poopy.vars
         let config = poopy.config
-        let { getLevel, dataGather, fetchPingPerms } = poopy.functions
+        let { getLevel, dataGather, fetchPingPerms,
+            getShieldById, formatNumberWithPreset } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => { })
 
@@ -47,24 +48,43 @@ module.exports = {
             data.userData[member.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.userData(config.database, member.id).catch(() => { }) || {}
         }
 
+        var userData = data.userData[member.id]
+
         for (var stat in vars.battleStats) {
-            if (data.userData[member.id][stat] === undefined) {
-                data.userData[member.id][stat] = vars.battleStats[stat]
+            if (userData[stat] === undefined) {
+                userData[stat] = vars.battleStats[stat]
             }
         }
-        if (!data.userData[member.id].battleSprites) data.userData[member.id].battleSprites = {}
+        if (!userData.battleSprites) userData.battleSprites = {}
 
-        var levelData = getLevel(data.userData[member.id].exp)
+        var levelData = getLevel(userData.exp)
+        var equippedShield = getShieldById(userData.shieldEquipped)
+        var shieldIsUp = userData.shielded
+
+        var shieldDamageReduction = shieldIsUp
+            ? equippedShield && equippedShield.stats.damageReduction
+            : 0
+
+        var shieldAttackReduction = shieldIsUp
+            ? equippedShield && equippedShield.stats.attackReduction
+            : 0
+
+        var damageReductionFormat = vars.shieldStatsDisplayInfo.find(
+            displayInfo => displayInfo.name === 'damageReduction'
+        ).format.replace(/[\+\-]/g, '')
+        var attackReductionFormat = vars.shieldStatsDisplayInfo.find(
+            displayInfo => displayInfo.name === 'attackReduction'
+        ).format
 
         var battleStats = [
             {
                 name: "Health",
-                value: `${data.userData[member.id].health.toFixed(1).replace(/\.0+$/, "")} HP`,
+                value: `${userData.health.toFixed(1).replace(/\.0+$/, "")} HP`,
                 inline: true
             },
             {
                 name: "Max Health",
-                value: `${data.userData[member.id].maxHealth.toFixed(1).replace(/\.0+$/, "")} HP`,
+                value: `${userData.maxHealth.toFixed(1).replace(/\.0+$/, "")} HP`,
                 inline: true
             },
             {
@@ -79,42 +99,60 @@ module.exports = {
             },
             {
                 name: "Total Experience",
-                value: `${data.userData[member.id].exp.toFixed(1).replace(/\.0+$/, "")} XP`,
+                value: `${userData.exp.toFixed(1).replace(/\.0+$/, "")} XP`,
                 inline: true
             },
             {
                 name: "Pobucks",
-                value: `${data.userData[member.id].bucks} P$`,
+                value: `${userData.bucks} P$`,
                 inline: true
             },
             {
                 name: "Kills",
-                value: String(data.userData[member.id].kills),
+                value: String(userData.kills),
                 inline: true
             },
             {
                 name: "Deaths",
-                value: String(data.userData[member.id].deaths),
+                value: String(userData.deaths),
+                inline: true
+            },
+            {
+                name: "Equipped Shield" + ` (${shieldIsUp ? 'Up' : 'Down'})`,
+                value: equippedShield ? equippedShield.name : "Error",
+                inline: true
+            },
+            {
+                name: "Shields Owned",
+                value: String(userData.shieldsOwned.length),
+                inline: true
+            },
+            {
+                name: "Damage Reduction",
+                value: formatNumberWithPreset(shieldDamageReduction ?? 0, damageReductionFormat),
                 inline: true
             },
             {
                 name: "Attack",
-                value: String(data.userData[member.id].attack),
+                value: String(userData.attack) +
+                    (shieldAttackReduction && shieldAttackReduction != 0
+                        ? ` (${formatNumberWithPreset(shieldAttackReduction, attackReductionFormat)})`
+                        : ''),
                 inline: true
             },
             {
                 name: "Defense",
-                value: String(data.userData[member.id].defense),
+                value: String(userData.defense),
                 inline: true
             },
             {
                 name: "Accuracy",
-                value: String(data.userData[member.id].accuracy),
+                value: String(userData.accuracy),
                 inline: true
             },
             {
                 name: "Loot",
-                value: String(data.userData[member.id].loot),
+                value: String(userData.loot),
                 inline: true
             },
         ]

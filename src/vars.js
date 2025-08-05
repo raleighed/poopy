@@ -62,8 +62,28 @@ vars.battleStats = {
     exp: 150,
     bucks: 20,
     deaths: 0,
-    kills: 0
+    kills: 0,
+    shielded: false,
+    shieldEquipped: "base",
+    shieldsOwned: ["base"]
 }
+vars.shieldStatsDisplayInfo = [
+    {
+        name: "damageReduction",
+        displayName: "DMG Taken reduction",
+        format: "+%"
+    },
+    {
+        name: "attackReduction",
+        displayName: "DMG Dealt",
+        format: "-%"
+    },
+    {
+        name: "damageRedirect",
+        displayName: "DMG redirected",
+        format: "+%"
+    }
+]
 vars.cleverContexts = {}
 vars.dataTemplate = {
     userData: {

@@ -61,6 +61,10 @@ functions.regexClean = function (str) {
     return str.replace(/[\\^$.|?*+()[{]/g, (match) => `\\${match}`)
 }
 
+functions.numberDecimals = function (number, decimalPlaces) {
+    return Math.floor(number * (10 ^ decimalPlaces)) / (10 ^ decimalPlaces)
+}
+
 functions.escapeHTML = function (value) {
     return value
         .replace(/&/g, '&amp;')
@@ -645,7 +649,7 @@ functions.substituteIdPropertyWithActualId = function (key, msg) {
     return key
 }
 
-functions.reconcileDataWithTemplate = async function(data, template, msg, ignoreList = []) {
+functions.reconcileDataWithTemplate = function(data, template, msg, ignoreList = []) {
     let poopy = this
 
     let { reconcileDataWithTemplate,
@@ -1488,7 +1492,7 @@ functions.navigateEmbed = async function (channel, pageFunc, results, who, extra
     let bot = poopy.bot
     let config = poopy.config
     let tempdata = poopy.tempdata
-    let { chunkArray, dmSupport, parseNumber } = poopy.functions
+    let { chunkArray, dmSupport, queryPage } = poopy.functions
     let { Discord, DiscordTypes } = poopy.modules
 
     page = page ?? 1
@@ -1526,77 +1530,7 @@ functions.navigateEmbed = async function (channel, pageFunc, results, who, extra
             reactemoji: '🔢',
             customid: 'page',
             style: DiscordTypes.ButtonStyle.Primary,
-            function: async (_, interaction) => new Promise(async resolve => {
-                var newpage = page
-
-                if (config.useReactions) {
-                    var goMessage = await channel.send('Which page would you like to go...?').catch(() => { })
-
-                    var pageCollector = channel.createMessageCollector({ time: 30000 })
-
-                    pageCollector.on('collect', (msg) => {
-                        dmSupport(msg)
-
-                        if (!(msg.author.id === who && ((msg.author.id !== bot.user.id && !msg.author.bot) || config.allowbotusage))) {
-                            return
-                        }
-
-                        newpage = parseNumber(msg.content, { dft: page, min: 1, max: results, round: true })
-                        pageCollector.stop()
-                        msg.delete().catch(() => { })
-                    })
-
-                    pageCollector.on('end', () => {
-                        if (goMessage) goMessage.delete().catch(() => { })
-                        resolve(newpage)
-                    })
-                } else {
-                    var pageModal = new Discord.ModalBuilder()
-                        .setCustomId('page-modal')
-                        .setTitle('Select your page...')
-                        .addComponents(
-                            new Discord.ActionRowBuilder().addComponents(
-                                new Discord.TextInputBuilder()
-                                    .setCustomId('page-num')
-                                    .setLabel('Page')
-                                    .setStyle(Discord.TextInputStyle.Short)
-                                    .setMinLength(1)
-                                    .setMaxLength(String(results).length)
-                                    .setPlaceholder(`1-${results}`)
-                                    .setRequired(true)
-                            )
-                        )
-
-                    interaction.showModal(pageModal).then(() => {
-                        var done = false
-
-                        var modalCallback = (modal) => {
-                            if (modal.type !== DiscordTypes.InteractionType.ModalSubmit) return
-
-                            if (modal.deferUpdate) modal.deferUpdate().catch(() => { })
-
-                            if (!(modal.user.id === who && ((modal.user.id !== bot.user.id && !modal.user.bot) || config.allowbotusage)) || done) {
-                                return
-                            }
-
-                            done = true
-                            newpage = parseNumber(modal.fields.getTextInputValue('page-num'), { dft: page, min: 1, max: results, round: true })
-                            clearTimeout(modalTimeout)
-                            resolve(newpage)
-                        }
-
-                        var modalTimeout = setTimeout(() => {
-                            if (!done) {
-                                done = true
-                                bot.removeListener('interactionCreate', modalCallback)
-                                resolve(newpage)
-                            }
-                        }, 30000)
-
-                        bot.once('interactionCreate', modalCallback)
-                    }).catch(() => resolve(newpage))
-                }
-            }),
+            function: async (_, interaction) => queryPage(channel, who, page, results, interaction),
             page: true
         }
     ].concat(extraButtons || [])
@@ -2064,20 +1998,213 @@ functions.rainmaze = async function (channel, who, reply, w = 8, h = 6) {
     return raindraw.description
 }
 
-functions.displayShop = async function (channel, who, reply, type) {
+functions.displayShops = async function (msg, shopType, shopMsg) {
     let poopy = this
-    let bot = poopy.bot
     let config = poopy.config
-    let data = poopy.data
-    let { chunkArray, dmSupport, getLevel } = poopy.functions
+    let bot = poopy.bot
+    let { displayShop, fetchPingPerms, chunkArray,
+        dmSupport } = poopy.functions
     let { Discord, DiscordTypes } = poopy.modules
 
-    if (type != "upgrades") {
+    let types = ['upgrades', 'buffs', 'items', 'shields']
+
+    var buttonsData = [
+        {
+            emoji: '✨',
+            customid: 'upgrades',
+            style: DiscordTypes.ButtonStyle.Primary,
+            desc: 'Buy upgrades used for battling against others.',
+        },
+        {
+            emoji: '🔥',
+            customid: 'buffs',
+            style: DiscordTypes.ButtonStyle.Primary,
+            desc: '[WIP] Purchase useful temporary buffs during battles.',
+        },
+        {
+            emoji: '💎',
+            customid: 'items',
+            style: DiscordTypes.ButtonStyle.Primary,
+            desc: '[WIP] Buy some cool or useless items.',
+        },
+        {
+            emoji: '🛡️',
+            customid: "shields",
+            style: DiscordTypes.ButtonStyle.Primary,
+            desc: 'Buy various shields that can defend you during battles.'
+        }
+    ]
+
+    var instruction = buttonsData.map(u => `${u.emoji} **${u.customid}** - ${u.desc}`).join('\n')
+    var shopObject = {}
+    var ended = false
+    var shopMade = false
+
+    if (!shopType) {
+        if (msg.nosend)
+            return instruction
+
+        var components = []
+        var chunkButtonData = chunkArray(buttonsData, 5)
+
+        if (!config.useReactions) chunkButtonData.forEach(buttonsData => {
+            var buttonRow = new Discord.ActionRowBuilder()
+            var buttons = []
+
+            buttonsData.forEach(bdata => {
+                var button = new Discord.ButtonBuilder()
+                    .setStyle(bdata.style)
+                    .setEmoji(bdata.emoji)
+                    .setCustomId(bdata.customid)
+
+                buttons.push(button)
+            })
+
+            buttonRow.addComponents(buttons)
+
+            components.push(buttonRow)
+        })
+
+        if (config.textEmbeds) {
+            shopObject.content = instruction
+            shopObject.allowedMentions = {
+                parse: fetchPingPerms(msg)
+            }
+        }
+        else {
+            shopObject.embeds = [{
+                "title": "Shop Options",
+                "description": instruction,
+                "color": 0x472604,
+                "footer": {
+                    "icon_url": bot.user.displayAvatarURL({
+                        dynamic: true, size: 1024, extension: 'png'
+                    }),
+                    "text": bot.user.displayName
+                },
+            }]
+        }
+
+        var collector
+        var usingReactions = config.useReactions
+        var usingComponents = !usingReactions
+
+        if (!config.useReactions)
+            shopObject.components = components
+
+        if (!shopMsg)
+            shopMsg = await (msg ?? msg.channel)[msg ? 'reply' : 'send'](shopObject)
+                .catch((e) => console.log(e))
+        else
+            shopMsg.edit(shopObject).catch((e) => console.log(e))
+
+        if (!shopMsg) throw new Error(`Couldn't send shop to channel`)
+
+        if (usingReactions)
+            collector = shopMsg.createReactionCollector({ time: 60_000 })
+        else
+            collector = shopMsg.createMessageComponentCollector({ time: 60_000 })
+
+        collector.on('collect', async (button, user) => {
+            dmSupport(button)
+
+            if (usingComponents)
+                user = button.user
+
+            var userSameAsCaller = user.id === msg.member.id
+            var userIsntBot = user.id !== bot.user.id && !user.bot
+
+            if (!(userSameAsCaller && (userIsntBot || config.allowbotusage))) {
+                if (usingComponents)
+                    button.deferUpdate().catch(() => { })
+                return
+            }
+
+            var matchFunc = (buttonData) => buttonData.customid == button.customId
+            if (usingReactions)
+                matchFunc = (buttonData) => buttonData.emoji == button.emoji.name
+
+            var buttonData = buttonsData.find(matchFunc)
+
+            if (!buttonData)
+                return
+
+            collector.resetTimer()
+
+            shopType = buttonData.customid
+
+            if (usingComponents)
+                button.deferUpdate().catch(() => { })
+
+            collector.stop('switch')
+            await displayShop(msg.channel, msg.member, msg, shopType, shopMsg)
+        })
+
+        collector.on('end', async (_, reason) => {
+            ended = reason
+
+            if (usingReactions) shopMsg.reactions.removeAll().catch(() => { })
+            else shopObject.components = []
+
+            if (shopMsg && reason != 'switch') shopMsg.edit(shopObject).catch(() => { })
+        })
+
+        return instruction
+    }
+
+    if (!types.includes(shopType)) {
+        await msg.reply('Not a valid category.').catch(() => { })
+        return
+    }
+
+    return await displayShop(msg.channel, msg.member, msg, shopType, shopMsg)
+}
+
+functions.displayShop = async function (channel, who, reply, shopType, shopMsg) {
+    let poopy = this
+    let { displayUpgradesShop, displayShieldsShop } = poopy.functions
+    let { DiscordTypes } = poopy.modules
+
+    if (shopType != "upgrades" && shopType != "shields") {
         await (reply ?? channel)[reply ? 'reply' : 'send']("Work in progress.").catch(() => { })
         return
     }
 
-    var buttonsData = [
+    var shopObject = {}
+    var allowedMentions
+
+    if (typeof (who) != 'string') {
+        allowedMentions = {
+            parse: (!who.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) &&
+                !who.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) &&
+                who.id !== channel.guild.ownerID) ?
+                ['users'] : ['users', 'everyone', 'roles']
+        }
+        shopObject.allowedMentions = allowedMentions
+        who = who.id
+    }
+    
+    switch (shopType) {
+        case 'upgrades':
+            return displayUpgradesShop(channel, who, reply, shopObject, shopMsg)
+
+        case 'shields':
+            return displayShieldsShop(channel, who, reply, shopObject, shopMsg)
+    }
+}
+
+functions.displayUpgradesShop = async function (channel, who, reply, shopObject, shopMsg) {
+    let poopy = this
+    let data = poopy.data
+    let bot = poopy.bot
+    let config = poopy.config
+    let { chunkArray, dmSupport, getLevel,
+        displayShops } = poopy.functions
+    let { Discord, DiscordTypes } = poopy.modules
+
+    let shopType = 'upgrades'
+
+    var upgradeButtonsData = [
         /*{
             health: 100,
             maxHealth: 100,
@@ -2095,7 +2222,7 @@ functions.displayShop = async function (channel, who, reply, type) {
         {
             emoji: '❤',
             customid: 'heal',
-            style: DiscordTypes.ButtonStyle.Primary,
+            style: DiscordTypes.ButtonStyle.Secondary,
             desc: 'Upgrade your maximum health.',
             oprice: 80
         },
@@ -2103,7 +2230,7 @@ functions.displayShop = async function (channel, who, reply, type) {
         {
             emoji: '🛡',
             customid: 'defense',
-            style: DiscordTypes.ButtonStyle.Primary,
+            style: DiscordTypes.ButtonStyle.Secondary,
             desc: 'Increase your defense against attacks.',
             oprice: 120
         },
@@ -2111,7 +2238,7 @@ functions.displayShop = async function (channel, who, reply, type) {
         {
             emoji: '⚔',
             customid: 'attack',
-            style: DiscordTypes.ButtonStyle.Primary,
+            style: DiscordTypes.ButtonStyle.Secondary,
             desc: 'Increase your attack damage.',
             oprice: 120
         },
@@ -2119,7 +2246,7 @@ functions.displayShop = async function (channel, who, reply, type) {
         {
             emoji: '🎯',
             customid: 'accuracy',
-            style: DiscordTypes.ButtonStyle.Primary,
+            style: DiscordTypes.ButtonStyle.Secondary,
             desc: 'Increase the accuracy of each attack.',
             oprice: 150
         },
@@ -2127,38 +2254,44 @@ functions.displayShop = async function (channel, who, reply, type) {
         {
             emoji: '🪙',
             customid: 'loot',
-            style: DiscordTypes.ButtonStyle.Primary,
+            style: DiscordTypes.ButtonStyle.Secondary,
             desc: 'Get more loot while fighting someone.',
             oprice: 150
         }
     ]
 
-    var shopMsg
-    var shopObject = {}
-    var allowedMentions
+    var shopNavigationButtonsData = [
+        {
+            emoji: '↩',
+            customid: 'back',
+            style: DiscordTypes.ButtonStyle.Primary,
+            label: 'Back'
+        }
+    ]
+
+    var buttonsData = upgradeButtonsData.concat(shopNavigationButtonsData)
+
+    var userData = data.userData[who]
+   
+    shopObject = shopObject ?? {}
     var upgradeList
     var ended = false
 
-    if (typeof (who) != 'string') {
-        allowedMentions = {
-            parse: (!who.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) &&
-                !who.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) &&
-                who.id !== channel.guild.ownerID) ?
-                ['users'] : ['users', 'everyone', 'roles']
-        }
-        shopObject.allowedMentions = allowedMentions
-        who = who.id
-    }
-
     async function updateShop() {
-        for (var upgrade of buttonsData) {
-            upgrade.price = upgrade.oprice * (data.userData[who][upgrade.customid] + 1)
+        if (ended === 'switch')
+            return
+
+        for (var upgrade of upgradeButtonsData) {
+            upgrade.price = upgrade.oprice * (userData[upgrade.customid] + 1)
         }
+
+        buttonsData = upgradeButtonsData.concat(shopNavigationButtonsData)
 
         var components = []
         var chunkButtonData = chunkArray(buttonsData, 5)
 
-        var level = getLevel(data.userData[who].exp).level
+        var level = getLevel(userData.exp).level
+
         var cap = level >= 20 ? 25 :
             level >= 10 ? 10 :
                 5
@@ -2172,8 +2305,10 @@ functions.displayShop = async function (channel, who, reply, type) {
                     var button = new Discord.ButtonBuilder()
                         .setStyle(bdata.style)
                         .setEmoji(bdata.emoji)
-                        .setLabel(data.userData[who][bdata.customid] >= cap ? `MAX` : `${bdata.price} P$`)
                         .setCustomId(bdata.customid)
+                    
+                    if (bdata.oprice)
+                        button = button.setLabel(userData[bdata.customid] >= cap ? `MAX` : `${bdata.price} P$`)
 
                     buttons.push(button)
                 })
@@ -2184,11 +2319,20 @@ functions.displayShop = async function (channel, who, reply, type) {
             })
         }
 
-        upgradeList = buttonsData.map(u => `${u.emoji} **${data.userData[who][u.customid] >= cap ? `MAX` : `${u.price} P$`}** - ${u.desc} **(${data.userData[who][u.customid]}/${cap})**`).join('\n') + `\n\n**Pobucks:** ${data.userData[who].bucks} P$`
+        upgradeList = upgradeButtonsData.map(buttonData => {
+            var emoji = buttonData.emoji
+            var stat = buttonData.customid
+            var price = buttonData.price
+            var desc = buttonData.desc
+
+            var statValue = userData[stat]
+
+            return `${emoji} **${statValue >= cap ? `MAX` : `${price} P$`}** - ${desc} **(${statValue}/${cap})**` 
+        }).join('\n') + `\n\n**Pobucks:** ${userData.bucks} P$`
 
         if (config.textEmbeds) shopObject.content = upgradeList
         else shopObject.embeds = [{
-            title: `${type.toCapperCase()} Shop`,
+            title: `${shopType.toCapperCase()} Shop`,
             description: upgradeList,
             color: 0x472604,
             footer: {
@@ -2209,112 +2353,434 @@ functions.displayShop = async function (channel, who, reply, type) {
 
     await updateShop().catch((e) => console.log(e))
 
-    shopMsg = await (reply ?? channel)[reply ? 'reply' : 'send'](shopObject).catch((e) => console.log(e))
+    if (!shopMsg)
+        shopMsg = await (reply ?? channel)[reply ? 'reply' : 'send'](shopObject).catch((e) => console.log(e))
 
     if (!shopMsg) throw new Error(`Couldn't send shop to channel`)
 
-    if (config.useReactions) {
-        var collector = shopMsg.createReactionCollector({ time: 60_000 })
+    var collector
+    var usingReactions = config.useReactions
+    var usingComponents = !usingReactions
 
-        collector.on('collect', async (reaction, user) => {
-            dmSupport(reaction)
+    if (usingReactions)
+        collector = shopMsg.createReactionCollector({ time: 60_000 })
+    else
+        collector = shopMsg.createMessageComponentCollector({ time: 60_000 })
 
-            if (!(user.id === who && ((user.id !== bot.user.id && !user.bot) || config.allowbotusage))) {
-                return
-            }
+    collector.on('collect', async (button, user) => {
+        dmSupport(button)
 
-            var buttonData = buttonsData.find(bdata => bdata.emoji == reaction.emoji.name)
+        if (usingComponents)
+            user = button.user
 
-            if (buttonData) {
-                var level = getLevel(data.userData[who].exp).level
-                var cap = level >= 20 ? 25 :
-                    level >= 10 ? 10 :
-                        5
+        var userSameAsCaller = user.id === who
+        var userIsntBot = user.id !== bot.user.id && !user.bot
 
-                collector.resetTimer()
+        if (!(userSameAsCaller && (userIsntBot || config.allowbotusage))) {
+            if (usingComponents)
+                button.deferUpdate().catch(() => { })
+            return
+        }
 
-                reaction.users.remove(user).catch(() => { })
+        var matchFunc = (buttonData) => buttonData.customid == button.customId
+        if (usingReactions)
+            matchFunc = (buttonData) => buttonData.emoji == button.emoji.name
 
-                if (data.userData[who][buttonData.customid] >= cap) {
-                    data.userData[who][buttonData.customid] = cap
-                    await channel.send('You can\'t upgrade more than that!').catch(() => { })
-                    await updateShop().catch(() => { })
-                    return
-                }
+        var buttonsData = upgradeButtonsData.concat(shopNavigationButtonsData)
+        var buttonData = buttonsData.find(matchFunc)
 
-                if (buttonData.price <= data.userData[who].bucks) {
-                    data.userData[who].bucks -= buttonData.price
-                    data.userData[who][buttonData.customid]++
-                    if (buttonData.customid == 'heal') data.userData[who].maxHealth += 10
-                    await updateShop().catch(() => { })
-                } else {
-                    await channel.send('Not enough moners.').catch(() => { })
-                }
-            }
-        })
+        if (!buttonData)
+            return
 
-        collector.on('end', async (_, reason) => {
-            ended = reason
+        if (buttonData.customid == 'back') {
+            if (usingComponents)
+                button.deferUpdate().catch(() => { })
+
+            collector.stop('switch')
+            await displayShops(reply, undefined, shopMsg)
+            return
+        }
+
+        var level = getLevel(userData.exp).level
+        var cap = level >= 20 ? 25 :
+            level >= 10 ? 10 :
+                5
+
+        collector.resetTimer()
+
+        if (usingReactions)
+            button.users.remove(user).catch(() => { })
+
+        var reachedMaxText = 'You can\'t upgrade more than that!'
+        var cantAffordText = 'Not enough moners.'
+
+        if (userData[buttonData.customid] >= cap) {
+            userData[buttonData.customid] = cap
+
+            if (usingComponents)
+                await button.reply({
+                    content: reachedMaxText,
+                    flags: Discord.MessageFlags.Ephemeral
+                }).catch(() => { })
+            else
+                await channel.send(reachedMaxText).catch(() => { })
+
             await updateShop().catch(() => { })
-        })
+            return
+        }
 
+        if (buttonData.price <= userData.bucks) {
+            if (usingComponents)
+                button.deferUpdate().catch(() => { })
+
+            userData.bucks -= buttonData.price
+            userData[buttonData.customid]++
+
+            if (buttonData.customid == 'heal')
+                userData.maxHealth += 10
+
+            await updateShop().catch(() => { })
+        } else {
+            if (usingComponents)
+                await button.reply({
+                    content: cantAffordText,
+                    flags: Discord.MessageFlags.Ephemeral
+                }).catch((e) => console.log(e))
+            else
+                await channel.send(cantAffordText).catch(() => { })
+        }
+    })
+
+    collector.on('end', async (_, reason) => {
+        ended = reason
+        await updateShop().catch(() => { })
+    })
+
+    if (usingReactions) {
         for (var i in buttonsData) {
             var bdata = buttonsData[i]
             await shopMsg.react(bdata.emoji).catch(() => { })
         }
-    } else {
-        var collector = shopMsg.createMessageComponentCollector({ time: 60_000 })
-
-        collector.on('collect', async (button) => {
-            dmSupport(button)
-
-            if (!(button.user.id === who && ((button.user.id !== bot.user.id && !button.user.bot) || config.allowbotusage))) {
-                button.deferUpdate().catch(() => { })
-                return
-            }
-
-            var buttonData = buttonsData.find(bdata => bdata.customid == button.customId)
-
-            if (buttonData) {
-                var level = getLevel(data.userData[who].exp).level
-                var cap = level >= 20 ? 25 :
-                    level >= 10 ? 10 :
-                        5
-
-                collector.resetTimer()
-
-                if (data.userData[who][buttonData.customid] >= cap) {
-                    data.userData[who][buttonData.customid] = cap
-                    await button.reply({
-                        content: 'You can\'t upgrade more than that!',
-                        ephemeral: true
-                    }).catch(() => { })
-                    await updateShop().catch(() => { })
-                    return
-                }
-
-                if (buttonData.price <= data.userData[who].bucks) {
-                    button.deferUpdate().catch(() => { })
-                    data.userData[who].bucks -= buttonData.price
-                    data.userData[who][buttonData.customid]++
-                    if (buttonData.customid == 'heal') data.userData[who].maxHealth += 10
-                    await updateShop().catch(() => { })
-                } else {
-                    await button.reply({
-                        content: 'Not enough moners.',
-                        ephemeral: true
-                    }).catch((e) => console.log(e))
-                }
-            }
-        })
-
-        collector.on('end', async (_, reason) => {
-            ended = reason
-            await updateShop().catch(() => { })
-        })
     }
 
     return upgradeList
+}
+
+functions.displayShieldsShop = async function (channel, who, reply, shopObject, shopMsg) {
+    let poopy = this
+    let data = poopy.data
+    let bot = poopy.bot
+    let config = poopy.config
+    let json = poopy.json
+    let { chunkArray, dmSupport, queryPage,
+        displayShops, getShieldStatsAsEmbedFields } = poopy.functions
+    let { Discord, DiscordTypes } = poopy.modules
+
+    let shopType = 'shields'
+
+    var prefix = data.guildData[channel.guild.id].prefix
+
+    var shopNavigationButtonsData = [
+        {
+            emoji: '861253229723123762',
+            reactemoji: '⏮',
+            customid: 'first',
+            style: DiscordTypes.ButtonStyle.Primary,
+        },
+
+        {
+            emoji: '861253229726793728',
+            reactemoji: '⬅',
+            customid: 'previous',
+            style: DiscordTypes.ButtonStyle.Primary,
+        },
+
+        {
+            emoji: '861253229798621205',
+            reactemoji: '➡',
+            customid: 'next',
+            style: DiscordTypes.ButtonStyle.Primary,
+        },
+
+        {
+            emoji: '861253229740556308',
+            reactemoji: '⏭',
+            customid: 'last',
+            style: DiscordTypes.ButtonStyle.Primary,
+        },
+
+        {
+            emoji: '970292877785727036',
+            reactemoji: '🔢',
+            customid: 'page',
+            style: DiscordTypes.ButtonStyle.Primary,
+        },
+        
+        {
+            customid: 'buy',
+            style: DiscordTypes.ButtonStyle.Success,
+            label: 'Purchase'
+        },
+
+        {
+            emoji: '↩',
+            reactemoji: '↩',
+            customid: 'back',
+            style: DiscordTypes.ButtonStyle.Primary,
+            label: 'Back'
+        }
+    ]
+
+    var userData = data.userData[who]
+   
+    shopObject = shopObject ?? {}
+    var instruction
+    var ended = false
+
+    var currentIndex = 0
+    var maxIndex = json.shieldJSON.length - 1
+    var currentShield = json.shieldJSON[currentIndex]
+    var currentShieldIsOwned = true
+    
+    var usingReactions = config.useReactions
+    var usingComponents = !usingReactions
+
+    async function updateShop() {
+        if (ended === 'switch')
+            return
+        
+        currentShield = json.shieldJSON[currentIndex]
+        currentShieldIsOwned = userData.shieldsOwned.includes(currentShield.id)
+        var currentShieldCostString = currentShield.cost <= 0 ? 'Free' : `${currentShield.cost} P$`
+        var currentShieldNameWithStatus = currentShield.name + (currentShieldIsOwned ? ' *(Owned)*' : '')
+
+        var currentShieldImageFileName = `${currentShield.id}.png`
+        var currentShieldImagePath = `assets/image/shields/${currentShieldImageFileName}`
+
+        shopObject.files = [new Discord.AttachmentBuilder(currentShieldImagePath)]
+
+        var components = []
+        var chunkButtonData = chunkArray(shopNavigationButtonsData, 5)
+
+        if (usingComponents) {
+            chunkButtonData.forEach(buttonsData => {
+                var buttonRow = new Discord.ActionRowBuilder()
+                var buttons = []
+
+                buttonsData.forEach(bdata => {
+                    var button = new Discord.ButtonBuilder()
+                        .setStyle(bdata.style)
+                        .setCustomId(bdata.customid)
+                    
+                    if (bdata.label)
+                        button = button.setLabel(bdata.label)
+
+                    if (bdata.emoji)
+                        button = button.setEmoji(bdata.emoji)
+                    
+                    if (bdata.customid == 'buy' && currentShieldIsOwned)
+                        button = button.setDisabled(true)
+
+                    buttons.push(button)
+                })
+
+                buttonRow.addComponents(buttons)
+
+                components.push(buttonRow)
+            })
+        }
+
+        var shieldStats = []
+        shieldStats.push({
+            name: 'Cost',
+            value: currentShieldCostString,
+            inline: true
+        })
+
+        shieldStats = shieldStats.concat(getShieldStatsAsEmbedFields(currentShield))
+
+        var currentPageIndex = currentIndex + 1
+        var lastPageIndex = maxIndex + 1
+        var shopTitle = `${shopType.toCapperCase()} Shop`
+        var titleStatusInfo = `(${currentPageIndex} / ${lastPageIndex}) - ${userData.bucks} P$`
+
+        var navigationButtonsText = shopNavigationButtonsData.map(buttonData => {
+            var emoji = buttonData.reactemoji
+            var customid = buttonData.customid
+
+            return `${emoji} - ${customid}`
+        }).join('\n')
+
+        instruction = `**${shopTitle}** ${titleStatusInfo}` +
+            `\n\n**${currentShieldNameWithStatus}**` + 
+            `\n${currentShield.description}` +
+            `\n**Cost:** ${currentShieldCostString}` +
+            navigationButtonsText + `\n\n**Pobucks:** ${userData.bucks} P$`
+
+        if (config.textEmbeds) shopObject.content = instruction
+        else shopObject.embeds = [{
+            author: {
+                name: shopTitle + ' ' + titleStatusInfo
+            },
+            title: currentShieldNameWithStatus,
+            description: currentShield.description,
+            color: 0x472604,
+            thumbnail: { url: `attachment://${currentShieldImageFileName}` },
+            footer: {
+                icon_url: bot.user.displayAvatarURL({
+                    dynamic: true, size: 1024, extension: 'png'
+                }),
+                text: bot.user.displayName
+            },
+            fields: shieldStats
+        }]
+
+        if (ended) {
+            if (usingReactions) shopMsg.reactions.removeAll().catch(() => { })
+            else shopObject.components = []
+        } else if (usingComponents) shopObject.components = components
+
+        if (shopMsg) shopMsg.edit(shopObject).catch(() => { })
+    }
+
+    await updateShop().catch((e) => console.log(e))
+
+    if (!shopMsg)
+        shopMsg = await (reply ?? channel)[reply ? 'reply' : 'send'](shopObject).catch((e) => console.log(e))
+
+    if (!shopMsg) throw new Error(`Couldn't send shop to channel`)
+
+    var collector
+
+    if (usingReactions)
+        collector = shopMsg.createReactionCollector({ time: 60_000 })
+    else
+        collector = shopMsg.createMessageComponentCollector({ time: 60_000 })
+
+    collector.on('collect', async (button, user) => {
+        dmSupport(button)
+
+        if (usingComponents)
+            user = button.user
+
+        var userSameAsCaller = user.id === who
+        var userIsntBot = user.id !== bot.user.id && !user.bot
+
+        if (!(userSameAsCaller && (userIsntBot || config.allowbotusage))) {
+            if (usingComponents)
+                button.deferUpdate().catch(() => { })
+            return
+        }
+
+        var customid
+        if (usingComponents)
+            customid = button.customId
+        else
+            customid = shopNavigationButtonsData.find(buttonData => buttonData.reactemoji === button.emoji.name)
+
+        if (!customid)
+            return
+        
+        collector.resetTimer()
+
+        var alreadyBoughtText = 'You already own that.'
+        var cantAffordText = 'Not enough moners.'
+
+        async function replyGeneric(text, flags) {
+            if (usingComponents) {
+                var replyData = {
+                    content: text
+                }
+
+                if (flags)
+                    replyData.flags = flags
+
+                await button.reply(replyData).catch((e) => console.log(e))
+            }
+            else
+                await channel.send(text).catch((e) => { console.log(e) })
+        }
+
+        async function deferUpdate() {
+            if (usingComponents)
+                button.deferUpdate().catch(() => { })
+        }
+
+        switch (customid) {
+            case 'buy':
+                if (currentShieldIsOwned) {
+                    replyGeneric(alreadyBoughtText, Discord.MessageFlags.Ephemeral)
+                    return
+                }
+
+                if (currentShield.cost > userData.bucks) {
+                    replyGeneric(cantAffordText, Discord.MessageFlags.Ephemeral)
+                    return
+                }
+
+                userData.bucks -= currentShield.cost
+                userData.shieldsOwned.push(currentShield.id)
+
+                replyGeneric(`**${currentShield.name}** bought! Equip it from \`${prefix}shields\`.`)
+
+                await updateShop().catch(() => { })
+                return
+
+            case 'first':
+                deferUpdate()
+                currentIndex = 0
+                await updateShop().catch((e) => console.log(e))
+                break
+
+            case 'previous':
+                deferUpdate()
+                currentIndex = Math.max(currentIndex - 1, 0)
+                await updateShop().catch((e) => console.log(e))
+                break
+
+            case 'next':
+                deferUpdate()
+                currentIndex = Math.min(currentIndex + 1, maxIndex)
+                await updateShop().catch((e) => console.log(e))
+                break
+
+            case 'last':
+                deferUpdate()
+                currentIndex = maxIndex
+                await updateShop().catch((e) => console.log(e))
+                break
+
+            case 'page':
+                await queryPage(channel, who, currentIndex + 1, maxIndex + 1, button).then(async (newPage) => {
+                    currentIndex = newPage - 1
+                    await updateShop().catch((e) => console.log(e))
+                }).catch((e) => console.log(e))
+                break
+
+            case 'back':
+                deferUpdate()
+                collector.stop('switch')
+
+                delete shopObject.files
+                if (shopMsg)
+                    await shopMsg.removeAttachments()
+
+                return await displayShops(reply, undefined, shopMsg)
+        }
+    })
+
+    collector.on('end', async (_, reason) => {
+        ended = reason
+        await updateShop().catch((e) => console.log(e))
+    })   
+
+    if (usingReactions) {
+        for (var buttonData of shopNavigationButtonsData) {
+            await shopMsg.react(buttonData.reactemoji).catch(() => { })
+        }
+    }
+
+    return instruction
 }
 
 functions.correctUrl = async function (url) {
@@ -3526,6 +3992,131 @@ functions.getLevel = function (exp) {
     return { level, exp, required: vars.battleStats.exp * (lastLevel + 1) }
 }
 
+functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherSubjId, otherSubjData, attacked, critmult, chance) {
+    let poopy = this
+    let bot = poopy.bot
+    let { getLevel } = poopy.functions
+
+    var isPoopy = subjId == bot.user.id || otherSubjId  == bot.user.id
+    var isSubjFake = !subjId
+    var subjIsYou = subjId == otherSubjId
+
+    var power = !isSubjFake && Math.round(
+            (subjData.maxHealth + subjData.attack + subjData.defense + subjData.accuracy + subjData.loot) / 5
+        * 10) / 10
+
+    var exp = 0
+    var reward = 0
+    var died = false
+
+    if (attacked && !isPoopy && !subjIsYou && subjGuildMember)
+        exp = Math.floor(Math.random() * subjData.maxHealth / 5) +
+            subjData.maxHealth / 20 + (otherSubjData.loot * 10) * critmult * (Math.pow(getLevel(subjData.exp).level, 2) / 50) * Math.round(1 / chance)
+
+    if (subjData.health <= 0) {
+        subjData.health = 0
+        subjData.death = Date.now() + 30_000
+        died = true
+
+        if (!isSubjFake) {
+            subjData.bucks = Math.floor(subjData.bucks * 0.8)
+            subjData.deaths++
+            if (!isPoopy && !subjIsYou && subjGuildMember) {
+                exp *= 50
+                reward = Math.floor(exp / 75 * power * (otherSubjData.loot / 10 + 1))
+            }
+
+            otherSubjData.kills++
+        }
+    }
+
+    if (attacked && !isPoopy && !subjIsYou && subjGuildMember)
+        exp = Math.floor(Math.random() * subjData.maxHealth / 5) +
+            subjData.maxHealth / 20 +
+            (otherSubjData.loot * 10)
+            * critmult
+            * (Math.pow(getLevel(subjData.exp).level, 2) / 50)
+            * Math.round(1 / chance)
+
+    otherSubjData.exp += exp
+    otherSubjData.bucks += reward
+
+    return [died, exp, reward]
+}
+
+functions.dealDamage = function (damage, subjUser, subjData, subjShield, subjShieldUp, subjGuildMember, otherSubjUser, otherSubjData, otherSubjShield, otherSubjShieldUp, otherGuildMember, loopDepth, critmult, chance) {
+    let poopy = this
+    let data = poopy.data
+    let { dealDamage, processSubjDeath } = poopy.functions
+    
+    loopDepth++
+
+    if (loopDepth > 10)
+        return [0, 0, [false, 0, 0], [false, 0, 0]]
+
+    var subjId = subjUser && subjUser.id
+    var otherSubjId = otherSubjUser && otherSubjUser.id
+
+    var damageReduction = 0
+    var damageRedirect = 0
+
+    damageReduction += subjGuildMember ? subjData.defense / 50 : 0
+
+    if (otherSubjShield && otherSubjShieldUp && otherSubjShield.stats.attackReduction)
+        damageReduction += otherSubjShield.stats.attackReduction
+
+    if (subjShield && subjShieldUp && subjShield.stats.damageReduction)
+        damageReduction += subjShield.stats.damageReduction
+
+    if (subjShield && subjShieldUp && subjShield.stats.damageRedirect)
+        damageRedirect += subjShield.stats.damageRedirect
+
+    damage = Math.max(Math.round(
+        damage * (1 - damageReduction)
+        * 10) / 10, 1)
+
+    var redirectedDamage = Math.max(Math.round(
+        damage * damageRedirect
+        * 10) / 10, 0)
+
+    var subjDamageDealt = damage
+    var otherSubjDamageDealt = redirectedDamage
+
+    subjData.health -= damage
+
+    if (redirectedDamage != 0 && subjData.health + damage > 0) {
+        var [redirectedDamageDealt, redirectedSquaredDamage] = dealDamage(
+            redirectedDamage,
+            otherSubjUser, otherSubjData, otherSubjShield, otherSubjShieldUp, otherGuildMember,
+            subjUser, subjData, subjShield, subjShieldUp, subjGuildMember,
+            loopDepth, critmult, chance
+        )
+
+        subjDamageDealt += redirectedSquaredDamage
+        otherSubjDamageDealt = redirectedDamageDealt
+    }
+
+    var subjDeathArray = [false, 0, 0]
+    var otherSubjDeathArray = [false, 0, 0]
+
+    if (loopDepth == 1) {
+        subjDeathArray = processSubjDeath(
+            subjId, subjData, subjGuildMember, otherSubjId, otherSubjData, true, critmult, chance
+        )
+        otherSubjDeathArray = processSubjDeath(
+            otherSubjId, otherSubjData, otherGuildMember, subjId, subjData, otherSubjDamageDealt > 0, 1, 1
+        )
+    }
+
+    if (otherSubjId)
+        data.botData.leaderboard[otherSubjId] = {
+            tag: otherSubjUser.tag,
+            bucks: otherSubjData.bucks
+        }
+
+    return [subjDamageDealt, otherSubjDamageDealt, subjDeathArray, otherSubjDeathArray]
+}
+
 functions.battle = async function (msg, subject, action, damage, chance) {
     let poopy = this
     let bot = poopy.bot
@@ -3536,7 +4127,8 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     let { Discord, fs } = poopy.modules
     let {
         getLevel, execPromise, randomNumber, fetchPingPerms,
-        randomChoice, validateFile, downloadFile, dataGather
+        randomChoice, validateFile, downloadFile, dataGather,
+        getShieldById, battleGif, dealDamage
     } = poopy.functions
 
     await msg.channel.sendTyping().catch(() => { })
@@ -3550,41 +4142,56 @@ functions.battle = async function (msg, subject, action, damage, chance) {
 
     subject = subject ?? attachment ?? sticker
 
-    var member = bot.users.fetch((subject.match(/[0-9]+/) ?? [subject])[0])
-    if (member?.catch) member = await member.catch(() => { })
+    var yourUser = msg.author
+    var subjUser = bot.users.fetch((subject.match(/[0-9]+/) ?? [subject])[0])
+    if (subjUser?.catch) subjUser = await subjUser.catch(() => { })
 
-    var isPoopy = member && member.id == bot.user.id
+    var yourId = yourUser.id
+    var subjId = subjUser && subjUser.id
+
+    var isPoopy = subjId == bot.user.id
 
     if (isPoopy) {
-        member = msg.author
+        subjUser = yourUser
+        yourUser = bot.user
+
+        subjId = subjUser.id
+        yourId = yourUser.id
         damage = Number.MAX_SAFE_INTEGER
     }
 
-    var guildMember = await msg.guild.members.fetch((subject.match(/[0-9]+/) ?? [subject])[0]).catch(() => { })
+    var subjGuildMember = await msg.guild.members.fetch((subject.match(/[0-9]+/) ?? [subject])[0]).catch(() => { })
+    var yourGuildMember = await msg.guild.members.fetch(yourId).catch(() => { })
 
-    var yourData = isPoopy ? data.userData[bot.user.id] : data.userData[msg.author.id]
+    var yourData = data.userData[yourId]
 
-    var subjData = member && (
-        data.userData[member.id] ||
+    var subjData = subjUser && (
+        data.userData[subjId] ||
         (
-            data.userData[member.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.userData(config.database, member.id).catch(() => { }) || {}
+            data.userData[subjId] = !config.testing && process.env.MONGOOSE_URL && await dataGather.userData(config.database, subjId).catch(() => { }) || {}
         )
     )
 
-    if (member) {
-        var yourBlock = (yourData.blocked ?? []).find(u => u.id == (isPoopy ? bot.user.id : member.id))
-        var subjBlock = (subjData.blocked ?? []).find(u => u.id == msg.author.id)
+    var yourShield = yourData && getShieldById(yourData.shieldEquipped)
+    var subjShield = subjData && getShieldById(subjData.shieldEquipped)
+
+    var yourShieldUp = yourData && yourData.shielded
+    var subjShieldUp = subjData && subjData.shielded
+
+    if (subjUser) {
+        var yourBlock = (yourData.blocked ?? []).find(u => u.id == subjId)
+        var subjBlock = (subjData.blocked ?? []).find(u => u.id == yourId)
 
         var blockPhrase = yourBlock && subjBlock ? "you blocked each other" :
             yourBlock ? "you blocked them" : "they blocked you"
 
         if (yourBlock || subjBlock) {
-            await msg.reply(`You can't attack **${member.displayName.replace(/\@/g, '@‌')}** because **${blockPhrase}**.`).catch(() => { })
+            await msg.reply(`You can't attack **${subjUser.displayName.replace(/\@/g, '@‌')}** because **${blockPhrase}**.`).catch(() => { })
             return
         }
     }
 
-    var fakeSubj = !member && !guildMember
+    var fakeSubj = !subjUser && !subjGuildMember
     var fakeSubjData = fakeSubj && (
         tempdata[`fakeSubj${subject}`] ||
         (
@@ -3610,16 +4217,27 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     let attacked = isPoopy || (Math.random() < chance + (yourData.accuracy * 0.1))
     let critical = isPoopy || (attacked && Math.random() < 0.1 + (yourData.accuracy * 0.05))
     let critmult = critical ? Math.floor(Math.random() * 3) + 2 : 1
-    let died = false
-
+    
     damage += Math.floor(Math.random() * (yourData.attack + 1)) * 2
     if (critical) damage *= critmult
 
-    var exp = 0
-    var reward = 0
-    var lastLevel = getLevel(yourData.exp).level
+    var subjDied = false
+    var subjExp = 0
+    var subjReward = 0
 
-    if (member && subjData) {
+    var youDied = false
+    var yourExp = 0
+    var yourReward = 0
+
+    var subjLastBucks = subjData && subjData.bucks
+    var yourLastBucks = yourData && yourData.bucks
+    var subjLastLevel = subjData ? (getLevel(subjData.exp).level) : 0
+    var yourLastLevel = (getLevel(yourData.exp).level)
+    
+    var youGotHit = false
+    var gotDamaged = 0
+
+    if (subjUser && subjData) {
         for (var stat in vars.battleStats) {
             if (subjData[stat] === undefined) {
                 subjData[stat] = vars.battleStats[stat]
@@ -3629,92 +4247,139 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     }
 
     if (attacked) {
-        if (member) {
-            var power = Math.round((subjData.maxHealth + subjData.attack + subjData.defense + subjData.accuracy + subjData.loot) / 5 * 10) / 10
+        var thisSubjData = subjUser ? subjData : fakeSubjData
 
-            damage = Math.max(Math.round(damage / (subjData.defense / 20 + 1) * 10) / 10, 1)
-            subjData.health -= damage
-            if (!isPoopy && member.id != msg.author.id && guildMember) exp = Math.floor(Math.random() * subjData.maxHealth / 5) + subjData.maxHealth / 20 + (yourData.loot * 10) * critmult * (Math.pow(getLevel(subjData.exp).level, 2) / 50) * Math.round(1 / chance)
+        var [damageDealt, damageReceived, subjDeathArray, yourDeathArray] = dealDamage(
+            damage,
+            subjUser, thisSubjData, subjShield, subjShieldUp, subjGuildMember,
+            yourUser, yourData, yourShield, yourShieldUp, yourGuildMember,
+            0, critmult, chance
+        );
 
-            if (subjData.health <= 0) {
-                subjData.health = 0
-                subjData.death = Date.now() + 30_000
-                subjData.deaths++
-                if (!isPoopy && member.id != msg.author.id && guildMember) {
-                    exp *= 50
-                    reward = Math.floor(exp / 75 * power * (yourData.loot / 10 + 1))
-                }
-                died = true
+        [subjDied, yourExp, yourReward] = subjDeathArray;
+        [youDied, subjExp, subjReward] = yourDeathArray;
 
-                yourData.kills++
-            }
+        gotDamaged = damageReceived
+        youGotHit = gotDamaged > 0
 
-            yourData.exp += exp
-            yourData.bucks += reward
-
-            data.botData.leaderboard[isPoopy ? bot.user.id : msg.author.id] = {
-                tag: msg.author.tag,
-                bucks: yourData.bucks
-            }
-        } else if (fakeSubj) {
-            fakeSubjData.health -= damage
-
-            if (fakeSubjData.health <= 0) {
-                fakeSubjData.health = 0
-                fakeSubjData.death = Date.now() + 30_000
-                died = true
-            }
-        }
+        damage = damageDealt
     }
 
-    var level = getLevel(yourData.exp).level
+    var subjIsYou = subjId == yourId
+
+    var subjBucks = subjData && subjData.bucks
+    var yourBucks = yourData && yourData.bucks
+    var subjLevel = subjData ? getLevel(subjData.exp).level : 0
+    var yourLevel = getLevel(yourData.exp).getLevel
+
+    var yourName = yourUser.displayName
+    var subjName = (subjUser && subjUser.displayName) ?? subject ?? 'this'
+
     var actions = []
 
     if (critical) actions.push('***CRITICAL HIT!***')
     actions.push(
         action
-            .replace('{src}', isPoopy ? bot.user.displayName : msg.author.displayName)
-            .replace('{trgt}', (member && member.displayName) ?? subject ?? 'this')
+            .replace('{src}', yourName)
+            .replace('{trgt}', subjName)
             .replace('{dmg}', damage)
     )
-    if (died) actions.push(!isPoopy && member && member.id == msg.author.id ? 'You\'ve literally killed yourself... but at what cost...?' : `${isPoopy ? "You" : "They"} have died.`)
-    if (level > lastLevel) actions.push(`You leveled UP!`)
+
+    if (youGotHit) actions.push(`**${subjName}** hit you back for **${gotDamaged}** damage!`)
+
+    if (youDied) actions.push('You have died.')
+    if (subjDied) actions.push(subjIsYou ? 'Congratulations.' : `They have died.`)
+    if (yourLevel > yourLastLevel) actions.push(`You leveled UP!`)
+    if (subjLevel > subjLastLevel) actions.push(`They leveled UP!`)
 
     var stats = []
 
-    if ((member && subjData) || (fakeSubj && fakeSubjData)) {
+    if ((subjUser && subjData) || (fakeSubj && fakeSubjData)) {
+        var yourShieldedString = yourShield && yourShieldUp && ` (${yourShield.name})` || ""
+        var subjShieldedString = subjShield && subjShieldUp && ` (${subjShield.name})` || ""
+
         stats.push({
-            name: `${isPoopy ? bot.user.displayName : msg.author.displayName}'s Health`,
+            name: `${yourName}'s Health${yourShieldedString}`,
             value: `${yourData.health.toFixed(1).replace(/\.0+$/, "")} HP`,
             inline: true
         })
-        if ((member ? member.id != msg.author.id : fakeSubj) || isPoopy) stats.push({
-            name: `${subjData ? member.displayName : subject}'s Health`,
-            value: `${(subjData ? subjData : fakeSubjData).health.toFixed(1).replace(/\.0+$/, "")} HP`,
+
+        if (subjId ? subjId != yourId : fakeSubj)
+            stats.push({
+                name: `${subjName}'s Health${subjShieldedString}`,
+                value: `${(subjData ? subjData : fakeSubjData).health.toFixed(1).replace(/\.0+$/, "")} HP`,
+                inline: true
+            })
+    }
+
+    function formatNumber(number) {
+        var formattedNumber = number.toFixed(2)
+        if (formattedNumber.includes('.'))
+            formattedNumber = formattedNumber.replace(/0+$/, '').replace(/\.$/, '')
+
+        return formattedNumber
+    }
+
+    if (yourExp) {
+        stats.push({
+            name: `${yourName}'s Experience`,
+            value: `+${formatNumber(yourExp)} XP`,
             inline: true
         })
     }
 
-    if (exp) {
+    if (subjDied && yourReward) {
         stats.push({
-            name: "Experience",
-            value: `+${exp.toFixed(1).replace(/\.0+$/, "")} XP`,
+            name: `${yourName}'s Reward`,
+            value: `+${formatNumber(yourReward)} P$`,
             inline: true
         })
     }
 
-    if (died && reward) {
+    if (yourLevel > yourLastLevel) {
         stats.push({
-            name: "Reward",
-            value: `+${reward} P$`,
+            name: `${yourName}'s Level`,
+            value: `${yourLastLevel} -> **${yourLevel}**`,
             inline: true
         })
     }
 
-    if (level > lastLevel) {
+    if (yourLastBucks != yourBucks) {
         stats.push({
-            name: "Level",
-            value: level,
+            name: `${yourName}'s Money`,
+            value: `${formatNumber(yourLastBucks)} P$ -> **${formatNumber(yourBucks)}** P$`,
+            inline: true
+        })
+    }
+
+    if (subjExp && !subjIsYou) {
+        stats.push({
+            name: `${subjName}'s Experience`,
+            value: `+${formatNumber(subjExp)} XP`,
+            inline: true
+        })
+    }
+
+    if (youDied && subjReward && !subjIsYou) {
+        stats.push({
+            name: `${subjName}'s Reward`,
+            value: `+${formatNumber(subjReward)} P$`,
+            inline: true
+        })
+    }
+
+    if (subjLevel > subjLastLevel && !subjIsYou) {
+        stats.push({
+            name: `${subjName}'s Level`,
+            value: `${formatNumber(subjLastLevel)} -> **${formatNumber(subjLevel)}**`,
+            inline: true
+        })
+    }
+
+    if (subjLastBucks != subjBucks && !subjIsYou) {
+        stats.push({
+            name: `${subjName}'s Money`,
+            value: `${formatNumber(subjLastBucks)} P$ -> **${formatNumber(subjBucks)}** P$`,
             inline: true
         })
     }
@@ -3737,43 +4402,32 @@ functions.battle = async function (msg, subject, action, damage, chance) {
         }
     }
 
-    var filepath
-    if ((member && subjData) || (vars.validUrl.test(subject) && (await validateFile(subject).catch(() => { })))) {
-        var avatar = member ? (subjData.battleSprites[died ? 'dead' : attacked ? 'hurt' : 'miss'] ?? member.displayAvatarURL({
-            dynamic: true, size: 256, extension: 'png'
-        })) : subject
+    payload.files = []
 
-        filepath = await downloadFile(avatar, 'avatar.png')
-
-        var spazz = () => `+(random(t+${Math.floor(Math.random() * 1000)})*2-1)*(0.4-mod(t,0.4))*15`
-        var bossX = () => `+cos(PI/2*((t+${i + 1}*0.4)/0.4))*10`
-        var bossY = () => `+sin(PI*((t+${i + 1}*0.4)/0.4))*10`
-
-        var attackPos = new Array(4).fill().map(() =>
-            attacked ?
-                [randomNumber(50, 150), randomNumber(25, 125)] :
-                [randomChoice([randomNumber(0, 25), randomNumber(175, 200)]), randomChoice([randomNumber(0, 25), randomNumber(125, 150)])]
-        )
-        var attackOverlay = []
-        var attackConcat = []
-        var enemyConcat = []
-
-        for (var i in attackPos) {
-            i = Number(i)
-            var pos = attackPos[i]
-            var x = pos[0]
-            var y = pos[1]
-
-            attackOverlay.push(`${!attacked && i % 2 != 0 ? `[en${i}]hflip[enf${i}];` : ''}[2:v][en${!attacked && i % 2 != 0 ? 'f' : ''}${i}]overlay=x='(W-w)/2${attacked ? spazz() : bossX(i)}':y='(H-h)/2${attacked ? spazz() : bossY(i)}${died ? `+t*40+(40*${i})` : ''}':format=auto[shake${i}];[shake${i}][1:v]overlay=shortest=1:x=${x}-w/2:y=${y}-h/2:format=auto[attack${i}]`)
-            attackConcat.push(`[attack${i}]`)
-            enemyConcat.push(`[en${i}]`)
-        }
-
-        await execPromise(`ffmpeg -stream_loop -1 -i ${filepath}/avatar.png -i assets/image/${critical ? 'crit' : ''}attack.gif -stream_loop -1 -f lavfi -i "color=0x00000000:s=200x150,format=rgba" -filter_complex "[0:v]scale=100:100:force_original_aspect_ratio=decrease,split=${enemyConcat.length}${enemyConcat.join('')};${attackOverlay.join(';')};${attackConcat.join('')}concat=n=${attackConcat.length},split[pout][ppout];[ppout]palettegen=reserve_transparent=1[palette];[pout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -preset ultrafast -gifflags -offsetting ${filepath}/attack.gif`)
-
+    if ((subjUser && subjData) || (vars.validUrl.test(subject) && (await validateFile(subject).catch(() => { })))) {
+        var filepath = await battleGif(subject, subjData, subjUser, attacked, subjDied, critical, subjShieldUp, subjShield)
+        
         if (fs.existsSync(`${filepath}/attack.gif`)) {
-            payload.files = [new Discord.AttachmentBuilder(`${filepath}/attack.gif`)]
+            payload.files.push(new Discord.AttachmentBuilder(`${filepath}/attack.gif`))
             payload.embeds[0].image = { url: 'attachment://attack.gif' }
+        }
+    }
+
+    if (youGotHit && !subjIsYou) {
+        var filepath2 = await battleGif(subject, yourData, yourUser, true, youDied, false, yourShieldUp, yourShield, 'attack2.gif')
+        
+        if (fs.existsSync(`${filepath2}/attack2.gif`)) {
+            payload.files.push(new Discord.AttachmentBuilder(`${filepath2}/attack2.gif`))
+            payload.embeds.push({
+                color: 0x472604,
+                image: { url: 'attachment://attack2.gif' },
+                footer: {
+                    icon_url: bot.user.displayAvatarURL({
+                        dynamic: true, size: 1024, extension: 'png'
+                    }),
+                    text: bot.user.displayName
+                },
+            })
         }
     }
 
@@ -3785,6 +4439,128 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     if (filepath && fs.existsSync(filepath)) fs.rm(filepath, { force: true, recursive: true })
 
     return attacked ? actions.join(' ') : 'You missed!'
+}
+
+functions.battleGif = async function(subject, subjData, member, attacked, died, critical, subjShieldUp, subjShield, fileName) {
+    let poopy = this
+    let { downloadFile, randomNumber, randomChoice,
+        execPromise } = poopy.functions
+
+    var correctBattleSprite = died ? 'dead' : attacked ? 'hurt' : 'miss'
+
+    fileName = fileName ?? 'attack.gif'
+
+    var avatar = member ? (subjData.battleSprites[correctBattleSprite] ?? member.displayAvatarURL({
+        dynamic: true, size: 256, extension: 'png'
+    })) : subject
+
+    var subjShieldFileName = subjShield && `${subjShield.id}.png`
+    var subjShieldImagePath = subjShield && `assets/image/shields/${subjShieldFileName}`
+
+    filepath = await downloadFile(avatar, 'avatar.png')
+
+    var spazz = () => `+(random(t+${Math.floor(Math.random() * 1000)})*2-1)*(0.4-mod(t,0.4))*15`
+    var bossX = () => `+cos(PI/2*((t+${i + 1}*0.4)/0.4))*10`
+    var bossY = () => `+sin(PI*((t+${i + 1}*0.4)/0.4))*10`
+
+    var attackPositions = new Array(4).fill().map(() =>
+        attacked ?
+            [
+                randomNumber(50, 150),
+                randomNumber(25, 125)
+            ] :
+            [
+                randomChoice([
+                    randomNumber(0, 25), randomNumber(175, 200)
+                ]),
+                randomChoice([
+                    randomNumber(0, 25), randomNumber(125, 150)
+                ])
+            ]
+    )
+    var attackOverlayFilters = []
+    var resultSymbols = []
+    var enemySymbols = []
+    var shieldSymbols = []
+
+    var showShield = subjShieldUp && subjShieldImagePath && attacked
+
+    for (var i in attackPositions) {
+        i = Number(i)
+        var attackPosition = attackPositions[i]
+        var attackX = attackPosition[0]
+        var attackY = attackPosition[1]
+
+        var isOdd = i % 2 != 0
+        var doFlip = !attacked && isOdd
+
+        var attackGifSymbol = `[1:v]`
+        var backgroundImageSymbol = `[2:v]`
+        var shieldImageSymbol = `[shield${i}]`
+        var enemySymbol = `[en${i}]`
+        var enemyFlippedSymbol = `[enf${i}]`
+        var enemyOffsetSymbol = `[shake${i}]`
+        var enemyShieldOverlaidSymbol = `[enshield${i}]`
+        var finalSymbol = `[attack${i}]`
+
+        var enemySymbolSwitchOnFlip = doFlip ? enemyFlippedSymbol : enemySymbol
+        var preAttackGifOverlaySymbol = enemyOffsetSymbol
+
+        var xAdd = attacked ? spazz() : bossX(i)
+        var yAdd = attacked ? spazz() : bossY(i)
+
+        var yDeathAdd = died ? `+t*40+(40*${i})` : ''
+
+        var shieldFilter = `${enemyOffsetSymbol}${shieldImageSymbol}overlay=` +
+            `x='(W-w)/2-25${xAdd}':` +
+            `y='(H-h)/2+30${yAdd}${yDeathAdd}':` +
+            `format=auto${enemyShieldOverlaidSymbol};`
+
+        if (showShield)
+            preAttackGifOverlaySymbol = enemyShieldOverlaidSymbol
+
+        attackOverlayFilters.push(`${doFlip ? `${enemySymbol}hflip${enemyFlippedSymbol};` : ''}` +
+            `${backgroundImageSymbol}${enemySymbolSwitchOnFlip}overlay=` +
+            `x='(W-w)/2${xAdd}':` +
+            `y='(H-h)/2${yAdd}${yDeathAdd}':` +
+            `format=auto${enemyOffsetSymbol};` +
+            (showShield ? shieldFilter : '') +
+            `${preAttackGifOverlaySymbol}${attackGifSymbol}overlay=` +
+            `shortest=1:` +
+            `x=${attackX}-w/2:` +
+            `y=${attackY}-h/2:` +
+            `format=auto${finalSymbol}`
+        )
+
+        resultSymbols.push(finalSymbol)
+        enemySymbols.push(enemySymbol)
+        shieldSymbols.push(shieldImageSymbol)
+    }
+
+    var attackGifPrefix = 'assets/image/' + (critical ? 'crit' : '')
+
+    var shieldInput = `-stream_loop -1 -i ${subjShieldImagePath} `
+    var shieldSplit = `[3:v]scale=75:75:force_original_aspect_ratio=decrease,` +
+        `split=${shieldSymbols.length}${shieldSymbols.join('')};`
+
+    await execPromise(`ffmpeg -stream_loop -1 ` +
+        `-i ${filepath}/avatar.png ` +
+        `-i ${attackGifPrefix}attack.gif ` +
+        `-stream_loop -1 ` +
+        `-f lavfi -i "color=0x00000000:s=200x150,format=rgba" ` +
+        (showShield ? shieldInput : '') +
+        `-filter_complex ` +
+        `"[0:v]scale=100:100:force_original_aspect_ratio=decrease,` +
+        `split=${enemySymbols.length}${enemySymbols.join('')};` +
+        (showShield ? shieldSplit : '') +
+        `${attackOverlayFilters.join(';')};` +
+        `${resultSymbols.join('')}concat=n=${resultSymbols.length},` +
+        `split[pout][ppout];` +
+        `[ppout]palettegen=reserve_transparent=1[palette];[pout][palette]paletteuse=alpha_threshold=128[out]" ` +
+        `-map "[out]" -preset ultrafast -gifflags -offsetting ` +
+        `${filepath}/${fileName}`)
+    
+    return filepath
 }
 
 functions.userToken = function (id, token) {
@@ -4699,6 +5475,155 @@ functions.getTotalHivemindStatus = async function () {
     }
 
     return status;
+}
+
+functions.getShieldById = function (shieldId) {
+    let poopy = this
+    let json = poopy.json
+
+    var shields = json.shieldJSON
+
+    if (shieldId === undefined)
+        return undefined
+
+    return shields.find((shield) => shield.id == shieldId)
+}
+
+functions.formatNumberWithPreset = function (number, preset) {
+    var displaySign = preset.startsWith('+')
+    var displaySignFlipped = preset.startsWith('-')
+    displaySign = displaySign || displaySignFlipped
+
+    if (displaySign)
+        preset = preset.substring(1)
+
+    var formattedString = ""
+
+    switch (preset) {
+        case "%":
+            formattedString = `${number * 100}%`
+            break
+        
+        case "=":
+            formattedString = String(number)
+            break
+    }
+
+    if (displaySign) {
+        var sign = Math.sign(number)
+        var signSymbol = sign >= 0 ? '+' : '-'
+        if (displaySignFlipped)
+            signSymbol = signSymbol == '+' ? '-' : '+'
+
+        formattedString = signSymbol + formattedString
+    }
+
+    return formattedString
+}
+
+functions.getShieldStatsAsEmbedFields = function(shield) {
+    let poopy = this
+    let vars = poopy.vars
+    let { formatNumberWithPreset } = poopy.functions
+
+    var shieldStats = []
+
+    for (var i in vars.shieldStatsDisplayInfo) {
+        var statDisplayInfo = vars.shieldStatsDisplayInfo[i]
+        var statName = statDisplayInfo.name
+
+        var statValue = shield.stats[statName]
+        if (statValue === undefined)
+            continue
+
+        shieldStats.push({
+            name: statDisplayInfo.displayName,
+            value: formatNumberWithPreset(statValue, statDisplayInfo.format),
+            inline: true
+        })
+    }
+
+    return shieldStats
+}
+
+functions.queryPage = function (channel, who, page, lastPage, interaction) {
+    let poopy = this
+    let bot = poopy.bot
+    let config = poopy.config
+    let { dmSupport, parseNumber } = poopy.functions
+    let { Discord, DiscordTypes } = poopy.modules
+
+    var newpage = page
+
+    return new Promise(async resolve => {
+        if (config.useReactions) {
+            var goMessage = await channel.send('Which page would you like to go...?').catch(() => { })
+
+            var pageCollector = channel.createMessageCollector({ time: 30000 })
+
+            pageCollector.on('collect', (msg) => {
+                dmSupport(msg)
+
+                if (!(msg.author.id === who && ((msg.author.id !== bot.user.id && !msg.author.bot) || config.allowbotusage))) {
+                    return
+                }
+
+                newpage = parseNumber(msg.content, { dft: page, min: 1, max: lastPage, round: true })
+                pageCollector.stop()
+                msg.delete().catch(() => { })
+            })
+
+            pageCollector.on('end', () => {
+                if (goMessage) goMessage.delete().catch(() => { })
+                resolve(newpage)
+            })
+        } else {
+            var pageModal = new Discord.ModalBuilder()
+                .setCustomId('page-modal')
+                .setTitle('Select your page...')
+                .addComponents(
+                    new Discord.ActionRowBuilder().addComponents(
+                        new Discord.TextInputBuilder()
+                            .setCustomId('page-num')
+                            .setLabel('Page')
+                            .setStyle(Discord.TextInputStyle.Short)
+                            .setMinLength(1)
+                            .setMaxLength(String(lastPage).length)
+                            .setPlaceholder(`1-${lastPage}`)
+                            .setRequired(true)
+                    )
+                )
+
+            interaction.showModal(pageModal).then(() => {
+                var done = false
+
+                var modalCallback = (modal) => {
+                    if (modal.type !== DiscordTypes.InteractionType.ModalSubmit) return
+
+                    if (modal.deferUpdate) modal.deferUpdate().catch(() => { })
+
+                    if (!(modal.user.id === who && ((modal.user.id !== bot.user.id && !modal.user.bot) || config.allowbotusage)) || done) {
+                        return
+                    }
+
+                    done = true
+                    newpage = parseNumber(modal.fields.getTextInputValue('page-num'), { dft: page, min: 1, max: lastPage, round: true })
+                    clearTimeout(modalTimeout)
+                    resolve(newpage)
+                }
+
+                var modalTimeout = setTimeout(() => {
+                    if (!done) {
+                        done = true
+                        bot.removeListener('interactionCreate', modalCallback)
+                        resolve(newpage)
+                    }
+                }, 30000)
+
+                bot.once('interactionCreate', modalCallback)
+            }).catch(() => resolve(newpage))
+        }
+    })
 }
 
 module.exports = functions

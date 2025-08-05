@@ -1,0 +1,64 @@
+[
+    {
+        "id": "base",
+        "name": "Base Shield",
+        "description": "The trusty default shield.",
+        "cost": 0,
+        "stats": {
+            "damageReduction": 0.4,
+            "attackReduction": 0.5
+        }
+    },
+    {
+        "id": "metal",
+        "name": "Metal Shield",
+        "description": "A sturdy shield reinforced with metal.",
+        "cost": 500,
+        "stats": {
+            "damageReduction": 0.5,
+            "attackReduction": 0.5
+        }
+    },
+    {
+        "id": "thorn",
+        "name": "Thorn Shield",
+        "description": "This prickly shield will redirect some of the damage you take back to the attacker!",
+        "cost": 1500,
+        "stats": {
+            "damageReduction": 0.25,
+            "attackReduction": 0.7,
+            "damageRedirect": 0.3
+        }
+    },
+    {
+        "id": "silver",
+        "name": "Silver Shield",
+        "description": "A shield made completely out of silver. Well-rounded stats.",
+        "cost": 3000,
+        "stats": {
+            "damageReduction": 0.6,
+            "attackReduction": 0.4
+        }
+    },
+    {
+        "id": "spike",
+        "name": "Spiked Shield",
+        "description": "This shield has a big spike. Ouch. That's gotta hurt.",
+        "cost": 5000,
+        "stats": {
+            "damageReduction": 0.5,
+            "attackReduction": 0.8,
+            "damageRedirect": 0.45
+        }
+    },
+    {
+        "id": "anvil",
+        "name": "Anvil",
+        "description": "What the fuck.",
+        "cost": 100000,
+        "stats": {
+            "damageReduction": 0.999,
+            "attackReduction": 0.99
+        }
+    }
+]
