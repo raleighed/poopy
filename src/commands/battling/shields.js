@@ -93,7 +93,7 @@ module.exports = {
             equippedShieldId = userData.shieldEquipped
             equippedShield = getShieldById(equippedShieldId)
 
-            currentShield = shields[currentIndex]
+            currentShield = ownedShields[currentIndex]
             currentShieldIsEquipped = currentShield == equippedShield
 
             var currentShieldImageFileName = `${currentShield.id}.png`
