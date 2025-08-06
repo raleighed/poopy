@@ -1,4 +1,4 @@
-const { os, fs, request, CryptoJS } = require('./modules')
+const { os, fs, request, CryptoJS, DiscordTypes } = require('./modules')
 let vars = require('./vars')
 let functions = {}
 
@@ -503,9 +503,6 @@ functions.configFlagsEnabled = function (reqConfigs = []) {
 }
 
 functions.fetchPingPerms = function (msg) {
-    let poopy = this
-    let { DiscordTypes } = poopy.modules
-
     return (
         msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
         msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.MentionEveryone) ||
@@ -1271,7 +1268,7 @@ functions.yesno = async function (channel, content, who, btdata, reply) {
     let bot = poopy.bot
     let config = poopy.config
     let { chunkArray, dmSupport } = poopy.functions
-    let { Discord, DiscordTypes } = poopy.modules
+    let { Discord } = poopy.modules
 
     return new Promise(async (resolve) => {
         if (config.forcetrue) {
@@ -1492,7 +1489,7 @@ functions.navigateEmbed = async function (channel, pageFunc, results, who, extra
     let config = poopy.config
     let tempdata = poopy.tempdata
     let { chunkArray, dmSupport, queryPage } = poopy.functions
-    let { Discord, DiscordTypes } = poopy.modules
+    let { Discord } = poopy.modules
 
     page = page ?? 1
 
@@ -1760,7 +1757,7 @@ functions.rainmaze = async function (channel, who, reply, w = 8, h = 6) {
     let config = poopy.config
     let data = poopy.data
     let { chunkArray, dmSupport, randomNumber } = poopy.functions
-    let { Discord, DiscordTypes, Rainmaze } = poopy.modules
+    let { Discord, Rainmaze } = poopy.modules
 
     var buttonsData = config.useReactions ? [
         {
@@ -2003,7 +2000,7 @@ functions.displayShops = async function (msg, shopType, shopMsg) {
     let bot = poopy.bot
     let { displayShop, fetchPingPerms, chunkArray,
         dmSupport } = poopy.functions
-    let { Discord, DiscordTypes } = poopy.modules
+    let { Discord } = poopy.modules
 
     let types = ['upgrades', 'buffs', 'items', 'shields']
 
@@ -2162,7 +2159,6 @@ functions.displayShops = async function (msg, shopType, shopMsg) {
 functions.displayShop = async function (channel, who, reply, shopType, shopMsg) {
     let poopy = this
     let { displayUpgradesShop, displayShieldsShop } = poopy.functions
-    let { DiscordTypes } = poopy.modules
 
     if (shopType != "upgrades" && shopType != "shields") {
         await (reply ?? channel)[reply ? 'reply' : 'send']("Work in progress.").catch(() => { })
@@ -2199,7 +2195,7 @@ functions.displayUpgradesShop = async function (channel, who, reply, shopObject,
     let config = poopy.config
     let { chunkArray, dmSupport, getLevel,
         displayShops } = poopy.functions
-    let { Discord, DiscordTypes } = poopy.modules
+    let { Discord } = poopy.modules
 
     let shopType = 'upgrades'
 
@@ -2473,7 +2469,7 @@ functions.displayShieldsShop = async function (channel, who, reply, shopObject, 
     let json = poopy.json
     let { chunkArray, dmSupport, queryPage,
         displayShops, getShieldStatsAsEmbedFields } = poopy.functions
-    let { Discord, DiscordTypes } = poopy.modules
+    let { Discord } = poopy.modules
 
     let shopType = 'shields'
 
@@ -4118,12 +4114,12 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     let data = poopy.data
     let tempdata = poopy.tempdata
     let vars = poopy.vars
-    let { Discord, fs } = poopy.modules
     let {
         getLevel, execPromise, randomNumber, fetchPingPerms,
         randomChoice, validateFile, downloadFile, dataGather,
-        getShieldById, battleGif, dealDamage
+        getShieldById, battleGif, dealDamage, resolveUser
     } = poopy.functions
+    let { Discord } = poopy.modules
 
     await msg.channel.sendTyping().catch(() => { })
     var attachment = msg.attachments.first()?.url
@@ -4137,7 +4133,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     subject = subject ?? attachment ?? sticker
 
     var yourUser = msg.author
-    var subjUser = bot.users.fetch((subject.match(/[0-9]+/) ?? [subject])[0])
+    var subjUser = resolveUser(subject, msg.guild)
     if (subjUser?.catch) subjUser = await subjUser.catch(() => { })
 
     var yourId = yourUser.id
@@ -4154,7 +4150,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
         damage = Number.MAX_SAFE_INTEGER
     }
 
-    var subjGuildMember = await msg.guild.members.fetch((subject.match(/[0-9]+/) ?? [subject])[0]).catch(() => { })
+    var subjGuildMember = subjId && await msg.guild.members.fetch(subjId).catch(() => { })
     var yourGuildMember = await msg.guild.members.fetch(yourId).catch(() => { })
 
     var yourData = data.userData[yourId]
@@ -5250,7 +5246,6 @@ functions.changeStatus = function () {
     let config = poopy.config
     let json = poopy.json
     let { infoPost } = poopy.functions
-    let { DiscordTypes } = poopy.modules
 
     if (!config.allowpresence) return
 
@@ -5545,7 +5540,7 @@ functions.queryPage = function (channel, who, page, lastPage, interaction) {
     let bot = poopy.bot
     let config = poopy.config
     let { dmSupport, parseNumber } = poopy.functions
-    let { Discord, DiscordTypes } = poopy.modules
+    let { Discord } = poopy.modules
 
     var newpage = page
 
@@ -5618,6 +5613,72 @@ functions.queryPage = function (channel, who, page, lastPage, interaction) {
             }).catch(() => resolve(newpage))
         }
     })
+}
+
+functions.resolveUser = async function (identifier, guild) {
+    let poopy = this
+    let bot = poopy.bot
+    let data = poopy.data
+    let { similarity } = poopy.functions
+
+    if (identifier === undefined)
+        return undefined
+
+    identifier = String(identifier)
+
+    var identifierIsId = identifier.search(/[0-9]+/) == identifier
+    if (identifierIsId) {
+        var userResolvedById = await bot.users.fetch(identifier).catch(() => { })
+        if (userResolvedById)
+            return userResolvedById
+    }
+    
+    var cachedUserFromUsernameOrGlobalName = bot.users.cache.find(
+        user => user.username == identifier || user.globalName == identifier
+    )
+    if (cachedUserFromUsernameOrGlobalName)
+        return cachedUserFromUsernameOrGlobalName
+
+    var idFromLeaderboardTag = Object.keys(data.botData.leaderboard).find(id => data.botData.leaderboard[id]?.tag == identifier)
+    if (idFromLeaderboardTag) {
+        var userResolvedByLeaderboardId = await bot.users.fetch(idFromLeaderboardTag).catch(() => { })
+        if (userResolvedByLeaderboardId)
+            return userResolvedByLeaderboardId
+    }
+
+    if (guild) {
+        var memberFromUsernameOrNicknameOrGlobalNameInGuild = guild.members.cache.find(
+            member => member.user.username == identifier
+                || member.nickname == identifier
+                || member.user.globalName == identifier
+        )
+
+        if (memberFromUsernameOrNicknameOrGlobalNameInGuild)
+            return memberFromUsernameOrNicknameOrGlobalNameInGuild.user
+
+        var searchResults = await guild.members.search({
+            query: identifier
+        })
+
+        var highestSimilarityMapped = searchResults.mapValues(
+            member => Math.max(
+                similarity(member.user.username, identifier),
+                member.nickname ? similarity(member.nickname, identifier) : 0,
+                member.user.globalName ? similarity(member.user.globalName, identifier) : 0
+            )
+        )
+
+        var thresholded = highestSimilarityMapped.filter(
+            (score) => score > 0.7
+        ).sorted((scoreA, scoreB) => scoreB - scoreA)
+
+        var memberFromSearchQuery = searchResults.get(thresholded.firstKey())
+
+        if (memberFromSearchQuery)
+            return memberFromSearchQuery.user
+    }
+
+    return null
 }
 
 module.exports = functions
