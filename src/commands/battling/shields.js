@@ -76,9 +76,6 @@ module.exports = {
         var currentShieldIsEquipped = currentShield == equippedShield
         var maxIndex = ownedShields.length - 1
 
-        // TO-DO: interaction shit
-        // atm this just displays your equipped shield
-
         var usingReactions = config.useReactions
         var usingComponents = !usingReactions
         var ended = false
@@ -304,7 +301,7 @@ module.exports = {
         return textContent
     },
     help: {
-        name: 'shields',
+        name: '<:newpoopy:839191885310066729> shields',
         value: "View a list of your owned shields and equip whichever one you want."
     },
     cooldown: 5000,

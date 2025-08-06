@@ -3996,11 +3996,10 @@ functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherS
     let bot = poopy.bot
     let { getLevel } = poopy.functions
 
-    var isPoopy = subjId == bot.user.id || otherSubjId  == bot.user.id
-    var isSubjFake = !subjId
+    var isPoopy = subjId == bot.user.id || otherSubjId == bot.user.id
     var subjIsYou = subjId == otherSubjId
 
-    var power = !isSubjFake && Math.round(
+    var power = subjGuildMember && Math.round(
             (subjData.maxHealth + subjData.attack + subjData.defense + subjData.accuracy + subjData.loot) / 5
         * 10) / 10
 
@@ -4010,32 +4009,31 @@ functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherS
 
     if (attacked && !isPoopy && !subjIsYou && subjGuildMember)
         exp = Math.floor(Math.random() * subjData.maxHealth / 5) +
-            subjData.maxHealth / 20 + (otherSubjData.loot * 10) * critmult * (Math.pow(getLevel(subjData.exp).level, 2) / 50) * Math.round(1 / chance)
+            subjData.maxHealth / 20 +
+            (otherSubjData.loot * 10)
+            * critmult
+            * (Math.pow(getLevel(subjData.exp).level, 2) / 50)
+            * Math.round(1 / chance)
 
     if (subjData.health <= 0) {
         subjData.health = 0
         subjData.death = Date.now() + 30_000
         died = true
 
-        if (!isSubjFake) {
+        if (subjGuildMember) {
             subjData.bucks = Math.floor(subjData.bucks * 0.8)
             subjData.deaths++
-            if (!isPoopy && !subjIsYou && subjGuildMember) {
+            console.log("now...")
+            if (!isPoopy && !subjIsYou) {
+                console.log('YAY REWARD')
                 exp *= 50
                 reward = Math.floor(exp / 75 * power * (otherSubjData.loot / 10 + 1))
-            }
+            } else 
+                console.log('NAY REWARD')
 
             otherSubjData.kills++
         }
     }
-
-    if (attacked && !isPoopy && !subjIsYou && subjGuildMember)
-        exp = Math.floor(Math.random() * subjData.maxHealth / 5) +
-            subjData.maxHealth / 20 +
-            (otherSubjData.loot * 10)
-            * critmult
-            * (Math.pow(getLevel(subjData.exp).level, 2) / 50)
-            * Math.round(1 / chance)
 
     otherSubjData.exp += exp
     otherSubjData.bucks += reward
@@ -4227,11 +4225,6 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     var youDied = false
     var yourExp = 0
     var yourReward = 0
-
-    var subjLastBucks = subjData && subjData.bucks
-    var yourLastBucks = yourData && yourData.bucks
-    var subjLastLevel = subjData ? (getLevel(subjData.exp).level) : 0
-    var yourLastLevel = (getLevel(yourData.exp).level)
     
     var youGotHit = false
     var gotDamaged = 0
@@ -4244,6 +4237,11 @@ functions.battle = async function (msg, subject, action, damage, chance) {
         }
         if (!subjData.battleSprites) subjData.battleSprites = {}
     }
+
+    var subjLastBucks = subjData ? subjData.bucks : 20
+    var yourLastBucks = yourData && yourData.bucks
+    var subjLastLevel = subjData ? (getLevel(subjData.exp).level) : 0
+    var yourLastLevel = (getLevel(yourData.exp).level)
 
     if (attacked) {
         var thisSubjData = subjUser ? subjData : fakeSubjData
