@@ -5632,9 +5632,11 @@ functions.resolveUser = async function (identifier, guild) {
 
     identifier = String(identifier)
 
-    var identifierIsId = identifier.search(/[0-9]+/) == identifier
+    var strippedIdentifier = identifier.replace(/^\s*<@/, '').replace(/>\s*$/, '')
+
+    var identifierIsId = strippedIdentifier.match(/[0-9]+/)?.[0] == strippedIdentifier
     if (identifierIsId) {
-        var userResolvedById = await bot.users.fetch(identifier).catch(() => { })
+        var userResolvedById = await bot.users.fetch(strippedIdentifier).catch(() => { })
         if (userResolvedById)
             return userResolvedById
     }
