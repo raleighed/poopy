@@ -4236,9 +4236,9 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     }
 
     var subjLastBucks = subjData ? subjData.bucks : 20
-    var yourLastBucks = yourData && yourData.bucks
-    var subjLastLevel = subjData ? (getLevel(subjData.exp).level) : 0
-    var yourLastLevel = (getLevel(yourData.exp).level)
+    var yourLastBucks = yourData ? yourData.bucks : 20
+    var subjLastLevel = subjData ? getLevel(subjData.exp).level : 0
+    var yourLastLevel = yourData ? getLevel(yourData.exp).level : 0
 
     if (attacked) {
         var thisSubjData = subjUser ? subjData : fakeSubjData
@@ -4261,10 +4261,10 @@ functions.battle = async function (msg, subject, action, damage, chance) {
 
     var subjIsYou = subjId == yourId
 
-    var subjBucks = subjData && subjData.bucks
-    var yourBucks = yourData && yourData.bucks
+    var subjBucks = subjData ? subjData.bucks : 20
+    var yourBucks = yourData ? yourData.bucks : 20
     var subjLevel = subjData ? getLevel(subjData.exp).level : 0
-    var yourLevel = getLevel(yourData.exp).level
+    var yourLevel = yourData ? getLevel(yourData.exp).level : 0
 
     var yourName = yourUser.displayName
     var subjName = (subjUser && subjUser.displayName) ?? subject ?? 'this'
