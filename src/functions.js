@@ -3987,7 +3987,7 @@ functions.getLevel = function (exp) {
     return { level, exp, required: vars.battleStats.exp * (lastLevel + 1) }
 }
 
-functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherSubjId, otherSubjData, attacked, critmult, chance) {
+functions.processSubjDeath = function (subjId, subjData, otherSubjId, otherSubjData, attacked, critmult, chance) {
     let poopy = this
     let bot = poopy.bot
     let { getLevel } = poopy.functions
@@ -3995,7 +3995,7 @@ functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherS
     var isPoopy = subjId == bot.user.id || otherSubjId == bot.user.id
     var subjIsYou = subjId == otherSubjId
 
-    var power = subjGuildMember && Math.round(
+    var power = subjId && Math.round(
             (subjData.maxHealth + subjData.attack + subjData.defense + subjData.accuracy + subjData.loot) / 5
         * 10) / 10
 
@@ -4003,7 +4003,7 @@ functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherS
     var reward = 0
     var died = false
 
-    if (attacked && !isPoopy && !subjIsYou && subjGuildMember)
+    if (attacked && !isPoopy && !subjIsYou && subjId)
         exp = Math.floor(Math.random() * subjData.maxHealth / 5) +
             subjData.maxHealth / 20 +
             (otherSubjData.loot * 10)
@@ -4016,7 +4016,7 @@ functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherS
         subjData.death = Date.now() + 30_000
         died = true
 
-        if (subjGuildMember) {
+        if (subjId) {
             subjData.bucks = Math.floor(subjData.bucks * 0.8)
             subjData.deaths++
             if (!isPoopy && !subjIsYou) {
@@ -4034,7 +4034,7 @@ functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherS
     return [died, exp, reward]
 }
 
-functions.dealDamage = function (damage, subjUser, subjData, subjShield, subjShieldUp, subjGuildMember, otherSubjUser, otherSubjData, otherSubjShield, otherSubjShieldUp, otherGuildMember, loopDepth, critmult, chance) {
+functions.dealDamage = function (damage, subjUser, subjData, subjShield, subjShieldUp, otherSubjUser, otherSubjData, otherSubjShield, otherSubjShieldUp, loopDepth, critmult, chance) {
     let poopy = this
     let data = poopy.data
     let { dealDamage, processSubjDeath } = poopy.functions
@@ -4050,7 +4050,7 @@ functions.dealDamage = function (damage, subjUser, subjData, subjShield, subjShi
     var damageReduction = 0
     var damageRedirect = 0
 
-    damageReduction += subjGuildMember ? subjData.defense / 50 : 0
+    damageReduction += subjId ? subjData.defense / 50 : 0
 
     if (otherSubjShield && otherSubjShieldUp && otherSubjShield.stats.attackReduction)
         damageReduction += otherSubjShield.stats.attackReduction
@@ -4077,8 +4077,8 @@ functions.dealDamage = function (damage, subjUser, subjData, subjShield, subjShi
     if (redirectedDamage != 0 && subjData.health + damage > 0) {
         var [redirectedDamageDealt, redirectedSquaredDamage] = dealDamage(
             redirectedDamage,
-            otherSubjUser, otherSubjData, otherSubjShield, otherSubjShieldUp, otherGuildMember,
-            subjUser, subjData, subjShield, subjShieldUp, subjGuildMember,
+            otherSubjUser, otherSubjData, otherSubjShield, otherSubjShieldUp,
+            subjUser, subjData, subjShield, subjShieldUp,
             loopDepth, critmult, chance
         )
 
@@ -4091,10 +4091,10 @@ functions.dealDamage = function (damage, subjUser, subjData, subjShield, subjShi
 
     if (loopDepth == 1) {
         subjDeathArray = processSubjDeath(
-            subjId, subjData, subjGuildMember, otherSubjId, otherSubjData, true, critmult, chance
+            subjId, subjData, otherSubjId, otherSubjData, true, critmult, chance
         )
         otherSubjDeathArray = processSubjDeath(
-            otherSubjId, otherSubjData, otherGuildMember, subjId, subjData, otherSubjDamageDealt > 0, 1, 1
+            otherSubjId, otherSubjData, subjId, subjData, otherSubjDamageDealt > 0, 1, 1
         )
     }
 
@@ -4247,8 +4247,8 @@ functions.battle = async function (msg, subject, action, damage, chance) {
 
         var [damageDealt, damageReceived, subjDeathArray, yourDeathArray] = dealDamage(
             damage,
-            subjUser, thisSubjData, subjShield, subjShieldUp, subjGuildMember,
-            yourUser, yourData, yourShield, yourShieldUp, yourGuildMember,
+            subjUser, thisSubjData, subjShield, subjShieldUp,
+            yourUser, yourData, yourShield, yourShieldUp,
             0, critmult, chance
         );
 
