@@ -3206,14 +3206,14 @@ functions.correctUrl = async function (url) {
             }
         }
     } else if (url.match(/^https\:\/\/((www|m)\.)?youtube\.com|^https\:\/\/(www\.)?youtu\.be/)) {
-        var youtubeurl = await execPromise(`yt-dlp ${url} --format 18 --get-url`).catch(() => { })
+        var youtubeurl = await execPromise(`yt-dlp "${url}" --format 18 --get-url`).catch(() => { })
 
         if (youtubeurl) {
             infoPost(`YouTube video URL detected`)
             return youtubeurl.trim()
         }
     } else if (url.match(/^https\:\/\/(www|on\.)?soundcloud\.com/)) {
-        var soundcloudurl = await execPromise(`yt-dlp ${url} --get-url`).catch(() => { })
+        var soundcloudurl = await execPromise(`yt-dlp "${url}" --get-url`).catch(() => { })
 
         if (soundcloudurl) {
             infoPost(`SoundCloud URL detected`)
@@ -3229,13 +3229,13 @@ functions.correctUrl = async function (url) {
         }
 
         async function getGifUrl(url) {
-            var twittergifurl = await execPromise(`yt-dlp ${url} --format http --get-url`).catch(() => { })
+            var twittergifurl = await execPromise(`yt-dlp "${url}" --format http --get-url`).catch(() => { })
 
             return twittergifurl.trim()
         }
 
         async function getVidUrl(url) {
-            var twittervidurl = await execPromise(`yt-dlp ${url} --get-url`).catch(() => { })
+            var twittervidurl = await execPromise(`yt-dlp "${url}" --get-url`).catch(() => { })
 
             return twittervidurl.trim()
         }
