@@ -4264,7 +4264,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     var subjBucks = subjData && subjData.bucks
     var yourBucks = yourData && yourData.bucks
     var subjLevel = subjData ? getLevel(subjData.exp).level : 0
-    var yourLevel = getLevel(yourData.exp).getLevel
+    var yourLevel = getLevel(yourData.exp).level
 
     var yourName = yourUser.displayName
     var subjName = (subjUser && subjUser.displayName) ?? subject ?? 'this'
