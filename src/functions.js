@@ -4104,6 +4104,12 @@ functions.dealDamage = function (damage, subjUser, subjData, subjShield, subjShi
             bucks: otherSubjData.bucks
         }
 
+    if (subjId)
+        data.botData.leaderboard[subjId] = {
+            tag: subjUser.tag,
+            bucks: subjData.bucks
+        }
+
     return [subjDamageDealt, otherSubjDamageDealt, subjDeathArray, otherSubjDeathArray]
 }
 
