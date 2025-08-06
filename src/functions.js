@@ -4023,13 +4023,10 @@ functions.processSubjDeath = function (subjId, subjData, subjGuildMember, otherS
         if (subjGuildMember) {
             subjData.bucks = Math.floor(subjData.bucks * 0.8)
             subjData.deaths++
-            console.log("now...")
             if (!isPoopy && !subjIsYou) {
-                console.log('YAY REWARD')
                 exp *= 50
                 reward = Math.floor(exp / 75 * power * (otherSubjData.loot / 10 + 1))
-            } else 
-                console.log('NAY REWARD')
+            }
 
             otherSubjData.kills++
         }
