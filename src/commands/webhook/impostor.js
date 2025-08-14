@@ -70,12 +70,12 @@ module.exports = {
         } else {
             data.guildData[msg.guild.id].members[member.id].impostor = false
             if (!msg.nosend) await msg.reply({
-                content: member.user.displayName.replace(/\@/g, '@‌') + ' is not the Impostor.',
+                content: member.displayName.replace(/\@/g, '@‌') + ' is not the Impostor.',
                 allowedMentions: {
                     parse: fetchPingPerms(msg)
                 }
             }).catch(() => {})
-            return member.user.displayName.replace(/\@/g, '@‌') + ' is not the Impostor.'
+            return member.displayName.replace(/\@/g, '@‌') + ' is not the Impostor.'
         }
     },
     help: {

@@ -84,7 +84,6 @@ vars.shieldStatsDisplayInfo = [
         format: "+%"
     }
 ]
-vars.cleverContexts = {}
 vars.dataTemplate = {
     userData: {
         userId: {

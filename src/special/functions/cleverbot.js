@@ -7,7 +7,7 @@ module.exports = {
 
     var word = matches[1]
 
-    var resp = await cleverbot(word, msg.author.id).catch(() => { })
+    var resp = await cleverbot(word, msg).catch(() => { })
 
     if (resp) {
       return resp

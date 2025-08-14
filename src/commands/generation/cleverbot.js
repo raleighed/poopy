@@ -1,19 +1,33 @@
 module.exports = {
     name: ['cleverbot', 'respond'],
-    args: [{ "name": "message", "required": false, "specifarg": false, "orig": "{message}" }, { "name": "once", "required": false, "specifarg": true, "orig": "[-once]" }],
+    args: [
+        {
+            "name": "message",
+            "required": false,
+            "specifarg": false,
+            "orig": "{message}"
+        },
+        {
+            "name": "continuous",
+            "required": false,
+            "specifarg": true,
+            "orig": "[-continuous]"
+        },
+        {
+            "name": "clear",
+            "required": false,
+            "specifarg": true,
+            "orig": "[-clear]"
+        }
+    ],
     execute: async function (msg, args) {
         let poopy = this
         let { cleverbot, dmSupport, getKeywordsFor, fetchPingPerms, deleteMsgData } = poopy.functions
-        let { DiscordTypes } = poopy.modules
         let tempdata = poopy.tempdata
         let bot = poopy.bot
 
-        var continuous = true
-        var once = args.findIndex(arg => arg === '-once')
-        if (once > -1) {
-            args.splice(once, 1)
-            continuous = false
-        }
+        var continuous = getOption(args, 'continuous', { n: 0, splice: true, dft: false })
+        var clear = getOption(args, 'clear', { n: 0, splice: true, dft: false })
 
         var channel = msg.channel
         var guildid = msg.guild.id
@@ -22,7 +36,7 @@ module.exports = {
 
         var saidMessage = args.slice(1).join(' ')
         if (saidMessage) {
-            var resp = await cleverbot(saidMessage, authorid).catch(err => {
+            var resp = await cleverbot(saidMessage, msg, clear).catch(err => {
                 channel.send({
                     content: err.stack,
                     allowedMentions: {
@@ -71,7 +85,7 @@ module.exports = {
 
                     collector.resetTimer()
 
-                    var resp = await cleverbot(content, channelid).catch(err => {
+                    var resp = await cleverbot(content, m).catch(err => {
                         channel.send({
                             content: err.stack,
                             allowedMentions: {
@@ -109,8 +123,8 @@ module.exports = {
         }
     },
     help: {
-        name: 'cleverbot/respond {message} [-once]',
-        value: "Poopy responds to your messages with Cleverbot's AI. Try it yourself at https://www.cleverbot.com/"
+        name: 'cleverbot/respond {message} [-continuous] [-clear]',
+        value: "Poopy responds to your message(s) with Cleverbot's AI. Try it yourself at https://www.cleverbot.com/"
     },
     type: 'Generation'
 }

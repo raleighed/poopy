@@ -56,7 +56,7 @@ module.exports = {
         }
 
         var username = member.displayName ?? member.user.displayName
-        if (args.includes('-global') || member.user) member = member.user
+        if (args.includes('-global') && member.user) member = member.user
         var avatar = new Discord.AttachmentBuilder(member.displayAvatarURL({
             dynamic: true, size: 1024, extension: 'png'
         }));

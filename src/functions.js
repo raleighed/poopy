@@ -632,13 +632,13 @@ functions.substituteIdPropertyWithActualId = function (key, msg) {
     switch (key) {
         case "userId":
             return msg.author.id
-        
+
         case "guildId":
             return msg.guild.id
-        
+
         case "channelId":
             return msg.channel.id
-        
+
         case "messageId":
             return msg.id
     }
@@ -646,7 +646,7 @@ functions.substituteIdPropertyWithActualId = function (key, msg) {
     return key
 }
 
-functions.reconcileDataWithTemplate = function(data, template, msg, ignoreList = []) {
+functions.reconcileDataWithTemplate = function (data, template, msg, ignoreList = []) {
     let poopy = this
 
     let { reconcileDataWithTemplate,
@@ -759,7 +759,7 @@ functions.gatherData = async function (msg) {
     if (!data.guildData[msg.guild.id].disabled) {
         data.guildData[msg.guild.id].disabled = config.defaultDisabled
     }
-    
+
     reconcileDataWithTemplate(data.guildData, vars.dataTemplate.guildData, msg, ["channels", "members", "allMembers"])
 
     if (data.guildData[msg.guild.id].messages.some(m => now - m.timestamp < 1000 * 60 * 60 * 24 * 30)) {
@@ -787,18 +787,23 @@ functions.gatherData = async function (msg) {
     }
 }
 
-functions.cleverbot = async function (stim, id) {
+functions.cleverbot = async function (stim, msg, clear) {
     let poopy = this
-    let bot = poopy.bot
     let vars = poopy.vars
+    let tempdata = poopy.tempdata
     let arrays = poopy.arrays
     let { axios, CryptoJS } = poopy.modules
     let { randomChoice } = poopy.functions
 
-    var context = vars.cleverContexts[bot.user.id + id] || (vars.cleverContexts[bot.user.id + id] = {
+    if (!tempdata[msg.channel.id]) tempdata[msg.channel.id] = {}
+
+    var context = tempdata[msg.channel.id].clevercontext
+    if (!context || (Date.now() - context.lastMessage) > 1000 * 60 * 10 || clear) context = tempdata[msg.channel.id].clevercontext = {
         history: [],
         processing: false
-    })
+    }
+
+    context.lastMessage = Date.now()
 
     if (context.processing) return randomChoice(arrays.eightball)
     context.processing = true
@@ -904,7 +909,7 @@ functions.cleverbot = async function (stim, id) {
     }
 
     var response = await clever().catch(() => { })
-    
+
     if (response) {
         if (id != undefined) {
             history.push(stim)
@@ -2178,7 +2183,7 @@ functions.displayShop = async function (channel, who, reply, shopType, shopMsg) 
         shopObject.allowedMentions = allowedMentions
         who = who.id
     }
-    
+
     switch (shopType) {
         case 'upgrades':
             return displayUpgradesShop(channel, who, reply, shopObject, shopMsg)
@@ -2267,7 +2272,7 @@ functions.displayUpgradesShop = async function (channel, who, reply, shopObject,
     var buttonsData = upgradeButtonsData.concat(shopNavigationButtonsData)
 
     var userData = data.userData[who]
-   
+
     shopObject = shopObject ?? {}
     var upgradeList
     var ended = false
@@ -2301,7 +2306,7 @@ functions.displayUpgradesShop = async function (channel, who, reply, shopObject,
                         .setStyle(bdata.style)
                         .setEmoji(bdata.emoji)
                         .setCustomId(bdata.customid)
-                    
+
                     if (bdata.oprice)
                         button = button.setLabel(userData[bdata.customid] >= cap ? `MAX` : `${bdata.price} P$`)
 
@@ -2322,7 +2327,7 @@ functions.displayUpgradesShop = async function (channel, who, reply, shopObject,
 
             var statValue = userData[stat]
 
-            return `${emoji} **${statValue >= cap ? `MAX` : `${price} P$`}** - ${desc} **(${statValue}/${cap})**` 
+            return `${emoji} **${statValue >= cap ? `MAX` : `${price} P$`}** - ${desc} **(${statValue}/${cap})**`
         }).join('\n') + `\n\n**Pobucks:** ${userData.bucks} P$`
 
         if (config.textEmbeds) shopObject.content = upgradeList
@@ -2510,7 +2515,7 @@ functions.displayShieldsShop = async function (channel, who, reply, shopObject, 
             customid: 'page',
             style: DiscordTypes.ButtonStyle.Primary,
         },
-        
+
         {
             customid: 'buy',
             style: DiscordTypes.ButtonStyle.Success,
@@ -2527,7 +2532,7 @@ functions.displayShieldsShop = async function (channel, who, reply, shopObject, 
     ]
 
     var userData = data.userData[who]
-   
+
     shopObject = shopObject ?? {}
     var instruction
     var ended = false
@@ -2536,14 +2541,14 @@ functions.displayShieldsShop = async function (channel, who, reply, shopObject, 
     var maxIndex = json.shieldJSON.length - 1
     var currentShield = json.shieldJSON[currentIndex]
     var currentShieldIsOwned = true
-    
+
     var usingReactions = config.useReactions
     var usingComponents = !usingReactions
 
     async function updateShop() {
         if (ended === 'switch')
             return
-        
+
         currentShield = json.shieldJSON[currentIndex]
         currentShieldIsOwned = userData.shieldsOwned.includes(currentShield.id)
         var currentShieldCostString = currentShield.cost <= 0 ? 'Free' : `${currentShield.cost} P$`
@@ -2566,13 +2571,13 @@ functions.displayShieldsShop = async function (channel, who, reply, shopObject, 
                     var button = new Discord.ButtonBuilder()
                         .setStyle(bdata.style)
                         .setCustomId(bdata.customid)
-                    
+
                     if (bdata.label)
                         button = button.setLabel(bdata.label)
 
                     if (bdata.emoji)
                         button = button.setEmoji(bdata.emoji)
-                    
+
                     if (bdata.customid == 'buy' && currentShieldIsOwned)
                         button = button.setDisabled(true)
 
@@ -2607,7 +2612,7 @@ functions.displayShieldsShop = async function (channel, who, reply, shopObject, 
         }).join('\n')
 
         instruction = `**${shopTitle}** ${titleStatusInfo}` +
-            `\n\n**${currentShieldNameWithStatus}**` + 
+            `\n\n**${currentShieldNameWithStatus}**` +
             `\n${currentShield.description}` +
             `\n**Cost:** ${currentShieldCostString}` +
             navigationButtonsText + `\n\n**Pobucks:** ${userData.bucks} P$`
@@ -2675,7 +2680,7 @@ functions.displayShieldsShop = async function (channel, who, reply, shopObject, 
 
         if (!customid)
             return
-        
+
         collector.resetTimer()
 
         var alreadyBoughtText = 'You already own that.'
@@ -2767,7 +2772,7 @@ functions.displayShieldsShop = async function (channel, who, reply, shopObject, 
     collector.on('end', async (_, reason) => {
         ended = reason
         await updateShop().catch((e) => console.log(e))
-    })   
+    })
 
     if (usingReactions) {
         for (var buttonData of shopNavigationButtonsData) {
@@ -3996,7 +4001,7 @@ functions.processSubjDeath = function (subjId, subjData, otherSubjId, otherSubjD
     var subjIsYou = subjId == otherSubjId
 
     var power = subjId && Math.round(
-            (subjData.maxHealth + subjData.attack + subjData.defense + subjData.accuracy + subjData.loot) / 5
+        (subjData.maxHealth + subjData.attack + subjData.defense + subjData.accuracy + subjData.loot) / 5
         * 10) / 10
 
     var exp = 0
@@ -4038,7 +4043,7 @@ functions.dealDamage = function (damage, subjUser, subjData, subjShield, subjShi
     let poopy = this
     let data = poopy.data
     let { dealDamage, processSubjDeath } = poopy.functions
-    
+
     loopDepth++
 
     if (loopDepth > 10)
@@ -4213,7 +4218,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     let attacked = isPoopy || (Math.random() < chance + (yourData.accuracy * 0.1))
     let critical = isPoopy || (attacked && Math.random() < 0.1 + (yourData.accuracy * 0.05))
     let critmult = critical ? Math.floor(Math.random() * 3) + 2 : 1
-    
+
     damage += Math.floor(Math.random() * (yourData.attack + 1)) * 2
     if (critical) damage *= critmult
 
@@ -4224,7 +4229,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     var youDied = false
     var yourExp = 0
     var yourReward = 0
-    
+
     var youGotHit = false
     var gotDamaged = 0
 
@@ -4402,7 +4407,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
 
     if ((subjUser && subjData) || (vars.validUrl.test(subject) && (await validateFile(subject).catch(() => { })))) {
         var filepath = await battleGif(subject, subjData, subjUser, attacked, subjDied, critical, subjShieldUp, subjShield)
-        
+
         if (fs.existsSync(`${filepath}/attack.gif`)) {
             payload.files.push(new Discord.AttachmentBuilder(`${filepath}/attack.gif`))
             payload.embeds[0].image = { url: 'attachment://attack.gif' }
@@ -4411,7 +4416,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
 
     if (youGotHit && !subjIsYou) {
         var filepath2 = await battleGif(subject, yourData, yourUser, true, youDied, false, yourShieldUp, yourShield, 'attack2.gif')
-        
+
         if (fs.existsSync(`${filepath2}/attack2.gif`)) {
             payload.files.push(new Discord.AttachmentBuilder(`${filepath2}/attack2.gif`))
             payload.embeds.push({
@@ -4437,7 +4442,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     return attacked ? actions.join(' ') : 'You missed!'
 }
 
-functions.battleGif = async function(subject, subjData, member, attacked, died, critical, subjShieldUp, subjShield, fileName) {
+functions.battleGif = async function (subject, subjData, member, attacked, died, critical, subjShieldUp, subjShield, fileName) {
     let poopy = this
     let { downloadFile, randomNumber, randomChoice,
         execPromise } = poopy.functions
@@ -4555,7 +4560,7 @@ functions.battleGif = async function(subject, subjData, member, attacked, died, 
         `[ppout]palettegen=reserve_transparent=1[palette];[pout][palette]paletteuse=alpha_threshold=128[out]" ` +
         `-map "[out]" -preset ultrafast -gifflags -offsetting ` +
         `${filepath}/${fileName}`)
-    
+
     return filepath
 }
 
@@ -4570,65 +4575,28 @@ functions.userToken = function (id, token) {
     return userTkn ? decrypt(userTkn) : randomKey(token)
 }
 
-functions.fetchImages = async function (query, bing, safe, id) {
+functions.fetchImages = async function (query, unsafe) {
     let poopy = this
-    let { userToken } = poopy.functions
-    let { axios, gis } = poopy.modules
+    let tempdata = poopy.tempdata
+    let { gis } = poopy.modules
+
+    if (tempdata.images[query.toLowerCase()]) return tempdata.images[query.toLowerCase()]
 
     return new Promise(async (resolve) => {
-        if (bing) {
-            var options = {
-                method: 'GET',
-                url: 'https://bing-web-search1.p.rapidapi.com/search',
-                params: { q: query, count: '100', safeSearch: safe ? 'Moderate' : 'Off' },
-                headers: {
-                    'X-BingApis-SDK': 'true',
-                    'X-RapidAPI-Host': 'bing-web-search1.p.rapidapi.com',
-                    'X-RapidAPI-Key': userToken(id, 'RAPIDAPI_KEY')
-                }
-            }
+        gis({
+            searchTerm: query,
+            queryStringAddition: `&safe=${unsafe ? 'images' : 'active'}`
+        }, async function (_, results) {
+            var images = results.map(
+                result => result.url.replace(/\\u([a-z0-9]){4}/g, (match) => {
+                    return String.fromCharCode(Number('0x' + match.substring(2, match.length)))
+                })
+            )
 
-            var response = await axios(options).catch(() => { })
-
-            if (!response) {
-                resolve([])
-                return
-            }
-
-            if (!(response.status >= 200 && response.status < 300)) {
-                resolve([])
-                return
-            }
-
-            console.log(response.data)
-
-            var images = []
-            var body = response.data
-
-            if (body.value ? body.value.length > 0 : false) {
-                images = body.value.map(result => result.contentUrl)
-            }
+            tempdata.images[query.toLowerCase()] = images
 
             resolve(images)
-        } else {
-            gis({
-                searchTerm: query,
-                queryStringAddition: `&safe=${safe ? 'active' : 'images'}`
-            }, async function (_, results) {
-                var images = []
-
-                for (var i in results) {
-                    var result = results[i]
-                    var url = result.url.replace(/\\u([a-z0-9]){4}/g, (match) => {
-                        return String.fromCharCode(Number('0x' + match.substring(2, match.length)))
-                    })
-
-                    images.push(url)
-                }
-
-                resolve(images)
-            })
-        }
+        })
     })
 }
 
@@ -5498,7 +5466,7 @@ functions.formatNumberWithPreset = function (number, preset) {
         case "%":
             formattedString = `${number * 100}%`
             break
-        
+
         case "=":
             formattedString = String(number)
             break
@@ -5516,7 +5484,7 @@ functions.formatNumberWithPreset = function (number, preset) {
     return formattedString
 }
 
-functions.getShieldStatsAsEmbedFields = function(shield) {
+functions.getShieldStatsAsEmbedFields = function (shield) {
     let poopy = this
     let vars = poopy.vars
     let { formatNumberWithPreset } = poopy.functions
@@ -5640,7 +5608,7 @@ functions.resolveUser = async function (identifier, guild) {
         if (userResolvedById)
             return userResolvedById
     }
-    
+
     var cachedUserFromUsernameOrGlobalName = bot.users.cache.find(
         user => user.username == identifier || user.globalName == identifier
     )

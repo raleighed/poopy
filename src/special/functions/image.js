@@ -9,7 +9,7 @@ module.exports = {
         var split = splitKeyFunc(word, { args: 2 })
         var query = split[0] ?? ''
         var page = split[1] ?? ''
-        var urls = await fetchImages(query, false, !msg.channel.nsfw).catch(() => { })
+        var urls = await fetchImages(query, msg.channel.nsfw).catch(() => { })
 
         if (!urls || !urls.length) return word
 

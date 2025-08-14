@@ -1256,7 +1256,7 @@ class Poopy {
                         var resp = !config.allowcleverbot || data.guildData[msg.guild.id]?.disabled
                             .find(cmd => cmd.find(n => n === "cleverbot")) ?
                                 randomChoice(arrays.eightball) :
-                                await cleverbot(origcontent, msg.author.id).catch(() => { })
+                                await cleverbot(origcontent, msg).catch(() => { })
 
                         if (resp) {
                             await msg.reply({
@@ -1725,6 +1725,10 @@ class Poopy {
 
         if (!tempdata.crons) {
             tempdata.crons = []
+        }
+
+        if (!tempdata.images) {
+            tempdata.images = []
         }
 
         console.log(`${bot.user.displayName}: main data gathered!!!`)
