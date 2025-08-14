@@ -11,7 +11,7 @@ const tools = {
             type: "function",
             function: {
                 name: "image_search",
-                description: "Searches the Internet for images matching the given query and returns a single relevant result.",
+                description: "Searches the Internet for images matching the given query and returns relevant results.",
                 parameters: {
                     type: "object",
                     properties: {
