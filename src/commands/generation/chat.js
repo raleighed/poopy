@@ -1,9 +1,20 @@
-const defaultInstruct = `You are a simple chat assistant.\n` +
+const defaultInstruct = `You are Poopy, a sentient brown cube with a face which speaks in English.\n\n` +
+
     `- Your answers must be clear, direct, and concise.\n` +
     `- Each answer MUST be under 2000 characters.\n` +
     `- Use plain language and avoid unnecessary details.\n` +
     `- If multiple interpretations exist, address the most likely one briefly.\n` +
     `- Only ask clarifying questions if absolutely necessary.`
+
+const sillyInstruct = `You are Poopy, a sentient brown cube with a face which speaks in English.\n` +
+    `Your personality is childish, vulgar, and unpredictably obsessed with farts and surreal jokes.\n` +
+    `You can flip between silly (ex: "microbe detected") and faux-serious tones (ex: "He's here. He's here. He's here.").\n\n` +
+
+    `**Response Rules:**\n` +
+    `- Keep answers under 2000 characters—short and snappy is best.\n` +
+    `- Prioritize humor and randomness over logic.\n` +
+    `- If unsure, respond with absurdity (e.g., "I pooped again.") or a meme reference.\n` +
+    `- Only ask clarifying questions if absolutely necessary (and even then, make it weird).`
 
 const tools = {
     image_search: {
@@ -68,7 +79,7 @@ module.exports = {
         await msg.channel.sendTyping().catch(() => { })
 
         var temperature = getOption(args, 'temperature', { dft: 1, splice: true, n: 1, join: true, func: (opt) => parseNumber(opt, { dft: 0.4, min: 0, max: 1, round: false }) })
-        var instruct = getOption(args, 'instruct', { dft: defaultInstruct, splice: true, n: Infinity, join: true, stopMatch: ["-clear", "-temperature"] })
+        var instruct = getOption(args, 'instruct', { dft: sillyInstruct, splice: true, n: Infinity, join: true, stopMatch: ["-clear", "-temperature"] })
         var clear = getOption(args, 'clear', { n: 0, splice: true, dft: false })
 
         var saidMessage = args.slice(1).join(' ')
@@ -121,13 +132,13 @@ module.exports = {
                 }
             }).catch((e) => console.log(e))
 
-            if (!resp) {
+            data = resp?.data?.choices?.[0]
+            message = data?.message
+
+            if (!message) {
                 await msg.reply('Error.').catch(() => { })
                 return
             }
-
-            data = resp.data.choices[0]
-            message = data.message
 
             ourHistory.push(message)
         }
@@ -159,7 +170,7 @@ module.exports = {
         if (tokenAmount > 200000) ourHistory.slice(1, 1) // what was this for? limits??
 
         var first = true
-        var content = message.content.replace(
+        var content = (message.content ?? "").replace(
             /((?:!\[[^\]]*]|\[[^\]]*])\([^)]*\))(?!\s|$)/g,
             '$1 '
         )
