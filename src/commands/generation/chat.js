@@ -200,7 +200,7 @@ module.exports = {
             }).catch(() => { })
             fs.rmSync(`${filepath}`, { force: true, recursive: true })
         })
-        return resp.data.choices[0].message.content
+        return content
     },
     help: {
         name: 'chat/ask <message> [-temperature <number (from 0 to 1)>] [-instruct <prompt>] [-clear]',
