@@ -22,7 +22,7 @@ module.exports = {
     ],
     execute: async function (msg, args) {
         let poopy = this
-        let { cleverbot, dmSupport, getKeywordsFor, fetchPingPerms, deleteMsgData } = poopy.functions
+        let { cleverbot, dmSupport, getKeywordsFor, getOption, fetchPingPerms, deleteMsgData } = poopy.functions
         let tempdata = poopy.tempdata
         let bot = poopy.bot
 
