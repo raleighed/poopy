@@ -3,8 +3,7 @@ const defaultInstruct = `You are a simple chat assistant.\n` +
     `- Each answer MUST be under 2000 characters.\n` +
     `- Use plain language and avoid unnecessary details.\n` +
     `- If multiple interpretations exist, address the most likely one briefly.\n` +
-    `- Only ask clarifying questions if absolutely necessary.\n` +
-    `- When using hyperlinks in the [text](url) format, there must be no characters immediately after the closing parentheses unless it's whitespace or a newline.`;
+    `- Only ask clarifying questions if absolutely necessary.`
 
 const tools = {
     image_search: {
@@ -26,14 +25,14 @@ const tools = {
             }
         },
         async func(poopy, msg, args) {
-            const { fetchImages, randomChoice } = poopy.functions
+            const { fetchImages } = poopy.functions
             const { query } = args
 
             const response = { query }
 
             const images = await fetchImages(query, msg.channel.nsfw).catch(() => { })
 
-            response.result = images ? randomChoice(images.slice(0, 5)) : null
+            response.results = images ? images.slice(0, 5) : null
 
             return response
         }
@@ -159,8 +158,23 @@ module.exports = {
 
         if (tokenAmount > 200000) ourHistory.slice(1, 1) // what was this for? limits??
 
+        var first = true
+        var content = message.content.replace(
+            /((?:!\[[^\]]*]|\[[^\]]*])\([^)]*\))(?!\s|$)/g,
+            '$1 '
+        )
+
+        content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
+            if (first) {
+                first = false
+                return match
+            }
+
+            return `[${text}](<${url}>)`
+        })
+
         if (!msg.nosend) await msg.reply({
-            content: message.content,
+            content: content,
             allowedMentions: {
                 parse: fetchPingPerms(msg)
             }
@@ -169,7 +183,7 @@ module.exports = {
             vars.filecount++
             var filepath = `temp/${config.database}/file${currentcount}`
             fs.mkdirSync(`${filepath}`)
-            fs.writeFileSync(`${filepath}/generated.txt`, message.content)
+            fs.writeFileSync(`${filepath}/generated.txt`, content)
             await msg.reply({
                 files: [new Discord.AttachmentBuilder(`${filepath}/generated.txt`)]
             }).catch(() => { })
