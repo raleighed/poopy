@@ -126,13 +126,13 @@ module.exports = {
         if (data.userData[member.id].dms === undefined && !tempdata[member.id].dmconsent && member.id != msg.author.id) {
             tempdata[msg.author.id].dmconsent = true
 
-            var pending = await msg.reply('Pending response.').catch(() => { })
-            var send = await yesno(member, `${!anon ? msg.author.tag : 'Someone'} is trying to send you a message. Will you consent to any unrelated DMs sent with the \`dm\` command?`, member.id).catch(() => { })
+            var pending = await msg.reply('This user hasn’t received bot DMs from this command before... A consent request has been sent and is awaiting their approval!').catch(() => { })
+            var send = await yesno(member, `${!anon ? msg.author.tag : 'Someone'} is trying to send you a DM using the bot. Will you consent to receiving any unrelated messages from the \`dm\` command?`, member.id).catch(() => { })
 
             if (send !== undefined) {
                 data.userData[member.id].dms = send
                 member.send({
-                    content: `Unrelated DMs from \`dm\` will **${!send ? 'not ' : ''}be sent** to you now.`,
+                    content: `Unrelated DMs from \`dm\` will **${!send ? 'not ' : ''}be sent** to you now. To change this setting, use the \`toggledms\` command.`,
                     allowedMentions: {
                         parse: fetchPingPerms(msg)
                     }
