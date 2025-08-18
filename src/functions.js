@@ -5232,7 +5232,7 @@ functions.changeStatus = function () {
                 {
                     name: choosenStatus.name + ` | ${config.globalPrefix}help`,
                     type: DiscordTypes.ActivityType[choosenStatus.type],
-                    url: 'https://www.youtube.com/watch?v=LDQO0ALm0gE',
+                    url: 'https://www.youtube.com/watch?v=MURAALuH_TE',
                 }
             ],
         })
