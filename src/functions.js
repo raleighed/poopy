@@ -911,7 +911,7 @@ functions.cleverbot = async function (stim, msg, clear) {
     var response = await clever().catch(() => { })
 
     if (response) {
-        if (id != undefined) {
+        if (msg != undefined) {
             history.push(stim)
             history.push(response)
         }
