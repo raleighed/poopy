@@ -686,7 +686,7 @@ functions.gatherData = async function (msg) {
 
     if (!webhook) {
         if (!data.userData[msg.author.id]) {
-            data.userData[msg.author.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.userData(config.database, msg.author.id).catch((e) => console.log(e)) || {}
+            data.userData[msg.author.id] = !config.testing && process.env.MONGODB_URL && await dataGather.userData(config.database, msg.author.id).catch((e) => console.log(e)) || {}
         }
 
         if (!data.botData.users.includes(msg.author.id)) {
@@ -703,7 +703,7 @@ functions.gatherData = async function (msg) {
     }
 
     if (!data.guildData[msg.guild.id]) {
-        data.guildData[msg.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, msg.guild.id).catch((e) => console.log(e)) || {}
+        data.guildData[msg.guild.id] = !config.testing && process.env.MONGODB_URL && await dataGather.guildData(config.database, msg.guild.id).catch((e) => console.log(e)) || {}
     }
 
     if (data.guildData[msg.guild.id].prefix === undefined) {
@@ -715,7 +715,7 @@ functions.gatherData = async function (msg) {
     }
 
     if (!data.guildData[msg.guild.id].channels[msg.channel.id]) {
-        data.guildData[msg.guild.id].channels[msg.channel.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.channelData(config.database, msg.guild.id, msg.channel.id).catch((e) => console.log(e)) || {}
+        data.guildData[msg.guild.id].channels[msg.channel.id] = !config.testing && process.env.MONGODB_URL && await dataGather.channelData(config.database, msg.guild.id, msg.channel.id).catch((e) => console.log(e)) || {}
     }
 
     reconcileDataWithTemplate(data.guildData[msg.guild.id].channels, vars.dataTemplate.guildData.guildId.channels, msg)
@@ -726,7 +726,7 @@ functions.gatherData = async function (msg) {
         }
 
         if (!data.guildData[msg.guild.id].members[msg.author.id]) {
-            data.guildData[msg.guild.id].members[msg.author.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch((e) => console.log(e)) || {}
+            data.guildData[msg.guild.id].members[msg.author.id] = !config.testing && process.env.MONGODB_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch((e) => console.log(e)) || {}
         }
 
         reconcileDataWithTemplate(data.guildData[msg.guild.id].members, vars.dataTemplate.guildData.guildId.members, msg)
@@ -4169,7 +4169,7 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     var subjData = subjUser && (
         data.userData[subjId] ||
         (
-            data.userData[subjId] = !config.testing && process.env.MONGOOSE_URL && await dataGather.userData(config.database, subjId).catch(() => { }) || {}
+            data.userData[subjId] = !config.testing && process.env.MONGODB_URL && await dataGather.userData(config.database, subjId).catch(() => { }) || {}
         )
     )
 
@@ -5272,7 +5272,7 @@ functions.saveData = async function () {
 
     infoPost(`Saving data`)
 
-    if (config.testing || !process.env.MONGOOSE_URL) {
+    if (config.testing || !process.env.MONGODB_URL) {
         fs.writeFileSync(`data/${config.database}.json`, JSON.stringify(data))
         fs.writeFileSync(`data/globaldata.json`, JSON.stringify(globaldata))
     } else {

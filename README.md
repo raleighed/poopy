@@ -60,7 +60,7 @@ Here's a list of tokens you can set up in system variables to bring more functio
   - `HIVEMIND_ID` (id for your bot to participate in the hivemind, leave blank to not have any of the hivemind functionality)
   - `DISCORD_REFRESHER_TOKEN` (discord **user** token used for refreshing expired urls, without it using keywords such as _ps and _shit will generally not function if you don't manually refresh the url)
   - `CLOUDAMQP_URL` (url used to send file processing queues, accessed at https://api.cloudamqp.com/console/`APP-ID`/details)
-  - `MONGOOSE_URL` (url used to access the database, generated at https://cloud.mongodb.com/v2/`PROJECT-ID`#clusters/connect)
+  - `MONGODB_URL` (url used to access the database, generated at https://cloud.mongodb.com/v2/`PROJECT-ID`#clusters/connect)
   - `AI21_KEY` (key generated when you sign up in ai21 for generating text, accessed at https://studio.ai21.com/account/account)
   - `GOOGLE_KEY` (key from google cloud for accessing the youtube api, generated at https://console.cloud.google.com/apis/credentials?project=`PROJECT-ID`)
   - `MAKESWEET_KEY` (key from makesweet for generating heartlocket gifs, dm @mkswt on twitter asking for one)

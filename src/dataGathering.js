@@ -6,11 +6,8 @@ module.exports = {
     botData: async (dataid) => {
         var botData = {}
 
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var dataobject = await schemas.botData.findOne({ dataid }).then(d => d.toJSON()).catch(() => { })
@@ -32,11 +29,8 @@ module.exports = {
     userData: async (dataid, uid) => {
         var userData = {}
 
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var dataobject = await schemas.userData.findOne({ dataid, uid }).then(d => d.toJSON()).catch(() => { })
@@ -58,11 +52,8 @@ module.exports = {
     guildData: async (dataid, gid) => {
         var guildData = {}
 
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var dataobject = await schemas.guildData.findOne({ dataid, gid }).then(d => d.toJSON()).catch(() => { })
@@ -84,11 +75,8 @@ module.exports = {
     channelData: async (dataid, gid, cid) => {
         var channelData = {}
 
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var dataobject = await schemas.channelData.findOne({ dataid, gid, cid }).then(d => d.toJSON()).catch(() => { })
@@ -110,11 +98,8 @@ module.exports = {
     allChannelData: async (dataid, gid) => {
         var channelData = {}
 
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var dataobjects = await schemas.channelData.find({ dataid, gid }).then(arr => arr.map(d => d.toJSON())).catch(() => { })
@@ -140,11 +125,8 @@ module.exports = {
     memberData: async (dataid, gid, uid) => {
         var memberData = {}
 
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var dataobject = await schemas.memberData.findOne({ dataid, gid, uid }).then(d => d.toJSON()).catch(() => { })
@@ -166,11 +148,8 @@ module.exports = {
     allMemberData: async (dataid, gid) => {
         var memberData = {}
 
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var dataobjects = await schemas.memberData.find({ dataid, gid }).then(arr => arr.map(d => d.toJSON())).catch(() => { })
@@ -196,11 +175,8 @@ module.exports = {
     globalData: async () => {
         var globalData = {}
 
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var dataobject = await schemas.globalData.findOne({}).then(d => d.toJSON()).catch(() => { })
@@ -220,11 +196,8 @@ module.exports = {
     },
 
     update: async (dataid, d) => {
-        var url = process.env.MONGOOSE_URL
-        if (requests <= 0) await mongoose.connect(url, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
+        var url = process.env.MONGODB_URL
+        if (requests <= 0) await mongoose.connect(url)
         requests++
 
         var data = d.data

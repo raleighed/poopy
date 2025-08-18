@@ -1660,7 +1660,7 @@ class Poopy {
                 globaldata: {}
             }
 
-            if (config.testing || !process.env.MONGOOSE_URL) {
+            if (config.testing || !process.env.MONGODB_URL) {
                 console.log(`${bot.user.displayName}: gathering from json`)
                 if (fs.existsSync(`data/${config.database}.json`)) {
                     data.data = fs.readJSONSync(`data/${config.database}.json`)
@@ -1829,7 +1829,7 @@ class Poopy {
 
         vars.filecount = data.botData.filecount || 0
 
-        if (config.testing || !process.env.MONGOOSE_URL) {
+        if (config.testing || !process.env.MONGODB_URL) {
             if (!fs.existsSync('data')) {
                 fs.mkdirSync('data')
             }

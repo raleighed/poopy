@@ -13,7 +13,7 @@ module.exports = {
             let { dataGather } = poopy.functions
 
             if (!data.guildData[interaction.guild.id]) {
-                data.guildData[interaction.guild.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
+                data.guildData[interaction.guild.id] = !config.testing && process.env.MONGODB_URL && await dataGather.guildData(config.database, interaction.guild.id).catch((e) => console.log(e)) || {}
             }
 
             var memberData = data.guildData[interaction.guild.id].allMembers ?? {}
@@ -46,7 +46,7 @@ module.exports = {
         }
 
         if (!data.guildData[msg.guild.id].members[member.id]) {
-            data.guildData[msg.guild.id].members[member.id] = !config.testing && process.env.MONGOOSE_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch(() => { }) || {}
+            data.guildData[msg.guild.id].members[member.id] = !config.testing && process.env.MONGODB_URL && await dataGather.memberData(config.database, msg.guild.id, msg.author.id).catch(() => { }) || {}
         }
 
         if (!data.guildData[msg.guild.id].members[member.id].impostor) {
