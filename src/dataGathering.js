@@ -1,14 +1,17 @@
 const mongoose = require('mongoose')
 const schemas = require('./schemas')
-let requests = 0
+
+let connected = false
 
 module.exports = {
     botData: async (dataid) => {
         var botData = {}
 
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
+        }
 
         var dataobject = await schemas.botData.findOne({ dataid }).then(d => d.toJSON()).catch(() => { })
 
@@ -20,9 +23,6 @@ module.exports = {
             }
         }
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
-
         return botData
     },
 
@@ -30,8 +30,10 @@ module.exports = {
         var userData = {}
 
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
+        }
 
         var dataobject = await schemas.userData.findOne({ dataid, uid }).then(d => d.toJSON()).catch(() => { })
 
@@ -43,9 +45,6 @@ module.exports = {
             }
         }
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
-
         return userData
     },
 
@@ -53,8 +52,10 @@ module.exports = {
         var guildData = {}
 
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
+        }
 
         var dataobject = await schemas.guildData.findOne({ dataid, gid }).then(d => d.toJSON()).catch(() => { })
 
@@ -66,9 +67,6 @@ module.exports = {
             }
         }
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
-
         return guildData
     },
 
@@ -76,8 +74,10 @@ module.exports = {
         var channelData = {}
 
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
+        }
 
         var dataobject = await schemas.channelData.findOne({ dataid, gid, cid }).then(d => d.toJSON()).catch(() => { })
 
@@ -89,9 +89,6 @@ module.exports = {
             }
         }
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
-
         return channelData
     },
 
@@ -99,8 +96,10 @@ module.exports = {
         var channelData = {}
 
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
+        }
 
         var dataobjects = await schemas.channelData.find({ dataid, gid }).then(arr => arr.map(d => d.toJSON())).catch(() => { })
 
@@ -116,9 +115,6 @@ module.exports = {
             }
         }
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
-
         return channelData
     },
 
@@ -126,8 +122,10 @@ module.exports = {
         var memberData = {}
 
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
+        }
 
         var dataobject = await schemas.memberData.findOne({ dataid, gid, uid }).then(d => d.toJSON()).catch(() => { })
 
@@ -139,9 +137,6 @@ module.exports = {
             }
         }
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
-
         return memberData
     },
 
@@ -149,8 +144,10 @@ module.exports = {
         var memberData = {}
 
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
+        }
 
         var dataobjects = await schemas.memberData.find({ dataid, gid }).then(arr => arr.map(d => d.toJSON())).catch(() => { })
 
@@ -166,9 +163,6 @@ module.exports = {
             }
         }
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
-
         return memberData
     },
 
@@ -176,8 +170,10 @@ module.exports = {
         var globalData = {}
 
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
+        }
 
         var dataobject = await schemas.globalData.findOne({}).then(d => d.toJSON()).catch(() => { })
 
@@ -189,72 +185,91 @@ module.exports = {
             }
         }
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
-
         return globalData
     },
 
     update: async (dataid, d) => {
         var url = process.env.MONGODB_URL
-        if (requests <= 0) await mongoose.connect(url)
-        requests++
-
-        var data = d.data
-
-        var botData = data.botData
-        await schemas.botData.findOneAndUpdate({ dataid }, botData, {
-            upsert: true,
-            useFindAndModify: false
-        }).catch(() => { })
-
-        var userData = data.userData
-        for (var uid in userData) {
-            var user = userData[uid]
-            await schemas.userData.findOneAndUpdate({ dataid, uid }, user, {
-                upsert: true,
-                useFindAndModify: false
-            }).catch(() => { })
+        if (!connected) {
+            connected = true
+            await mongoose.connect(url)
         }
 
-        var guildData = data.guildData
-        for (var gid in guildData) {
-            var guild = { ...guildData[gid] }
+        const data = d.data
 
-            var channelData = guild.channels
-            delete guild.channels
-            for (var cid in channelData) {
-                var channel = channelData[cid]
-                await schemas.channelData.findOneAndUpdate({ dataid, gid, cid }, channel, {
-                    upsert: true,
-                    useFindAndModify: false
-                }).catch(() => { })
+        const botData = data.botData
+        if (botData) {
+            try {
+                await schemas.botData.findOneAndUpdate(
+                    { dataid },
+                    botData,
+                    { upsert: true }
+                )
+            } catch (err) {
+                console.error("Failed to update botData:", err)
             }
-
-            var memberData = guild.members
-            delete guild.members
-            for (var uid in memberData) {
-                var member = memberData[uid]
-                await schemas.memberData.findOneAndUpdate({ dataid, gid, uid }, member, {
-                    upsert: true,
-                    useFindAndModify: false
-                }).catch(() => { })
-            }
-
-            await schemas.guildData.findOneAndUpdate({ dataid, gid }, guild, {
-                upsert: true,
-                useFindAndModify: false
-            }).catch(() => { })
         }
 
-        var globaldata = d.globaldata
+        const userData = data.userData || {}
+        const userOps = Object.entries(userData).map(([uid, user]) => ({
+            updateOne: {
+                filter: { dataid, uid },
+                update: user,
+                upsert: true
+            }
+        }))
+        if (userOps.length > 0) {
+            try {
+                await schemas.userData.bulkWrite(userOps)
+            } catch (err) {
+                console.error("Failed to update userData:", err)
+            }
+        }
 
-        if (globaldata) await schemas.globalData.findOneAndUpdate({}, globaldata, {
-            upsert: true,
-            useFindAndModify: false
-        }).catch(() => { })
+        const guildData = data.guildData || {}
+        for (const [gid, guild] of Object.entries(guildData)) {
+            const { channels = {}, members = {}, ...guildInfo } = guild
 
-        requests--
-        if (requests <= 0) mongoose.connection.close()
+            const guildUpdate = schemas.guildData.findOneAndUpdate(
+                { dataid, gid },
+                guildInfo,
+                { upsert: true }
+            )
+
+            const channelOps = Object.entries(channels).map(([cid, channel]) => ({
+                updateOne: {
+                    filter: { dataid, gid, cid },
+                    update: channel,
+                    upsert: true
+                }
+            }))
+
+            const memberOps = Object.entries(members).map(([uid, member]) => ({
+                updateOne: {
+                    filter: { dataid, gid, uid },
+                    update: member,
+                    upsert: true
+                }
+            }))
+
+            try {
+                await Promise.all([
+                    guildUpdate,
+                    channelOps.length > 0 ? schemas.channelData.bulkWrite(channelOps) : null,
+                    memberOps.length > 0 ? schemas.memberData.bulkWrite(memberOps) : null
+                ])
+            } catch (err) {
+                console.error(`Failed to update guild ${gid}:`, err)
+            }
+        }
+
+        const globaldata = d.globaldata
+        if (globaldata) {
+            try {
+                await schemas.globalData.findOneAndUpdate({}, globaldata, { upsert: true })
+            } catch (err) {
+                console.error("Failed to update globalData:", err)
+            }
+        }
     }
 }
