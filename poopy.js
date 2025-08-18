@@ -1511,19 +1511,19 @@ class Poopy {
                         var choices = autocompleteValues
                             .sort((a, b) =>
                                 Math.abs(
-                                    1 - similarity(a.name ?? a, focused.value)
+                                    1 - similarity(String(a.name ?? a ?? '(blank)'), focused.value)
                                 ) - Math.abs(
-                                    1 - similarity(b.name ?? b, focused.value)
+                                    1 - similarity(String(b.name ?? b ?? '(blank)'), focused.value)
                                 )
                             ).sort((a, b) => {
-                                var x = (a.name ?? a).toLowerCase().includes(focused.value.toLowerCase())
-                                var y = (b.name ?? b).toLowerCase().includes(focused.value.toLowerCase())
+                                var x = String(a.name ?? a ?? '(blank)').toLowerCase().includes(focused.value.toLowerCase())
+                                var y = String(b.name ?? b ?? '(blank)').toLowerCase().includes(focused.value.toLowerCase())
 
                                 return (x === y) ? 0 : x ? -1 : 1
                             }).slice(0, 25)
 
                         await interaction.respond(
-                            choices.map(choice => ({ name: (choice.name ?? choice ?? '(blank)').replace(/\n|\r/g, ' ').substring(0, 100) || '(blank)', value: choice.value ?? choice }))
+                            choices.map(choice => ({ name: String(choice.name ?? choice ?? '(blank)').replace(/\n|\r/g, ' ').substring(0, 100) || '(blank)', value: choice.value ?? choice }))
                         )
                     }
                 },
@@ -1617,7 +1617,7 @@ class Poopy {
             ]
 
             var interactionFunction = interactionFunctions.find(interaction => interaction.type)
-            if (interactionFunction) await interactionFunction.execute().catch((e) => console.log(e))
+            if (interactionFunction) await interactionFunction.execute().catch(() => { })
         }
     }
 
