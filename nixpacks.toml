@@ -1,23 +1,27 @@
-providers = ['node', 'java', 'python']
+providers = ['node', 'java']
 
 [phases.setup]
-nixPkgs = [
-  "...",
-  "ffmpeg_6-full",
-  "imagemagick",
-  "gmic",
-  "gtk3",
-  "nspr",
-  "nss",
-  "xorg.libX11",
-  "xorg.libXcomposite",
-  "xorg.libXcursor",
-  "xorg.libXdamage",
-  "xorg.libXfixes",
-  "xorg.libXi",
-  "xorg.libXrandr",
-  "xorg.libXtst",
-  "xdg-utils"
+nixPkgs = ['...', 'ffmpeg', 'imagemagick', 'gmic']
+aptPkgs = [
+    '...',
+    'fonts-liberation',
+    'libappindicator3-1',
+    'libatk-bridge2.0-0',
+    'libatk1.0-0',
+    'libgbm1',
+    'libgtk-3-0',
+    'libnspr4',
+    'libnss3',
+    'libx11-xcb1',
+    'libxcomposite1',
+    'libxcursor1',
+    'libxdamage1',
+    'libxfixes3',
+    'libxi6',
+    'libxrandr2',
+    'libxss1',
+    'libxtst6',
+    'xdg-utils'
 ]
 
 [phases.build]
