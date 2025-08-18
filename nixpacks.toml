@@ -16,7 +16,6 @@ nixPkgs = [
   "xorg.libXfixes",
   "xorg.libXi",
   "xorg.libXrandr",
-  "xorg.libXss",
   "xorg.libXtst",
   "xdg-utils"
 ]
