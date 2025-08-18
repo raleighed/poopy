@@ -608,6 +608,14 @@ class Poopy {
             var allcontents = []
             var webhooked = false
 
+            var isRestricted = data.guildData[msg.guild.id].restricted.includes(msg.channel.id) && !(
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) ||
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) ||
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
+                msg.author.id === msg.guild.ownerID ||
+                (config.ownerids.find(id => id == msg.author.id))
+            )
+
             async function webhookify() {
                 webhooked = true
 
@@ -852,7 +860,15 @@ class Poopy {
                                 } else return
                             }
 
-                            if (data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === args[0].toLowerCase()))) {
+                            var isDisabled = data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === args[0].toLowerCase())) && !(
+                                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) ||
+                                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) ||
+                                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
+                                msg.author.id === msg.guild.ownerID ||
+                                (config.ownerids.find(id => id == msg.author.id))
+                            )
+
+                            if (isDisabled) {
                                 await msg.reply('This command is disabled in this server.').catch(() => { })
                             } else {
                                 var increaseCount = !(findCmd.execute.toString().includes('sendFile') && msg.nosend)
@@ -944,7 +960,15 @@ class Poopy {
                             var useCmd = await yesno(msg.channel, `Did you mean to use \`${similarCmds[0].name}\`?`, msg.author.id, undefined, msg).catch(() => { })
                             if (useCmd) {
                                 if (similarCmds[0].type === 'cmd') {
-                                    if (data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === similarCmds[0].name)) && hivemindPass) {
+                                    var isDisabled = data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === similarCmds[0].name)) && !(
+                                        msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) ||
+                                        msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) ||
+                                        msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
+                                        msg.author.id === msg.guild.ownerID ||
+                                        (config.ownerids.find(id => id == msg.author.id))
+                                    )
+
+                                    if (isDisabled && hivemindPass) {
                                         await msg.reply('This command is disabled in this server.').catch(() => { })
                                     } else {
                                         var findCmd = findCommand(similarCmds[0].name)
@@ -1047,13 +1071,21 @@ class Poopy {
                 return executed
             }
 
-            var isRestricted = data.guildData[msg.guild.id].restricted.includes(msg.channel.id) && !(
-                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) ||
-                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) ||
-                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
-                msg.author.id === msg.guild.ownerID ||
-                (config.ownerids.find(id => id == msg.author.id))
-            )
+            if (isRestricted) {
+                await getUrls(msg, {
+                    update: true,
+                    string: origcontent
+                }).catch(async err => {
+                    try {
+                        await msg.reply({
+                            content: err.stack,
+                            allowedMentions: {
+                                parse: fetchPingPerms(msg)
+                            }
+                        }).catch(() => { })
+                    } catch (_) { }
+                })
+            }
 
             var executed = !isRestricted ? await executeCommand().catch(async (e) => await msg.reply({
                 content: e.stack,
@@ -1225,6 +1257,8 @@ class Poopy {
                     return
                 }
 
+                var words = origcontent.toLowerCase().split(/\s+/g)
+
                 // else if else if selselaesl seif sia esla fiwsa eaisf afis asifasfd
                 if (msg.reference) {
                     const channelData = tempdata[msg.channel.guild?.id]?.[msg.channel.id]
@@ -1257,8 +1291,8 @@ class Poopy {
                     } else {
                         var resp = !config.allowcleverbot || data.guildData[msg.guild.id]?.disabled
                             .find(cmd => cmd.find(n => n === "cleverbot")) ?
-                                randomChoice(arrays.eightball) :
-                                await cleverbot(origcontent, msg).catch(() => { })
+                            randomChoice(arrays.eightball) :
+                            await cleverbot(origcontent, msg).catch(() => { })
 
                         if (resp) {
                             await msg.reply({
@@ -1269,7 +1303,7 @@ class Poopy {
                             }).catch(() => { })
                         }
                     }
-                } else if (origcontent.includes('prefix') && origcontent.includes('reset')) {
+                } else if (words.includes('prefix') && words.includes('reset')) {
                     var findCmd = findCommand('setprefix')
 
                     if (findCmd.cooldown) {
@@ -1285,14 +1319,14 @@ class Poopy {
                         }).catch(() => { })
                         await msg.channel.sendTyping().catch(() => { })
                     })
-                } else if (origcontent.toLowerCase().includes('lore')) {
+                } else if (words.includes('lore')) {
                     await msg.reply({
                         content: `Well... If you played a little bit with \`${config.globalPrefix}poop\`, I could give you some...`,
                         allowedMentions: {
                             parse: fetchPingPerms(msg)
                         }
                     }).catch(() => { })
-                } else if ((origcontent.toLowerCase().includes('how') && origcontent.toLowerCase().includes('are') && origcontent.toLowerCase().includes('you')) || (origcontent.toLowerCase().includes('what') && origcontent.toLowerCase().includes('up')) || (origcontent.toLowerCase().includes('what') && origcontent.toLowerCase().includes('doing')) || origcontent.toLowerCase().includes('wassup') || (origcontent.toLowerCase().includes('how') && origcontent.toLowerCase().includes('it') && origcontent.toLowerCase().includes('going'))) {
+                } else if ((words.includes('how') && words.includes('are') && words.includes('you')) || (words.includes('what') && words.includes('up')) || (words.includes('what') && words.includes('doing')) || words.includes('wassup') || (words.includes('how') && words.includes('it') && words.includes('going'))) {
                     var activity = bot.user.presence.activities[0]
                     if (activity) {
                         await msg.reply({
@@ -1302,17 +1336,33 @@ class Poopy {
                             }
                         }).catch(() => { })
                     }
-                } else if (origcontent.toLowerCase().includes('\?') || origcontent.toLowerCase().includes('do you') || origcontent.toLowerCase().includes('are you') || origcontent.toLowerCase().includes('did you') || origcontent.toLowerCase().includes('will you') || origcontent.toLowerCase().includes('were you') || origcontent.toLowerCase().includes('do you') || origcontent.toLowerCase().includes('when') || origcontent.toLowerCase().includes('where') || origcontent.toLowerCase().includes('how') || origcontent.toLowerCase().includes('why') || origcontent.toLowerCase().includes('what') || origcontent.toLowerCase().includes('who')) {
+                } else if (
+                    words.includes('\?') ||
+                    words.includes('is') ||
+                    words.includes('do you') ||
+                    words.includes('did you') ||
+                    words.includes('are you') ||
+                    words.includes('did you') ||
+                    words.includes('will you') ||
+                    words.includes('were you') ||
+                    words.includes('do you') ||
+                    words.includes('when') ||
+                    words.includes('where') ||
+                    words.includes('how') ||
+                    words.includes('why') ||
+                    words.includes('what') ||
+                    words.includes('who')
+                ) {
                     await msg.reply(randomChoice(arrays.eightball)).catch(() => { })
-                } else if (origcontent.toLowerCase().includes('thank') || origcontent.toLowerCase().includes('thx')) {
+                } else if (words.includes('thank') || words.includes('thx')) {
                     await msg.reply('You\'re welcome!').catch(() => { })
-                } else if (origcontent.toLowerCase().includes('mom') || origcontent.toLowerCase().includes('bitch') || origcontent.toLowerCase().includes('goatfucker') || origcontent.toLowerCase().includes('loser') || origcontent.toLowerCase().includes('asshole') || origcontent.toLowerCase().includes('dipshit') || origcontent.toLowerCase().includes('fucker') || origcontent.toLowerCase().includes('retard') || origcontent.toLowerCase().includes('shitass') || origcontent.toLowerCase().includes('moron') || origcontent.toLowerCase().includes('buffoon') || origcontent.toLowerCase().includes('idiot') || origcontent.toLowerCase().includes('stupid') || origcontent.toLowerCase().includes('gay') || origcontent.toLowerCase().includes('dumbass')) {
+                } else if (words.find(w => w.match(/^(bitch|.+fucker|loser|.+ass|dipshit|retard|moron|buffoon|idiot|stupid.+|gay.+|dumb.+|kys|clanker|die|rot|nig.+|fag.+)$/))) {
                     await msg.reply('Shut up.').catch(() => { })
-                } else if (origcontent.toLowerCase().includes('hi') || origcontent.toLowerCase().includes('yo') || origcontent.toLowerCase().includes('hello') || origcontent.toLowerCase().includes('howdy')) {
+                } else if (words.find(w => w.match(/^(hi+|yo+|hello+|howdy|hey(a+)?)$/))) {
                     await msg.reply('Yo! What\'s up?').catch(() => { })
-                } else if (origcontent.toLowerCase().includes('no') || origcontent.toLowerCase().includes('nah')) {
+                } else if (words.includes('no') || words.includes('nah')) {
                     await msg.reply(':(').catch(() => { })
-                } else if (origcontent.toLowerCase().includes('ye') || origcontent.toLowerCase().includes('yup')) {
+                } else if (words.includes('ye') || words.includes('yup')) {
                     await msg.reply(':)').catch(() => { })
                 } else {
                     var eggPhrase = ourEggPhrases[tempdata[msg.author.id].mentions]

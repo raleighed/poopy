@@ -36,7 +36,16 @@ module.exports = {
         tempdata[msg.author.id].cooler = msg.id
 
         if (command || localCommand) {
-            if (data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === commandname))) {
+            var isDisabled = data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === similarCmds[0].name)) && !(
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) ||
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) ||
+                msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
+                msg.author.id === msg.guild.ownerID ||
+                (config.ownerids.find(id => id == msg.author.id)) ||
+                isBot
+            )
+
+            if (isDisabled) {
                 return 'This command is disabled in this server.'
             } else {
                 var content = msg.content
