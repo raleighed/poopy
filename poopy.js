@@ -1216,6 +1216,8 @@ class Poopy {
                 if (lastMention > config.pingresponsecooldown) tempdata[msg.author.id].mentions = 0
 
                 tempdata[msg.author.id].lastmention = Date.now()
+
+                if (isNaN(tempdata[msg.author.id].mentions)) tempdata[msg.author.id].mentions = 0
                 tempdata[msg.author.id].mentions++
 
                 if (config.pingresponselimit && tempdata[msg.author.id].mentions >= config.pingresponselimit) {
