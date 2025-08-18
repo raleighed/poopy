@@ -1,4 +1,4 @@
-providers = ['node', 'java']
+providers = ['node', 'java', 'python']
 
 [phases.setup]
 nixPkgs = ['...', 'ffmpeg', 'imagemagick', 'gmic']
