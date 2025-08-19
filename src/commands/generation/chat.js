@@ -88,12 +88,13 @@ module.exports = {
             await msg.channel.sendTyping().catch(() => { })
             return
         }
+        
+        if (!tempdata[msg.guild.id]) tempdata[msg.guild.id] = {}
+        if (!tempdata[msg.guild.id][msg.channel.id]) tempdata[msg.guild.id][msg.channel.id] = {}
+        if (!tempdata[msg.guild.id][msg.channel.id][msg.author.id]) tempdata[msg.guild.id][msg.channel.id][msg.author.id] = {}
 
-        if (!tempdata[msg.channel.id]) tempdata[msg.channel.id] = {}
-        if (!tempdata[msg.channel.id][msg.author.id]) tempdata[msg.channel.id][msg.author.id] = {}
-
-        var contexts = tempdata[msg.channel.id][msg.author.id].chatcontexts
-        if (!contexts) contexts = tempdata[msg.channel.id][msg.author.id].chatcontexts = {}
+        var contexts = tempdata[msg.guild.id][msg.channel.id][msg.author.id].chatContexts
+        if (!contexts) contexts = tempdata[msg.guild.id][msg.channel.id][msg.author.id].chatContexts = {}
 
         var ourContext = contexts[instruct]
         if (!ourContext || (Date.now() - ourContext.lastMessage) > 1000 * 60 * 10 || clear) ourContext = contexts[instruct] = {
