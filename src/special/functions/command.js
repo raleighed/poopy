@@ -36,7 +36,7 @@ module.exports = {
         tempdata[msg.author.id].cooler = msg.id
 
         if (command || localCommand) {
-            var isDisabled = data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === similarCmds[0].name)) && !(
+            var isDisabled = data.guildData[msg.guild.id].disabled.find(cmd => cmd.find(n => n === commandname)) && !(
                 msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageGuild) ||
                 msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.ManageMessages) ||
                 msg.member.permissions.has(DiscordTypes.PermissionFlagsBits.Administrator) ||
