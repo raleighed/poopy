@@ -3626,10 +3626,18 @@ functions.createCronJob = async function (cronData) {
         var abort = false
 
         while (true) {
-            var guild = bot.guilds.cache.get(guildId) ?? await bot.guilds.fetch(guildId).catch(() => { })
+            var guild = bot.guilds.cache.get(guildId)
+                ?? bot.users.cache.get(guildId)
+                ?? await bot.guilds.fetch(guildId).catch(() => { })
+                ?? await bot.users.fetch(guildId).catch(() => { })
+            
             if (!guild) break
 
-            var channel = guild.channels.cache.get(channelId) ?? await guild.channels.fetch(channelId).catch(() => { })
+            var channel = guild.channels ? (
+                    guild.channels.cache.get(channelId)
+                    ?? await guild.channels.fetch(channelId).catch(() => { })
+                ) : guild
+            
             if (!channel) break
 
             cronMessage = await channel.send(phrase).catch((err) => {
