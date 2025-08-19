@@ -795,10 +795,11 @@ functions.cleverbot = async function (stim, msg, clear) {
     let { axios, CryptoJS } = poopy.modules
     let { randomChoice } = poopy.functions
 
-    if (!tempdata[msg.channel.id]) tempdata[msg.channel.id] = {}
+    if (!tempdata[msg.guild.id]) tempdata[msg.guild.id] = {}
+    if (!tempdata[msg.guild.id][msg.channel.id]) tempdata[msg.guild.id][msg.channel.id] = {}
 
-    var context = tempdata[msg.channel.id].clevercontext
-    if (!context || (Date.now() - context.lastMessage) > 1000 * 60 * 10 || clear) context = tempdata[msg.channel.id].clevercontext = {
+    var context = tempdata[msg.guild.id][msg.channel.id].cleverContext
+    if (!context || (Date.now() - context.lastMessage) > 1000 * 60 * 10 || clear) context = tempdata[msg.channel.id].cleverContext = {
         history: [],
         processing: false
     }
