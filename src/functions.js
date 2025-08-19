@@ -1602,6 +1602,9 @@ functions.navigateEmbed = async function (channel, pageFunc, results, who, extra
 
     var usingButton = false
 
+    if (!tempdata[who]) tempdata[who] = {}
+    if (!tempdata[who].navigateCollectors) tempdata[who].navigateCollectors = []
+
     if (!nolimit) {
         var lastCollectors = tempdata[who].navigateCollectors
         if (lastCollectors && lastCollectors.length) lastCollectors.forEach(lastCollector => {
@@ -3627,16 +3630,15 @@ functions.createCronJob = async function (cronData) {
 
         while (true) {
             var guild = bot.guilds.cache.get(guildId)
-                ?? bot.users.cache.get(guildId)
                 ?? await bot.guilds.fetch(guildId).catch(() => { })
-                ?? await bot.users.fetch(guildId).catch(() => { })
-            
-            if (!guild) break
 
-            var channel = guild.channels ? (
+            var channel = guild && guild.channels ? (
                     guild.channels.cache.get(channelId)
                     ?? await guild.channels.fetch(channelId).catch(() => { })
-                ) : guild
+                ) : (
+                    bot.channels.cache.get(channelId)
+                    ?? await bot.channels.fetch(channelId).catch(() => { })
+                )
             
             if (!channel) break
 
