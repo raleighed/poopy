@@ -53,7 +53,7 @@ module.exports = {
         var anonIndex = args.indexOf('-anonymous')
         if (anonIndex > -1) {
             args.splice(anonIndex, 1)
-            anon = true
+            //anon = true
         }
         var saidMessage = args.slice(2).join(' ')
         var attachments = []
