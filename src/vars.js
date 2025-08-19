@@ -123,7 +123,10 @@ vars.dataTemplate = {
 vars.tempdataTemplate = {
     guildId: {
         channelId: {
-            userId: {}
+            userId: {
+                chatContexts: {}
+            },
+            cleverContext: {}
         },
         userId: {
             promises: []
@@ -139,8 +142,7 @@ vars.tempdataTemplate = {
             mentions: 0
         },
         pronouns: [],
-        pronounsExpireDate: 0,
-        cleverContext: {}
+        pronounsExpireDate: 0
     }
 }
 
