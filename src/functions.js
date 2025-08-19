@@ -790,8 +790,8 @@ functions.gatherData = async function (msg) {
 functions.cleverbot = async function (stim, msg, clear) {
     let poopy = this
     let vars = poopy.vars
-    let tempdata = poopy.tempdata
     let arrays = poopy.arrays
+    let tempdata = poopy.tempdata
     let { axios, CryptoJS } = poopy.modules
     let { randomChoice } = poopy.functions
 
@@ -4138,7 +4138,8 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     let {
         getLevel, execPromise, randomNumber, fetchPingPerms,
         randomChoice, validateFile, downloadFile, dataGather,
-        getShieldById, battleGif, dealDamage, resolveUser
+        getShieldById, battleGif, dealDamage, resolveUser,
+        pronouns
     } = poopy.functions
     let { Discord } = poopy.modules
 
@@ -4210,12 +4211,31 @@ functions.battle = async function (msg, subject, action, damage, chance) {
         )
     )
 
-    for (var dt of [[yourData, "you're"], [subjData, "they're"], [fakeSubjData, "it's"]]) {
+    for (var dt of [[yourData, yourUser], [subjData, subjUser], [fakeSubjData, undefined]]) {
         var battleData = dt[0]
-        var pronoun = dt[1]
+        var battleUser = dt[1]
 
         if (battleData && battleData.death) {
             if (battleData.death - Date.now() > 0) {
+                var pronoun = battleUser ? (await pronouns(battleUser, msg.guild))[0] : 'it'
+                switch (pronoun) {
+                    case 'they':
+                        pronoun = "they're"
+                        break
+                    
+                    case 'he':
+                        pronoun = "he's"
+                        break
+                    
+                    case 'she':
+                        pronoun = "she's"
+                        break
+                    
+                    case 'it':
+                        pronoun = "it's"
+                        break
+                }
+
                 await msg.reply(`But ${pronoun} dead.`).catch(() => { })
                 return
             } else {
@@ -4286,6 +4306,10 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     var yourName = yourUser.displayName
     var subjName = (subjUser && subjUser.displayName) ?? subject ?? 'this'
 
+    var subjPronoun = subjUser ? (await pronouns(subjUser, msg.guild))[0] : 'it'
+    var subjPronounCapperCase = subjPronoun.toCapperCase()
+    var subjHave = subjPronoun == 'they' ? 'have' : 'has'
+
     var actions = []
 
     if (critical) actions.push('***CRITICAL HIT!***')
@@ -4299,9 +4323,9 @@ functions.battle = async function (msg, subject, action, damage, chance) {
     if (youGotHit) actions.push(`**${subjName}** hit you back for **${gotDamaged}** damage!`)
 
     if (youDied) actions.push('You have died.')
-    if (subjDied) actions.push(subjIsYou ? 'Congratulations.' : `They have died.`)
+    if (subjDied) actions.push(subjIsYou ? 'Congratulations.' : `${subjPronounCapperCase} ${subjHave} died.`)
     if (yourLevel > yourLastLevel) actions.push(`You leveled UP!`)
-    if (subjLevel > subjLastLevel) actions.push(`They leveled UP!`)
+    if (subjLevel > subjLastLevel) actions.push(`${subjPronounCapperCase} leveled UP!`)
 
     var stats = []
 
@@ -5608,24 +5632,29 @@ functions.resolveUser = async function (identifier, guild) {
     if (identifier === undefined)
         return undefined
 
-    identifier = String(identifier)
+    identifier = String(identifier).trim()
 
-    var strippedIdentifier = identifier.replace(/^\s*<@/, '').replace(/>\s*$/, '')
+    var strippedMentionIdentifier = identifier.replace(/^<@/, '').replace(/>$/, '')
 
-    var identifierIsId = strippedIdentifier.match(/[0-9]+/)?.[0] == strippedIdentifier
+    var identifierIsId = strippedMentionIdentifier.match(/[0-9]+/)?.[0] == strippedMentionIdentifier
     if (identifierIsId) {
-        var userResolvedById = await bot.users.fetch(strippedIdentifier).catch(() => { })
+        var userResolvedById = await bot.users.fetch(strippedMentionIdentifier).catch(() => { })
         if (userResolvedById)
             return userResolvedById
     }
 
+    var identifierLowercase = identifier.toLowerCase()
+    
     var cachedUserFromUsernameOrGlobalName = bot.users.cache.find(
-        user => user.username == identifier || user.globalName == identifier
+        user => user.username.toLowerCase() == identifierLowercase
+            || user.globalName?.toLowerCase() == identifierLowercase
     )
     if (cachedUserFromUsernameOrGlobalName)
         return cachedUserFromUsernameOrGlobalName
 
-    var idFromLeaderboardTag = Object.keys(data.botData.leaderboard).find(id => data.botData.leaderboard[id]?.tag == identifier)
+    var idFromLeaderboardTag = Object.keys(data.botData.leaderboard).find(
+        id => data.botData.leaderboard[id]?.tag.toLowerCase() == identifierLowercase
+    )
     if (idFromLeaderboardTag) {
         var userResolvedByLeaderboardId = await bot.users.fetch(idFromLeaderboardTag).catch(() => { })
         if (userResolvedByLeaderboardId)
@@ -5634,9 +5663,9 @@ functions.resolveUser = async function (identifier, guild) {
 
     if (guild) {
         var memberFromUsernameOrNicknameOrGlobalNameInGuild = guild.members.cache.find(
-            member => member.user.username == identifier
-                || member.nickname == identifier
-                || member.user.globalName == identifier
+            member => member.user.username.toLowerCase() == identifierLowercase
+                || member.nickname?.toLowerCase() == identifierLowercase
+                || member.user.globalName?.toLowerCase() == identifierLowercase
         )
 
         if (memberFromUsernameOrNicknameOrGlobalNameInGuild)
@@ -5665,6 +5694,160 @@ functions.resolveUser = async function (identifier, guild) {
     }
 
     return null
+}
+
+functions.quotationMarksInput = function (text) {
+    let poopy = this
+    let vars = poopy.vars
+
+    var symbolReplacedText
+    vars.symbolreplacements.forEach(symbolReplacement => {
+        symbolReplacement.target.forEach(target => {
+            symbolReplacedText = symbolReplacedText.replace(new RegExp(target, 'ig'), symbolReplacement.replacement)
+        })
+    })
+
+    var match = symbolReplacedText.match(/(?<!\\)"(.*?)(?<!\\)"/s)
+    if (!match) {
+        match = []
+    }
+
+    for (let i = 0; i < match.length; i++) {
+        match[i] = match[i].replace(/\\(?=")/g, "")
+    }
+
+    var matchedStrings = Array.from(match).splice(1)
+    
+    return matchedStrings, match
+}
+
+functions.fetchPronounFields = async function (user, guild) {
+    let poopy = this
+    let { axios } = poopy.modules
+
+    if (!process.env.DISCORD_REFRESHER_TOKEN)
+        return null
+
+    var response = await axios({
+        method: 'GET',
+        url: `https://discord.com/api/v9/users/${user.id}/profile` + (guild ? `?guild_id=${guild.id}` : ''),
+        headers: {
+            "Authorization": process.env.DISCORD_REFRESHER_TOKEN,
+            "Accept": "application/json"
+        }
+    }).catch((e) => console.log(e))
+
+    if (!response)
+        // No response?
+        return
+
+    if (response.status < 200 || response.status >= 300)
+        // Request failed
+        return
+    
+    var serverPronouns = ''
+    var userPronouns = ''
+
+    if (response.data.guild_member_profile && response.data.guild_member_profile.pronouns !== undefined)
+        serverPronouns = response.data.guild_member_profile.pronouns
+
+    if (response.data.user_profile && response.data.user_profile.pronouns !== undefined)
+        userPronouns = response.data.user_profile.pronouns
+
+    return [userPronouns, serverPronouns]
+}
+
+functions.pronouns = async function (user, guild) {
+    // Return an array of possible pronouns. ['they', 'he', 'she', 'it'] in order of appearance
+    // Returns all by default
+    let poopy = this
+    let tempdata = poopy.tempdata
+    let { fetchPronounFields } = poopy.functions
+
+    var userTempdata = tempdata[user.id] ?? (tempdata[user.id] = {
+        pronouns: [],
+        pronounsExpireDate: 0
+    })
+
+    var userCachedPronouns = userTempdata.pronouns
+    if (userCachedPronouns.length > 0 && userTempdata.pronounsExpireDate > Date.now())
+        return userCachedPronouns
+
+    var defaultPronouns = ['they', 'he', 'she', 'it']
+
+    var guildMember = guild && await guild.members.fetch(user.id).catch(() => { })
+
+    var pronounFields = await fetchPronounFields(user, guildMember && guild).catch((e) => console.log(e))
+    if (!pronounFields)
+        return defaultPronouns
+    
+    var [ userProfilePronouns, serverProfilePronouns ] = pronounFields
+
+    function findPronouns(pronounsString) {
+        var pileOfPronouns = new Set()
+
+        var pronounElements = pronounsString.split('/')
+        for (pronoun of pronounElements) {
+            pronoun = pronoun.trim().toLowerCase().replace(/[^ \/a-zA-Z0-9]/, '')
+
+            switch (pronoun) {
+                case 'he':
+                case 'him':
+                case 'his':
+                case 'himself':
+                    pileOfPronouns.add('he')
+                    break
+
+                case 'she':
+                case 'her':
+                case 'hers':
+                case 'herself':
+                    pileOfPronouns.add('she')
+                    break
+
+                case 'they':
+                case 'them':
+                case 'theirs':
+                case 'themselves':
+                case 'themself':
+                    pileOfPronouns.add('they')
+                    break
+                
+                case 'it':
+                case 'its':
+                case 'itself':
+                    pileOfPronouns.add('it')
+                    break
+
+                case 'any':
+                case 'all':
+                case 'anything':
+                case 'whatever':
+                    pileOfPronouns.add('they')
+                    pileOfPronouns.add('he')
+                    pileOfPronouns.add('she')
+                    pileOfPronouns.add('it')
+                    break
+            }
+        }
+
+        return pileOfPronouns
+    }
+    
+    var pilesOfPronouns = [ findPronouns(serverProfilePronouns), findPronouns(userProfilePronouns) ]
+    pilesOfPronouns = pilesOfPronouns.filter(
+        pileOfPronouns => pileOfPronouns.size > 0
+    )
+
+    if (pilesOfPronouns.length == 0)
+        return defaultPronouns
+
+    var chosenPronouns = Array.from(pilesOfPronouns[0])
+
+    userTempdata.pronouns = chosenPronouns
+    userTempdata.pronounsExpireDate = Date.now() + (10_000 * 60)
+
+    return chosenPronouns
 }
 
 module.exports = functions

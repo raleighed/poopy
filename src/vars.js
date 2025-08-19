@@ -137,7 +137,10 @@ vars.tempdataTemplate = {
             promises: [],
             lastmention: 0,
             mentions: 0
-        }
+        },
+        pronouns: [],
+        pronounsExpireDate: 0,
+        cleverContext: {}
     }
 }
 

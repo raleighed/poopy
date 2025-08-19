@@ -26,17 +26,17 @@ module.exports = {
         let vars = poopy.vars
         let config = poopy.config
         let { getLevel, dataGather, fetchPingPerms,
-            getShieldById, formatNumberWithPreset } = poopy.functions
+            getShieldById, formatNumberWithPreset, resolveUser } = poopy.functions
 
         await msg.channel.sendTyping().catch(() => { })
 
-        args[1] = args[1] ?? ''
+        var userQuery = args.slice(1).join(' ')
 
-        var member = await bot.users.fetch((args[1].match(/[0-9]+/) ?? [args[1]])[0]).catch(() => { }) ?? msg.author
+        var member = await resolveUser(userQuery).catch(() => { }) ?? msg.author
 
         if (!member) {
             await msg.reply({
-                content: `Invalid user ID: **${args[1]}**`,
+                content: `Invalid user: **${userQuery}**`,
                 allowedMentions: {
                     parse: fetchPingPerms(msg)
                 }
