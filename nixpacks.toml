@@ -5,7 +5,7 @@ nixPkgs = [
     '...',
     'openjdk',
     'python3',
-    'ffmpeg_6-full',
+    'ffmpeg_6',
     'imagemagick',
     'gmic'
 ]
