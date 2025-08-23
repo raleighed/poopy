@@ -101,6 +101,7 @@ class Poopy {
             keyLimit: 500,
             rateLimit: 3,
             rateLimitTime: 60000 * 2,
+            processTimeout: 60000 * 2,
             memLimit: 0,
             quitOnDestroy: false
         }
