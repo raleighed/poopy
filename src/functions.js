@@ -518,7 +518,14 @@ functions.execPromise = function (code) {
     let { spawn, exec, processTask } = poopy.functions
 
     return new Promise(async (resolve) => {
-        var args = code.match(/("[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S)+)/g)
+        var args = code.match(vars.cmdRegex).map(arg => {
+            if (arg.match(/^.*"(?:[^"\\]|\\.)*".*$/)) {
+                return arg.replace(/(?<!\\)"/g, "")
+            } else {
+                return arg
+            }
+        })
+        
         var command = args.splice(0, 1)[0]
 
         async function execTask() {
@@ -558,39 +565,24 @@ functions.execPromise = function (code) {
             return
         }
 
-        var exargs = code.split(' ')
-        exargs[0] = vars.processingTools.names[exargs[0]] ?? exargs[0]
-        code = exargs.join(' ')
-
-        args = code.match(/("[^"\\]*(?:\\[\S\s][^"\\]*)*"|'[^'\\]*(?:\\[\S\s][^'\\]*)*'|\/[^\/\\]*(?:\\[\S\s][^\/\\]*)*\/[gimy]*(?=\s|$)|(?:\\\s|\S)+)/g)
-        command = args.splice(0, 1)[0]
-
         var stdout = []
         var stderr = []
         var stdoutclosed = false
         var stderrclosed = false
         var procExited = false
 
-        var proc = spawn(command, args, {
-            shell: true,
-            env: {
-                ...process.env
-            }
-        })
+        var proc = spawn(command, args)
 
-        var memoryInterval = setInterval(() => {
-            var usage = process.memoryUsage()
-            var rss = usage.rss
-            if ((rss / 1024 / 1024) <= config.memLimit) {
-                if (os.platform() == 'win32') exec(`taskkill /pid ${proc.pid} /f /t`)
-                else exec(`kill -9 ${proc.pid}`) //proc.kill('SIGKILL')
-            }
-        }, 1000)
+        var procTimeout = setTimeout(() => {
+            process.kill(proc.pid, "SIGINT")
+            proc.removeAllListeners()
+            resolve("Process timed out.")
+        }, config.processTimeout)
 
         function handleExit() {
             if (!stdoutclosed || !stderrclosed || !procExited) return
             var out = stdout.join('\n') || stderr.join('\n')
-            clearInterval(memoryInterval)
+            clearTimeout(procTimeout)
             proc.removeAllListeners()
             resolve(out)
         }
@@ -616,7 +608,7 @@ functions.execPromise = function (code) {
         })
 
         proc.on('error', (err) => {
-            clearInterval(memoryInterval)
+            clearTimeout(procTimeout)
             proc.removeAllListeners()
             resolve(err.message)
         })
