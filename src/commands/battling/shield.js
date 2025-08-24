@@ -22,7 +22,7 @@ module.exports = {
         return response
     },
     help: {
-        name: '<:newpoopy:839191885310066729> shield',
+        name: 'shield',
         value: "Put your equipped shield up or down. Check your shields using the `shields` command."
     },
     cooldown: 1000,

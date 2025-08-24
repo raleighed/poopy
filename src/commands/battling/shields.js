@@ -301,7 +301,7 @@ module.exports = {
         return textContent
     },
     help: {
-        name: '<:newpoopy:839191885310066729> shields',
+        name: 'shields',
         value: "View a list of your owned shields and equip whichever one you want."
     },
     cooldown: 5000,

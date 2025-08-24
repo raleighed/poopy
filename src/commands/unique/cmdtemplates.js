@@ -1,6 +1,5 @@
 module.exports = {
-    name: ['commandtemplates',
-        'cmdtemplates'],
+    name: ['cmdtemplates', 'commandtemplates'],
     args: [{
         "name": "option",
         "required": true,
@@ -650,7 +649,7 @@ module.exports = {
         await options[args[1].toLowerCase()](msg, args.slice(1))
     },
     help: {
-        name: 'commandtemplates/cmdtemplates <option>',
+        name: 'cmdtemplates/commandtemplates <option>',
         value: 'Gives you access to a global database of command templates you can use in your servers! Anyone can contribute to it. Use the command alone for more info.'
     },
     cooldown: 5000,

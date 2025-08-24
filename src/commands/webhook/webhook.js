@@ -26,15 +26,15 @@ module.exports = {
     },
     {
         "name": "text",
-        "required": true,
-        "specifarg": false,
-        "orig": "\"<text>\""
+        "required": false,
+        "specifarg": true,
+        "orig": "\"{text}\""
     },
     {
         "name": "image",
-        "required": true,
-        "specifarg": false,
-        "orig": "<image>"
+        "required": false,
+        "specifarg": true,
+        "orig": "{image}"
     }],
     execute: async function (msg, args) {
         let poopy = this
@@ -127,7 +127,7 @@ module.exports = {
         }
     },
     help: {
-        name: 'webhook/customhook/customwebhook [user] "<text>" <image> (manage webhooks/messages permission only)',
+        name: 'webhook/customhook/customwebhook [user] "{text}" {image} (manage webhooks/messages permission only)',
         value: 'Turns someone into the webhook you specified.'
     },
     cooldown: 2500,
