@@ -589,11 +589,13 @@ functions.execPromise = function (code) {
 
         proc.stdout.on('data', (buffer) => {
             if (!buffer.toString()) return
+            console.log(buffer.toString())
             stdout.push(buffer.toString())
         })
 
         proc.stderr.on('data', (buffer) => {
             if (!buffer.toString()) return
+            console.log(buffer.toString())
             stderr.push(buffer.toString())
         })
 
@@ -2809,10 +2811,12 @@ functions.correctUrl = async function (url) {
             return body.data.results[0].media[0].gif.url
         }
     } else if (url.match(/^https\:\/\/(www\.)?gyazo\.com/)) {
-        var gifurl = url.replace(/^https\:\/\/(www\.)?gyazo\.com/, 'https://i.gyazo.com') + '.gif'
-        var mp4url = url.replace(/^https\:\/\/(www\.)?gyazo\.com/, 'https://i.gyazo.com') + '.mp4'
-        var pngurl = url.replace(/^https\:\/\/(www\.)?gyazo\.com/, 'https://i.gyazo.com') + '.png'
-        var gyazourls = [gifurl, mp4url, pngurl]
+        var gyazourl = url.replace(/^https\:\/\/(www\.)?gyazo\.com/, 'https://i.gyazo.com').replace(/\.[a-zA-Z0-9]+$/, "")
+
+        var mp4url = gyazourl + '.mp4'
+        var pngurl = gyazourl + '.png'
+        
+        var gyazourls = [mp4url, pngurl]
         var gyazourl = undefined
         for (var i in gyazourls) {
             var url = gyazourls[i]

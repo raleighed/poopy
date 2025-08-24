@@ -41,7 +41,7 @@ module.exports = {
             var filename = `input.${fileinfo.shortext}`
             var width = fileinfo.info.width
             var height = fileinfo.info.height
-            await execPromise(`ffmpeg -stream_loop -1 -t ${duration} -i ${filepath}/${filename} -r 50 -stream_loop -1 -t ${duration} -i assets/image/transparent.png -filter_complex "[1:v][0:v]scale2ref[transparent][overlay];[overlay]fps=50,scale=iw+sin(PI/2*(t*4/${duration}))*(iw/4)-(ih/4):ih+cos(PI/2*(t*4/${duration}))*(ih/4)-(ih/4):eval=frame[ooverlay];[transparent][ooverlay]overlay=x=(W-w)/2:y=(H-h)/2:format=auto,scale='min(400,iw)':min'(400,ih)':force_original_aspect_ratio=decrease,split[pout][ppout];[ppout]palettegen=reserve_transparent=1[palette];[pout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -aspect ${width}:${height} -preset ${findpreset(args)} -gifflags -offsetting -r 50 -t ${duration} ${filepath}/output.gif`)
+            await execPromise(`ffmpeg -stream_loop -1 -t ${duration} -i ${filepath}/${filename} -r 50 -stream_loop -1 -t ${duration} -i assets/image/transparent.png -filter_complex "[1:v][0:v]scale=rw:rh[transparent];[0:v]fps=50,scale=iw+sin(PI/2*(t*4/${duration}))*(iw/4)-(ih/4):ih+cos(PI/2*(t*4/${duration}))*(ih/4)-(ih/4):eval=frame[ooverlay];[transparent][ooverlay]overlay=x=(W-w)/2:y=(H-h)/2:format=auto,scale='min(400,iw)':min'(400,ih)':force_original_aspect_ratio=decrease,split[pout][ppout];[ppout]palettegen=reserve_transparent=1[palette];[pout][palette]paletteuse=alpha_threshold=128[out]" -map "[out]" -aspect ${width}:${height} -preset ${findpreset(args)} -gifflags -offsetting -r 50 -t ${duration} ${filepath}/output.gif`)
             return await sendFile(msg, filepath, `output.gif`)
         } else if (type.mime.startsWith('video')) {
             var filepath = await downloadFile(currenturl, `input.mp4`, {
@@ -50,7 +50,7 @@ module.exports = {
             var width = fileinfo.info.width
             var height = fileinfo.info.height
             var fps = fileinfo.info.fps
-            await execPromise(`ffmpeg -r ${fps.includes('0/0') ? '50' : fps} -i ${filepath}/${filename} -r ${fps.includes('0/0') ? '50' : fps} -i assets/image/transparent.png -filter_complex "[1:v][0:v]scale2ref[transparent][overlay];[overlay]fps=50,scale=iw+sin(PI/2*(t*4/${duration}))*(iw/4)-(ih/4):ih+cos(PI/2*(t*4/${duration}))*(ih/4)-(ih/4):eval=frame[ooverlay];[transparent][ooverlay]overlay=x=(W-w)/2:y=(H-h)/2:format=auto[out]" -map "[out]" -map 0:a? -c:v libx264 -pix_fmt yuv420p -aspect ${width}:${height} -preset ${findpreset(args)} ${filepath}/output.mp4`)
+            await execPromise(`ffmpeg -r ${fps.includes('0/0') ? '50' : fps} -i ${filepath}/${filename} -r ${fps.includes('0/0') ? '50' : fps} -i assets/image/transparent.png -filter_complex "[1:v][0:v]scale=rw:rh[transparent];[0:v]fps=50,scale=iw+sin(PI/2*(t*4/${duration}))*(iw/4)-(ih/4):ih+cos(PI/2*(t*4/${duration}))*(ih/4)-(ih/4):eval=frame[ooverlay];[transparent][ooverlay]overlay=x=(W-w)/2:y=(H-h)/2:format=auto[out]" -map "[out]" -map 0:a? -c:v libx264 -pix_fmt yuv420p -aspect ${width}:${height} -preset ${findpreset(args)} ${filepath}/output.mp4`)
             return await sendFile(msg, filepath, `output.mp4`)
         } else {
             await msg.reply({
