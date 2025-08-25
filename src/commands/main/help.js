@@ -131,21 +131,27 @@ module.exports = {
         }
 
         if (bot.user.id == "789189158639501312") {
+            var idiot = await bot.users.fetch("464438783866175489").catch(() => { })
+            
             var thankEmbed = {
                 "title": `Poopy Help`,
-                "description": "hey there umm, thank you so much for using this silly bot!\n\n" +
-                    "it really means a lot to me considering the fact it's a project that exists since late 2020\n" +
+                "description": "**hey there umm, thank you so much for using this silly bot!**\n\n" +
+                    
+                    "it really means a lot to me considering the fact it's a project that exists since late 2020... " +
                     "somehow, even with its VERY outdated code, it still manages to bring joy by making stupid gifs and videos...\n\n" +
+                    
                     "...ok enough rambling, here's some links:\n" +
                     `- website: <https://poopybot.vercel.app> ([privacy policy](<https://poopybot.vercel.app/privacy>) | [terms of service](<https://poopybot.vercel.app/tos>))\n` +
-                    `- invite: <https://poopybot.vercel.app/invite>\n` +
-                    `- discord: <https://poopybot.vercel.app/discord>\n` +
-                    `- github: <https://poopybot.vercel.app/github>\n` +
-                    `- donate: <https://poopybot.vercel.app/donate> (...will poopy truly live forever this time? will he...?)`,
+                    `- invite: <https://discord.com/oauth2/authorize?client_id=789189158639501312&scope=bot%20applications.commands&permissions=275415166152>\n` +
+                    `- discord: <https://discord.com/invite/kGY3BDedFp>\n` +
+                    `- github: <https://github.com/raleighed/poopy>\n` +
+                    `- donate: <https://ko-fi.com/raleighed> (i'll make sure to give you something cool if you do)\n\n` +
+                    
+                    `-# (...will poopy truly live forever this time?)`,
                 "color": 0x472604,
                 "footer": {
-                    "icon_url": bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
-                    "text": bot.user.displayName
+                    "icon_url": (idiot ?? bot.user).displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
+                    "text": `from this idiot, ${(idiot ?? bot.user).displayName}`
                 }
             }
 
