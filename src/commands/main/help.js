@@ -25,7 +25,7 @@ module.exports = {
 
         var saidMessage = args.slice(1).join(' ')
         if (saidMessage) {
-            var fCmds = commands.filter(cmd => 
+            var fCmds = commands.filter(cmd =>
                 cmd.name.find(name => name.toLowerCase().includes(saidMessage.toLowerCase()))
             ).concat(
                 data.guildData[msg.guild.id].localcmds.filter(cmd =>
@@ -43,7 +43,7 @@ module.exports = {
             )
 
             if (fCmds.length) {
-                fCmds.sort((a, b) => 
+                fCmds.sort((a, b) =>
                     Math.abs(1 - similarity(a.name.find(name => name.toLowerCase().includes(saidMessage.toLowerCase())), saidMessage)) -
                     Math.abs(1 - similarity(b.name.find(name => name.toLowerCase().includes(saidMessage.toLowerCase())), saidMessage))
                 )
@@ -125,7 +125,37 @@ module.exports = {
 
         var dmChannel = await msg.author.createDM().catch(() => { })
 
-        if (dmChannel) await navigateEmbed(dmChannel, async (page) => {
+        if (!dmChannel) {
+            await msg.reply('Couldn\'t send help to you. Do you have me blocked?').catch(() => { })
+            return
+        }
+
+        if (bot.user.id == "789189158639501312") {
+            var thankEmbed = {
+                "title": `Poopy Help`,
+                "description": "hey there umm, thank you so much for using this silly bot!\n\n" +
+                    "it really means a lot to me considering the fact it's a project that exists since late 2020\n" +
+                    "somehow, even with its VERY outdated code, it still manages to bring joy by making stupid gifs and videos...\n\n" +
+                    "...ok enough rambling, here's some links:\n" +
+                    `- website: <https://poopybot.vercel.app> ([privacy policy](<https://poopybot.vercel.app/privacy>) | [terms of service](<https://poopybot.vercel.app/tos>))\n` +
+                    `- invite: <https://poopybot.vercel.app/invite>\n` +
+                    `- discord: <https://poopybot.vercel.app/discord>\n` +
+                    `- github: <https://poopybot.vercel.app/github>\n` +
+                    `- donate: <https://poopybot.vercel.app/donate> (...will poopy truly live forever this time? will he...?)`,
+                "color": 0x472604,
+                "footer": {
+                    "icon_url": bot.user.displayAvatarURL({ dynamic: true, size: 1024, extension: 'png' }),
+                    "text": bot.user.displayName
+                }
+            }
+
+            if (config.textEmbeds) await msg.author.send(`**Poopy Help**\n\n${thankEmbed.description}`).catch(() => { })
+            else await msg.author.send({
+                embeds: [thankEmbed]
+            }).catch(() => { })
+        }
+
+        await navigateEmbed(dmChannel, async (page) => {
             var helpEmbedText = `**${vars.shelpCmds[page - 1].type} Commands**\n\n` + "Arguments between \"<>\" are required.\nArguments between \"[]\" are optional.\nArguments between \"{}\" are optional but should normally be supplied.\nMultiple commands can be executed separating them with \"-|-\".\nFile manipulation commands have special options that can be used:\n`-encodingpreset <preset>` - More info in `reencode` command.\n`-filename <name>` - Saves the file as the specified name.\n`-catbox` - Forces the file to be uploaded to catbox.moe.\n`-nosend` - Does not send anything, can be used to execute commands silently.\n`-compress` - Compresses the file before sending it if it's above 8 MB.\n\n" + vars.shelpCmds[page - 1].commands.map(k => `\`${k.name}\`\n> ${k.value}`).join('\n') + `\n\nPage ${page}/${vars.shelpCmds.length}`
             var helpEmbed = {
                 "title": `${vars.shelpCmds[page - 1].type} Commands`,
@@ -218,8 +248,7 @@ module.exports = {
             await msg.reply('Couldn\'t send help to you. Do you have me blocked?').catch(() => { })
             return
         })
-        else await msg.reply('Couldn\'t send help to you. Do you have me blocked?').catch(() => { })
-        
+
         return `**${vars.shelpCmds[0].type} Commands**\n\n` + "Arguments between \"<>\" are required.\nArguments between \"[]\" are optional.\nArguments between \"{}\" are optional but should normally be supplied.\nMultiple commands can be executed separating them with \"-|-\".\nFile manipulation commands have special options that can be used:\n`-encodingpreset <preset>` - More info in `reencode` command.\n`-filename <name>` - Saves the file as the specified name.\n`-catbox` - Forces the file to be uploaded to catbox.moe.\n`-nosend` - Does not send anything, can be used to execute commands silently.\n`-compress` - Compresses the file before sending it if it's above 8 MB.\n\n" + vars.shelpCmds[0].commands.map(k => `\`${k.name}\`\n> ${k.value}`).join('\n') + `\n\nPage 1/${vars.shelpCmds.length}`
     },
     help: {
