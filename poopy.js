@@ -24,7 +24,7 @@ class Poopy {
             allowbotusage: false,
             allowbottriggers: false,
             allowpresence: true,
-            allowcleverbot: true,
+            allowcleverbot: false,
             database: 'poopydata',
             globalPrefix: 'p:',
             stfu: false,
