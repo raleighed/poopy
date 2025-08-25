@@ -589,13 +589,11 @@ functions.execPromise = function (code) {
 
         proc.stdout.on('data', (buffer) => {
             if (!buffer.toString()) return
-            console.log(buffer.toString())
             stdout.push(buffer.toString())
         })
 
         proc.stderr.on('data', (buffer) => {
             if (!buffer.toString()) return
-            console.log(buffer.toString())
             stderr.push(buffer.toString())
         })
 
@@ -4613,11 +4611,16 @@ functions.fetchImages = async function (query, unsafe) {
 
     if (tempdata.images[query.toLowerCase()]) return tempdata.images[query.toLowerCase()]
 
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
         gis({
             searchTerm: query,
             queryStringAddition: `&safe=${unsafe ? 'images' : 'active'}`
         }, async function (_, results) {
+            if (!results) {
+                reject("Error fetching images.")
+                return
+            }
+            
             var images = results.map(
                 result => result.url.replace(/\\u([a-z0-9]){4}/g, (match) => {
                     return String.fromCharCode(Number('0x' + match.substring(2, match.length)))
