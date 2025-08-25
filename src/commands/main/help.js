@@ -141,11 +141,11 @@ module.exports = {
                     "somehow, even with its VERY outdated code, it still manages to bring joy by making stupid gifs and videos...\n\n" +
                     
                     "...ok enough rambling, here's some links:\n" +
-                    `- website: <https://poopybot.vercel.app> ([privacy policy](<https://poopybot.vercel.app/privacy>) | [terms of service](<https://poopybot.vercel.app/tos>))\n` +
-                    `- invite: <https://discord.com/oauth2/authorize?client_id=789189158639501312&scope=bot%20applications.commands&permissions=275415166152>\n` +
-                    `- discord: <https://discord.com/invite/kGY3BDedFp>\n` +
-                    `- github: <https://github.com/raleighed/poopy>\n` +
-                    `- donate: <https://ko-fi.com/raleighed> (i'll make sure to give you something cool if you do)\n\n` +
+                    `- **website:** <https://poopybot.vercel.app> ([privacy policy](<https://poopybot.vercel.app/privacy>) | [terms of service](<https://poopybot.vercel.app/tos>))\n` +
+                    `- **invite:** <https://discord.com/oauth2/authorize?client_id=789189158639501312&scope=bot%20applications.commands&permissions=275415166152>\n` +
+                    `- **discord:** <https://discord.com/invite/kGY3BDedFp>\n` +
+                    `- **github:** <https://github.com/raleighed/poopy>\n` +
+                    `- **donate:** <https://ko-fi.com/raleighed> (i'll make sure to give you something cool if you do)\n\n` +
                     
                     `-# (...will poopy truly live forever this time?)`,
                 "color": 0x472604,
